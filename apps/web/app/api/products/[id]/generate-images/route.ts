@@ -1,0 +1,142 @@
+import { NextResponse } from "next/server";
+import {
+  addGeneratedProductImages,
+  addJob,
+  completeImageGeneration,
+  getProduct
+} from "@/lib/store";
+import {
+  OpenAIRequestError,
+  generateProductImageWithOpenAI,
+  getOpenAIKeyStatus
+} from "@/lib/openai";
+
+export async function POST(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  const product = await getProduct(id);
+  if (!product) return NextResponse.json({ error: "Product not found." }, { status: 404 });
+
+  const body = await request.json().catch(() => ({}));
+  const styles = Array.isArray(body.styles) && body.styles.length
+    ? body.styles
+    : ["white_background", "lifestyle_home", "product_detail", "product_intro"];
+  const count = Number.isFinite(body.count) ? Math.min(Math.max(body.count, 1), 3) : 2;
+
+  const prompts: Array<{
+    style: string;
+    index: number;
+    type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
+    prompt: string;
+  }> = styles.flatMap((style: string) => {
+    const type =
+      style === "white_background"
+        ? ("WHITE_BACKGROUND" as const)
+        : style === "product_detail"
+          ? ("PRODUCT_DETAIL" as const)
+          : style === "product_intro"
+            ? ("PRODUCT_INTRO" as const)
+            : ("LIFESTYLE" as const);
+    const prompt =
+      style === "white_background"
+        ? "Create a clean ecommerce product photo using the uploaded product image. Keep the product shape, color, texture, logo, and visible details accurate. Place the product centered on a pure white background with soft studio lighting. Do not add extra objects."
+        : style === "product_detail"
+          ? `Create a Shopify product detail page image for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show close-up product details, material/fit/feature callouts, and a clean ecommerce composition. Include concise readable English callout text only if it improves the image. Do not invent specifications. Keep the product logo, color, shape, and proportions accurate.`
+          : style === "product_intro"
+            ? `Create a product introduction image for a Shopify product page hero section for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show the product clearly with a polished ecommerce layout, short intro-style headline space, premium lighting, and room for product-page copy. Keep the product accurate and do not invent specifications.`
+            : `Create a realistic ecommerce lifestyle product photo using the uploaded product. Keep the product accurate and recognizable. Place it in a ${String(style).replaceAll("_", " ")} environment with natural lighting. Do not change the product design.`;
+
+    return Array.from({ length: 1 }).map((_, index) => ({
+      style,
+      index,
+      type,
+      prompt
+    }));
+  });
+
+  let generatedImages: Array<{
+    type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
+    url: string;
+    storageKey?: string;
+    prompt: string;
+  }> = [];
+
+  try {
+    generatedImages = (
+      await Promise.all(
+        prompts.map(async (item, index) => {
+          const generated = await generateProductImageWithOpenAI({
+            productId: id,
+            imageUrl: product.originalImageUrl,
+            prompt: item.prompt,
+            type: item.type,
+            index
+          });
+          return generated ? { ...item, ...generated } : null;
+        })
+      )
+    ).filter(Boolean) as Array<{
+      type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
+      url: string;
+      storageKey?: string;
+      prompt: string;
+    }>;
+  } catch (error) {
+    const message =
+      error instanceof OpenAIRequestError
+        ? `${error.message}${error.code ? ` (${error.code})` : ""}`
+        : error instanceof Error
+          ? error.message
+          : "OpenAI image generation failed.";
+    const job = await addJob(id, {
+      type: "IMAGE_GENERATION",
+      status: "FAILED",
+      progress: 0,
+      input: { styles, count },
+      output: {
+        mode: "openai",
+        note: message
+      },
+      error: message
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job?.id,
+        status: "failed",
+        mode: "openai",
+        error: message
+      },
+      { status: 402 }
+    );
+  }
+
+  const usedOpenAI = generatedImages.length > 0;
+  const images = usedOpenAI
+    ? await addGeneratedProductImages(id, generatedImages)
+    : await completeImageGeneration(id, styles, count);
+
+  const keyStatus = getOpenAIKeyStatus();
+  const note = usedOpenAI ? "Generated with OpenAI image API." : keyStatus.message;
+  const job = await addJob(id, {
+    type: "IMAGE_GENERATION",
+    status: "COMPLETED",
+    progress: 100,
+    input: { styles, count },
+    output: {
+      mode: usedOpenAI ? "openai" : "local-simulation",
+      note
+    },
+    error: null
+  });
+
+  return NextResponse.json({
+    jobId: job?.id,
+    status: "completed",
+    mode: usedOpenAI ? "openai" : "local-simulation",
+    note,
+    images
+  });
+}

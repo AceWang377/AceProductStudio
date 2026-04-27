@@ -1,0 +1,17 @@
+{
+  "name": "@ai-product-studio/web",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@ai-product-studio/ai": "*",
+    "@ai-product-studio/database": "*",
+    "@ai-product-studio/queue": "*",
+    "@ai-product-studio/shopify": "*",
+    "@ai-product-studio/storage": "*"
+  }
+}

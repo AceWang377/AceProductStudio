@@ -1,0 +1,109 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Product {
+  id                       String          @id @default(cuid())
+  name                     String?
+  category                 String?
+  style                    String?
+  status                   ProductStatus   @default(DRAFT)
+  originalImageUrl          String
+  backgroundRemovedImageUrl String?
+  title                    String?
+  description              String?
+  bulletPoints             String[]        @default([])
+  tags                     String[]        @default([])
+  faq                      Json?
+  price                    String?
+  compareAtPrice           String?
+  sku                      String?
+  inventoryQuantity        Int?
+  trackInventory           Boolean         @default(false)
+  shopifyProductId          String?
+  shopifyStatus             ShopifyStatus   @default(NOT_CONNECTED)
+  images                   ProductImage[]
+  jobs                     GenerationJob[]
+  createdAt                DateTime        @default(now())
+  updatedAt                DateTime        @updatedAt
+}
+
+model ProductImage {
+  id         String           @id @default(cuid())
+  productId  String
+  product    Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type       ProductImageType
+  url        String
+  storageKey String?
+  prompt     String?
+  isSelected Boolean          @default(false)
+  sortOrder  Int              @default(0)
+  createdAt  DateTime         @default(now())
+}
+
+model GenerationJob {
+  id        String    @id @default(cuid())
+  productId String
+  product   Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  type      JobType
+  status    JobStatus @default(QUEUED)
+  progress  Int       @default(0)
+  input     Json
+  output    Json?
+  error     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model ShopifyConnection {
+  id                   String   @id @default(cuid())
+  shopDomain            String
+  accessTokenEncrypted  String
+  isActive              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+enum ProductStatus {
+  DRAFT
+  GENERATING
+  READY
+  PUBLISHED
+  FAILED
+}
+
+enum ShopifyStatus {
+  NOT_CONNECTED
+  READY_TO_PUBLISH
+  PUBLISHED_AS_DRAFT
+  PUBLISHED_LIVE
+  FAILED
+}
+
+enum ProductImageType {
+  ORIGINAL
+  CUTOUT
+  WHITE_BACKGROUND
+  LIFESTYLE
+  PRODUCT_DETAIL
+  PRODUCT_INTRO
+  REFERENCE_STYLE
+}
+
+enum JobType {
+  IMAGE_GENERATION
+  COPY_GENERATION
+  SHOPIFY_PUBLISH
+}
+
+enum JobStatus {
+  QUEUED
+  PROCESSING
+  COMPLETED
+  FAILED
+}

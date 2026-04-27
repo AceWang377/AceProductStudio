@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+.env
+.env.local
+*.log
+apps/web/data/app-state.json
+apps/web/public/uploads/*
+!apps/web/public/uploads/.gitkeep

@@ -1,0 +1,7 @@
+{
+  "name": "@ai-product-studio/shopify",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "main": "src/shopify.service.ts"
+}
