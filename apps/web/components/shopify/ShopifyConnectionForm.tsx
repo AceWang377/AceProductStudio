@@ -84,10 +84,10 @@ export function ShopifyConnectionForm({
             value={shopDomain}
             onChange={(event) => setShopDomain(event.target.value)}
             className="studio-focus mt-2 h-11 w-full rounded border border-line px-3"
-            placeholder="fybpj8-wj.myshopify.com"
+            placeholder="your-store.myshopify.com"
           />
           <span className="mt-2 block text-xs text-muted">
-            Use the .myshopify.com domain or paste the admin.shopify.com/store/... URL. Do not use the public customer domain.
+            Use your store's original .myshopify.com domain or paste an admin.shopify.com/store/... URL. Do not use the public customer domain.
           </span>
         </label>
         <button
