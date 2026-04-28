@@ -102,6 +102,16 @@ function asStringArray(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
+function isMissingColumnError(error: { message?: string; code?: string } | null | undefined, columnName: string) {
+  return Boolean(
+    error &&
+      (error.code === "42703" ||
+        error.message?.includes(`column stores.${columnName} does not exist`) ||
+        error.message?.includes(`'${columnName}' column`) ||
+        error.message?.includes(`Could not find the '${columnName}' column`))
+  );
+}
+
 function asFaq(value: unknown): Product["faq"] {
   if (!Array.isArray(value)) return [];
   return value
@@ -246,6 +256,18 @@ async function getActiveShopifyConnection() {
     .order("updated_at", { ascending: false })
     .limit(1)
     .maybeSingle();
+
+  if (isMissingColumnError(error, "is_active")) {
+    const { data: fallbackData, error: fallbackError } = await supabase
+      .from("stores")
+      .select("*")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (fallbackError) throw new Error(`Could not load Shopify connection: ${fallbackError.message}`);
+    return fallbackData ? mapStore({ ...(fallbackData as StoreRow), is_active: true }) : undefined;
+  }
 
   if (error) throw new Error(`Could not load Shopify connection: ${error.message}`);
   return data ? mapStore(data as StoreRow) : undefined;
@@ -736,40 +758,67 @@ export async function saveShopifyConnection(input: {
   const existing = await getActiveShopifyConnection();
 
   if (existing) {
-    const { data, error } = await supabase
-      .from("stores")
-      .update({
-        shop_domain: input.shopDomain.trim(),
-        access_token: adminAccessToken || null,
-        admin_access_token: adminAccessToken || null,
-        client_id: clientId || null,
-        client_secret: clientSecret || null,
-        is_active: isActive,
-        updated_at: now
-      })
-      .eq("id", existing.id)
-      .select("*")
-      .single();
-
-    if (error) throw new Error(`Could not update Shopify connection: ${error.message}`);
-    return mapStore(data as StoreRow);
-  }
-
-  const { data, error } = await supabase
-    .from("stores")
-    .insert({
-      id: randomUUID(),
+    const updatePayload = {
       shop_domain: input.shopDomain.trim(),
       access_token: adminAccessToken || null,
       admin_access_token: adminAccessToken || null,
       client_id: clientId || null,
       client_secret: clientSecret || null,
       is_active: isActive,
-      created_at: now,
       updated_at: now
-    })
+    };
+
+    let { data, error } = await supabase
+      .from("stores")
+      .update(updatePayload)
+      .eq("id", existing.id)
+      .select("*")
+      .single();
+
+    if (isMissingColumnError(error, "is_active")) {
+      const { is_active: _isActive, ...fallbackPayload } = updatePayload;
+      const fallbackResult = await supabase
+        .from("stores")
+        .update(fallbackPayload)
+        .eq("id", existing.id)
+        .select("*")
+        .single();
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
+
+    if (error) throw new Error(`Could not update Shopify connection: ${error.message}`);
+    return mapStore(data as StoreRow);
+  }
+
+  const insertPayload = {
+    id: randomUUID(),
+    shop_domain: input.shopDomain.trim(),
+    access_token: adminAccessToken || null,
+    admin_access_token: adminAccessToken || null,
+    client_id: clientId || null,
+    client_secret: clientSecret || null,
+    is_active: isActive,
+    created_at: now,
+    updated_at: now
+  };
+
+  let { data, error } = await supabase
+    .from("stores")
+    .insert(insertPayload)
     .select("*")
     .single();
+
+  if (isMissingColumnError(error, "is_active")) {
+    const { is_active: _isActive, ...fallbackPayload } = insertPayload;
+    const fallbackResult = await supabase
+      .from("stores")
+      .insert(fallbackPayload)
+      .select("*")
+      .single();
+    data = fallbackResult.data;
+    error = fallbackResult.error;
+  }
 
   if (error) throw new Error(`Could not save Shopify connection: ${error.message}`);
   return mapStore(data as StoreRow);
