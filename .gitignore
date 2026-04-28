@@ -7,3 +7,4 @@ dist
 apps/web/data/app-state.json
 apps/web/public/uploads/*
 !apps/web/public/uploads/.gitkeep
+.vercel
