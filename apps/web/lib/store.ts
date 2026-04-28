@@ -106,10 +106,40 @@ function isMissingColumnError(error: { message?: string; code?: string } | null 
   return Boolean(
     error &&
       (error.code === "42703" ||
+        error.code === "PGRST204" ||
         error.message?.includes(`column stores.${columnName} does not exist`) ||
         error.message?.includes(`'${columnName}' column`) ||
         error.message?.includes(`Could not find the '${columnName}' column`))
   );
+}
+
+function getMissingStoreColumn(error: { message?: string; code?: string } | null | undefined) {
+  if (!error) return null;
+  const message = error.message ?? "";
+  const quotedColumn = message.match(/'([^']+)' column/)?.[1];
+  if (quotedColumn) return quotedColumn;
+  const dottedColumn = message.match(/column stores\.([a-z_]+) does not exist/)?.[1];
+  return dottedColumn ?? null;
+}
+
+async function retryStoreMutationWithoutMissingColumns<T extends Record<string, unknown>>(
+  payload: T,
+  mutate: (nextPayload: Partial<T>) => Promise<{ data: unknown; error: { message?: string; code?: string } | null }>
+) {
+  let nextPayload: Partial<T> = { ...payload };
+  let result = await mutate(nextPayload);
+  const removedColumns = new Set<string>();
+
+  while (result.error) {
+    const missingColumn = getMissingStoreColumn(result.error);
+    if (!missingColumn || removedColumns.has(missingColumn) || !(missingColumn in nextPayload)) break;
+    removedColumns.add(missingColumn);
+    const { [missingColumn]: _removed, ...rest } = nextPayload;
+    nextPayload = rest as Partial<T>;
+    result = await mutate(nextPayload);
+  }
+
+  return result;
 }
 
 function asFaq(value: unknown): Product["faq"] {
@@ -768,24 +798,15 @@ export async function saveShopifyConnection(input: {
       updated_at: now
     };
 
-    let { data, error } = await supabase
-      .from("stores")
-      .update(updatePayload)
-      .eq("id", existing.id)
-      .select("*")
-      .single();
-
-    if (isMissingColumnError(error, "is_active")) {
-      const { is_active: _isActive, ...fallbackPayload } = updatePayload;
-      const fallbackResult = await supabase
+    const { data, error } = await retryStoreMutationWithoutMissingColumns(updatePayload, async (nextPayload) => {
+      const result = await supabase
         .from("stores")
-        .update(fallbackPayload)
+        .update(nextPayload)
         .eq("id", existing.id)
         .select("*")
         .single();
-      data = fallbackResult.data;
-      error = fallbackResult.error;
-    }
+      return { data: result.data, error: result.error };
+    });
 
     if (error) throw new Error(`Could not update Shopify connection: ${error.message}`);
     return mapStore(data as StoreRow);
@@ -803,22 +824,14 @@ export async function saveShopifyConnection(input: {
     updated_at: now
   };
 
-  let { data, error } = await supabase
-    .from("stores")
-    .insert(insertPayload)
-    .select("*")
-    .single();
-
-  if (isMissingColumnError(error, "is_active")) {
-    const { is_active: _isActive, ...fallbackPayload } = insertPayload;
-    const fallbackResult = await supabase
+  const { data, error } = await retryStoreMutationWithoutMissingColumns(insertPayload, async (nextPayload) => {
+    const result = await supabase
       .from("stores")
-      .insert(fallbackPayload)
+      .insert(nextPayload)
       .select("*")
       .single();
-    data = fallbackResult.data;
-    error = fallbackResult.error;
-  }
+    return { data: result.data, error: result.error };
+  });
 
   if (error) throw new Error(`Could not save Shopify connection: ${error.message}`);
   return mapStore(data as StoreRow);
