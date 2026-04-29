@@ -48,7 +48,8 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith("/api/products") ||
     pathname.startsWith("/api/settings") ||
     pathname.startsWith("/api/upload") ||
-    pathname.startsWith("/api/jobs");
+    pathname.startsWith("/api/jobs") ||
+    pathname.startsWith("/api/credits");
   const isProtectedBrowserApi = pathname.startsWith("/api/shopify/oauth");
 
   if (!user && isProtectedJsonApi) {

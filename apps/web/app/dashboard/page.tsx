@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ArrowUpRight, Boxes, CheckCircle2, CircleAlert, Clock } from "lucide-react";
+import { ArrowUpRight, Boxes, CheckCircle2, CircleAlert, Clock, Coins } from "lucide-react";
 import { listProducts, readState } from "@/lib/store";
+import { getCreditAccount } from "@/lib/credits";
 import { ProductCard } from "@/components/product/ProductCard";
 
 export const dynamic = "force-dynamic";
@@ -8,6 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function DashboardPage() {
   const products = await listProducts();
   const state = await readState();
+  const credits = await getCreditAccount();
   const ready = products.filter((product) => product.status === "READY").length;
   const failedJobs = products.flatMap((product) => product.jobs).filter((job) => job.status === "FAILED").length;
   const recentJobs = products.flatMap((product) => product.jobs).slice(0, 4);
@@ -32,6 +34,7 @@ export default async function DashboardPage() {
           <Metric icon={Boxes} label="Drafts" value={products.length} />
           <Metric icon={CheckCircle2} label="Ready" value={ready} />
           <Metric icon={CircleAlert} label="Failed jobs" value={failedJobs} />
+          <Metric icon={Coins} label="Credits" value={credits.balance} />
           <Metric
             icon={Clock}
             label="Shopify"

@@ -10,6 +10,12 @@ import {
   generateProductImageWithOpenAI,
   getOpenAIKeyStatus
 } from "@/lib/openai";
+import {
+  IMAGE_GENERATION_CREDIT_COST,
+  grantCredits,
+  getCreditAccount,
+  spendCredits
+} from "@/lib/credits";
 
 export async function POST(
   request: Request,
@@ -55,6 +61,38 @@ export async function POST(
       prompt
     }));
   });
+  const creditsRequired = prompts.length * IMAGE_GENERATION_CREDIT_COST;
+  const creditSpend = await spendCredits({
+    amount: creditsRequired,
+    reason: "image_generation",
+    productId: id
+  });
+
+  if (!creditSpend.ok) {
+    const message = creditSpend.error || "Not enough credits for image generation.";
+    const job = await addJob(id, {
+      type: "IMAGE_GENERATION",
+      status: "FAILED",
+      progress: 0,
+      input: { styles, count, creditsRequired },
+      output: {
+        mode: "credits",
+        note: message,
+        credits: creditSpend.balance
+      },
+      error: message
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job?.id,
+        status: "failed",
+        error: message,
+        credits: { balance: creditSpend.balance, required: creditsRequired }
+      },
+      { status: 402 }
+    );
+  }
 
   let generatedImages: Array<{
     type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
@@ -84,6 +122,12 @@ export async function POST(
       prompt: string;
     }>;
   } catch (error) {
+    await grantCredits({
+      amount: creditsRequired,
+      reason: "image_generation_refund",
+      productId: id
+    }).catch(() => null);
+    const refundedCredits = await getCreditAccount();
     const message =
       error instanceof OpenAIRequestError
         ? `${error.message}${error.code ? ` (${error.code})` : ""}`
@@ -94,10 +138,12 @@ export async function POST(
       type: "IMAGE_GENERATION",
       status: "FAILED",
       progress: 0,
-      input: { styles, count },
+      input: { styles, count, creditsRequired },
       output: {
         mode: "openai",
-        note: message
+        note: message,
+        credits: refundedCredits.balance,
+        refunded: creditsRequired
       },
       error: message
     });
@@ -107,7 +153,8 @@ export async function POST(
         jobId: job?.id,
         status: "failed",
         mode: "openai",
-        error: message
+        error: message,
+        credits: { balance: refundedCredits.balance, refunded: creditsRequired }
       },
       { status: 402 }
     );
@@ -120,14 +167,16 @@ export async function POST(
 
   const keyStatus = getOpenAIKeyStatus();
   const note = usedOpenAI ? "Generated with OpenAI image API." : keyStatus.message;
+  const credits = await getCreditAccount();
   const job = await addJob(id, {
     type: "IMAGE_GENERATION",
     status: "COMPLETED",
     progress: 100,
-    input: { styles, count },
+    input: { styles, count, creditsRequired },
     output: {
       mode: usedOpenAI ? "openai" : "local-simulation",
-      note
+      note,
+      credits: credits.balance
     },
     error: null
   });
@@ -137,6 +186,7 @@ export async function POST(
     status: "completed",
     mode: usedOpenAI ? "openai" : "local-simulation",
     note,
+    credits: { balance: credits.balance, spent: creditsRequired },
     images
   });
 }

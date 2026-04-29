@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Boxes, Images, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { Boxes, Coins, Images, LayoutDashboard, LogOut, Settings } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { getCreditAccount } from "@/lib/credits";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -22,6 +23,7 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   const user = await getCurrentUser();
+  const credits = user ? await getCreditAccount() : null;
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,6 +60,12 @@ export default async function RootLayout({
                       );
                     })
                   : null}
+                {user ? (
+                  <span className="hidden h-10 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-ink sm:inline-flex">
+                    <Coins aria-hidden className="h-4 w-4 text-action" />
+                    {credits?.balance ?? 0}
+                  </span>
+                ) : null}
                 {user ? (
                   <form action="/auth/logout" method="post">
                     <button

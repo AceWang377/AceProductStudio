@@ -5,6 +5,7 @@ import Image from "next/image";
 import {
   CheckCircle2,
   Circle,
+  Coins,
   ExternalLink,
   ImagePlus,
   ListChecks,
@@ -39,6 +40,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const [message, setMessage] = useState("");
   const [shopifyAdminUrl, setShopifyAdminUrl] = useState("");
   const [shopifyConnected, setShopifyConnected] = useState<boolean | null>(null);
+  const [credits, setCredits] = useState<{ balance: number; imageCost: number } | null>(null);
 
   const publishImages = useMemo(() => getPublishImages(product.images), [product.images]);
   const previewImage = publishImages[0] ?? product.images.find((image) => image.type === "ORIGINAL");
@@ -82,6 +84,18 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
         if (isMounted) setShopifyConnected(false);
       });
 
+    fetch("/api/credits/status")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (isMounted && payload) {
+          setCredits({
+            balance: Number(payload.balance ?? 0),
+            imageCost: Number(payload.costs?.image ?? 1)
+          });
+        }
+      })
+      .catch(() => null);
+
     return () => {
       isMounted = false;
     };
@@ -109,6 +123,12 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
       })
     });
     const payload = await response.json();
+    if (payload.credits) {
+      setCredits((current) => ({
+        balance: Number(payload.credits.balance ?? current?.balance ?? 0),
+        imageCost: current?.imageCost ?? 1
+      }));
+    }
     setMessage(
       response.ok
         ? payload.note || "Generated image records are ready for review."
@@ -229,6 +249,13 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                   <Metric label="Generated" value={`${publishImages.length}`} />
                   <Metric label="Required" value="4" />
                   <Metric label="Original" value="Excluded" />
+                </div>
+                <div className="inline-flex items-center gap-2 rounded border border-line bg-white px-3 py-2 text-sm">
+                  <Coins className="h-4 w-4 text-action" aria-hidden />
+                  <span className="font-semibold">{credits?.balance ?? "..."}</span>
+                  <span className="text-muted">
+                    credits available · {credits?.imageCost ?? 1} per image
+                  </span>
                 </div>
                 <button
                   type="button"
