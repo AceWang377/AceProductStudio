@@ -15,6 +15,7 @@ import {
   createSupabaseAdminClient,
   isSupabaseStorageEnabled
 } from "./supabase-admin";
+import { getCurrentUser } from "./auth";
 
 const dataDir = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "app-state.json");
@@ -72,6 +73,17 @@ type StoreRow = Record<string, unknown> & {
 
 function usingSupabase() {
   return isSupabaseStorageEnabled();
+}
+
+async function getCurrentUserId() {
+  const user = await getCurrentUser();
+  return user?.id ?? null;
+}
+
+async function requireCurrentUserId() {
+  const userId = await getCurrentUserId();
+  if (!userId) throw new Error("Sign in before using this workspace.");
+  return userId;
 }
 
 async function ensureStateFile() {
@@ -278,10 +290,14 @@ async function fetchProductRelations(productIds: string[]) {
 }
 
 async function getActiveShopifyConnection() {
+  const userId = await getCurrentUserId();
+  if (!userId) return undefined;
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("stores")
     .select("*")
+    .eq("user_id", userId)
     .eq("is_active", true)
     .order("updated_at", { ascending: false })
     .limit(1)
@@ -291,6 +307,7 @@ async function getActiveShopifyConnection() {
     const { data: fallbackData, error: fallbackError } = await supabase
       .from("stores")
       .select("*")
+      .eq("user_id", userId)
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -321,10 +338,14 @@ export async function listProducts() {
     return state.products.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   }
 
+  const userId = await getCurrentUserId();
+  if (!userId) return [];
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (error) throw new Error(`Could not load products: ${error.message}`);
@@ -342,11 +363,15 @@ export async function getProduct(id: string) {
     return state.products.find((product) => product.id === id) ?? null;
   }
 
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("products")
     .select("*")
     .eq("id", id)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw new Error(`Could not load product: ${error.message}`);
@@ -408,6 +433,7 @@ export async function createProduct(input: {
     return product;
   }
 
+  const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
   const id = randomUUID();
@@ -419,6 +445,7 @@ export async function createProduct(input: {
     .from("products")
     .insert({
       id,
+      user_id: userId,
       name,
       category,
       style,
@@ -448,6 +475,7 @@ export async function createProduct(input: {
     .insert({
       id: randomUUID(),
       product_id: id,
+      user_id: userId,
       image_type: "ORIGINAL",
       url: input.originalImageUrl,
       storage_key: input.storageKey,
@@ -495,8 +523,9 @@ export async function updateProduct(id: string, patch: ProductPatch) {
   if ("shopifyStatus" in patch) update.shopify_status = patch.shopifyStatus;
   if ("shopifyProductId" in patch) update.shopify_product_id = patch.shopifyProductId;
 
+  const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from("products").update(update).eq("id", id);
+  const { error } = await supabase.from("products").update(update).eq("id", id).eq("user_id", userId);
   if (error) throw new Error(`Could not update product: ${error.message}`);
 
   return getProduct(id);
@@ -511,11 +540,13 @@ export async function deleteProduct(id: string) {
     return state.products.length !== before;
   }
 
+  const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
   const { error, count } = await supabase
     .from("products")
     .delete({ count: "exact" })
-    .eq("id", id);
+    .eq("id", id)
+    .eq("user_id", userId);
 
   if (error) throw new Error(`Could not delete product: ${error.message}`);
   return Boolean(count);
@@ -545,12 +576,14 @@ export async function addJob(
     return job;
   }
 
+  const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
   const { data, error } = await supabase
     .from("jobs")
     .insert({
       id: randomUUID(),
+      user_id: userId,
       product_id: productId,
       type: input.type,
       status: input.status,
@@ -570,7 +603,8 @@ export async function addJob(
   await supabase
     .from("products")
     .update({ updated_at: now })
-    .eq("id", productId);
+    .eq("id", productId)
+    .eq("user_id", userId);
 
   return mapJob(data as JobRow);
 }
@@ -585,11 +619,15 @@ export async function getJob(id: string) {
     return null;
   }
 
+  const userId = await getCurrentUserId();
+  if (!userId) return null;
+
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("jobs")
     .select("*")
     .eq("id", id)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error) throw new Error(`Could not load job: ${error.message}`);
@@ -662,11 +700,13 @@ export async function addGeneratedProductImages(
   const product = await getProduct(productId);
   if (!product) return null;
 
+  const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
   const now = new Date().toISOString();
   const rows = images.map((image, index) => ({
     id: randomUUID(),
     product_id: productId,
+    user_id: userId,
     image_type: image.type,
     url: image.url,
     storage_key: image.storageKey,
@@ -686,7 +726,8 @@ export async function addGeneratedProductImages(
   await supabase
     .from("products")
     .update({ status: "READY", updated_at: now })
-    .eq("id", productId);
+    .eq("id", productId)
+    .eq("user_id", userId);
 
   return ((data ?? []) as ProductImageRow[]).map(mapImage);
 }
@@ -784,12 +825,14 @@ export async function saveShopifyConnection(input: {
   const clientId = input.clientId?.trim() || "";
   const clientSecret = input.clientSecret?.trim() || "";
   const isActive = Boolean(input.shopDomain.trim() && (adminAccessToken || (clientId && clientSecret)));
+  const userId = await requireCurrentUserId();
 
   const existing = await getActiveShopifyConnection();
 
   if (existing) {
     const updatePayload = {
       shop_domain: input.shopDomain.trim(),
+      user_id: userId,
       access_token: adminAccessToken || null,
       admin_access_token: adminAccessToken || null,
       client_id: clientId || null,
@@ -803,6 +846,7 @@ export async function saveShopifyConnection(input: {
         .from("stores")
         .update(nextPayload)
         .eq("id", existing.id)
+        .eq("user_id", userId)
         .select("*")
         .single();
       return { data: result.data, error: result.error };
@@ -814,6 +858,7 @@ export async function saveShopifyConnection(input: {
 
   const insertPayload = {
     id: randomUUID(),
+    user_id: userId,
     shop_domain: input.shopDomain.trim(),
     access_token: adminAccessToken || null,
     admin_access_token: adminAccessToken || null,

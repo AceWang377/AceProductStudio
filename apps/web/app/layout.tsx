@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Boxes, Images, LayoutDashboard, Settings } from "lucide-react";
+import { Boxes, Images, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import { getCurrentUser } from "@/lib/auth";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -15,11 +16,13 @@ const navItems = [
   { href: "/settings/shopify", label: "Shopify", icon: Settings }
 ];
 
-export default function RootLayout({
+export default async function RootLayout({
   children
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const user = await getCurrentUser();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <body suppressHydrationWarning>
@@ -40,19 +43,40 @@ export default function RootLayout({
                 </span>
               </Link>
               <nav className="flex items-center gap-1">
-                {navItems.map((item) => {
-                  const Icon = item.icon;
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
+                {user
+                  ? navItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <Link
+                          key={item.href}
+                          href={item.href}
+                          className="studio-focus inline-flex h-10 items-center gap-2 rounded px-3 text-sm text-muted transition hover:bg-white hover:text-ink"
+                        >
+                          <Icon aria-hidden className="h-4 w-4" />
+                          <span className="hidden sm:inline">{item.label}</span>
+                        </Link>
+                      );
+                    })
+                  : null}
+                {user ? (
+                  <form action="/auth/logout" method="post">
+                    <button
+                      type="submit"
                       className="studio-focus inline-flex h-10 items-center gap-2 rounded px-3 text-sm text-muted transition hover:bg-white hover:text-ink"
+                      title={user.email ?? "Sign out"}
                     >
-                      <Icon aria-hidden className="h-4 w-4" />
-                      <span className="hidden sm:inline">{item.label}</span>
-                    </Link>
-                  );
-                })}
+                      <LogOut aria-hidden className="h-4 w-4" />
+                      <span className="hidden sm:inline">Sign out</span>
+                    </button>
+                  </form>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="studio-focus inline-flex h-10 items-center rounded bg-action px-3 text-sm font-semibold text-white"
+                  >
+                    Sign in
+                  </Link>
+                )}
               </nav>
             </div>
           </header>
