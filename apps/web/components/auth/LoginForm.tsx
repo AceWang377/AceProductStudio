@@ -15,11 +15,11 @@ export function LoginForm({ nextPath = "/dashboard" }: { nextPath?: string }) {
     setStatus("");
 
     const supabase = createClient();
-    const origin = window.location.origin;
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/$/, "");
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
-        emailRedirectTo: `${origin}/auth/callback?next=${encodeURIComponent(nextPath)}`
+        emailRedirectTo: `${appUrl}/auth/callback?next=${encodeURIComponent(nextPath)}`
       }
     });
 
