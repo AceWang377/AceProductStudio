@@ -24,10 +24,11 @@ export default async function LoginPage({
   if (user) redirect("/dashboard");
   const params = searchParams ? await searchParams : {};
   const nextPath = safeNextPath(firstParam(params.next));
+  const error = firstParam(params.error);
 
   return (
     <div className="flex min-h-[70vh] items-center justify-center">
-      <LoginForm nextPath={nextPath} />
+      <LoginForm initialStatus={error} nextPath={nextPath} />
     </div>
   );
 }

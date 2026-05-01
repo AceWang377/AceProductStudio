@@ -4,9 +4,15 @@ import { FormEvent, useState } from "react";
 import { Mail } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
-export function LoginForm({ nextPath = "/dashboard" }: { nextPath?: string }) {
+export function LoginForm({
+  initialStatus = "",
+  nextPath = "/dashboard"
+}: {
+  initialStatus?: string;
+  nextPath?: string;
+}) {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState(initialStatus);
   const [isSending, setIsSending] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
