@@ -45,6 +45,10 @@ export async function getCreditAccount(): Promise<CreditAccount> {
   const userId = await getCurrentUserId();
   if (!userId) return { balance: 0, enabled: true };
 
+  return getCreditAccountForUser(userId);
+}
+
+async function getCreditAccountForUser(userId: string): Promise<CreditAccount> {
   const supabase = createSupabaseAdminClient();
   const { data, error } = await supabase
     .from("credit_accounts")
@@ -157,6 +161,7 @@ export async function grantCredits(input: {
   amount: number;
   reason: string;
   productId?: string;
+  stripePaymentId?: string;
 }) {
   if (!isSupabaseStorageEnabled()) {
     return { balance: TRIAL_CREDITS, enabled: false };
@@ -165,17 +170,47 @@ export async function grantCredits(input: {
   const userId = await getCurrentUserId();
   if (!userId) throw new Error("Sign in before using credits.");
 
+  return grantCreditsForUser({ ...input, userId });
+}
+
+export async function grantCreditsForUser(input: {
+  userId: string;
+  amount: number;
+  reason: string;
+  productId?: string;
+  stripePaymentId?: string;
+}) {
+  if (!isSupabaseStorageEnabled()) {
+    return { balance: TRIAL_CREDITS, enabled: false };
+  }
+
   const amount = Math.max(0, Math.floor(input.amount));
-  const account = await getCreditAccount();
+  const account = await getCreditAccountForUser(input.userId);
   if (!account.enabled) return { balance: account.balance, enabled: false };
-  const nextBalance = account.balance + amount;
+
   const supabase = createSupabaseAdminClient();
+
+  if (input.stripePaymentId) {
+    const { data: existing, error: existingError } = await supabase
+      .from("credit_ledger")
+      .select("id")
+      .eq("stripe_payment_id", input.stripePaymentId)
+      .maybeSingle();
+
+    if (existingError && !isMissingCreditsTableError(existingError)) {
+      throw new Error(`Could not check credit purchase: ${existingError.message}`);
+    }
+
+    if (existing) return account;
+  }
+
+  const nextBalance = account.balance + amount;
   const now = new Date().toISOString();
 
   const { error: updateError } = await supabase
     .from("credit_accounts")
     .update({ balance: nextBalance, updated_at: now })
-    .eq("user_id", userId);
+    .eq("user_id", input.userId);
 
   if (updateError) {
     if (isMissingCreditsTableError(updateError)) {
@@ -186,10 +221,11 @@ export async function grantCredits(input: {
 
   const { error: ledgerError } = await supabase.from("credit_ledger").insert({
     id: randomUUID(),
-    user_id: userId,
+    user_id: input.userId,
     amount,
     reason: input.reason,
     product_id: input.productId ?? null,
+    stripe_payment_id: input.stripePaymentId ?? null,
     created_at: now
   });
 

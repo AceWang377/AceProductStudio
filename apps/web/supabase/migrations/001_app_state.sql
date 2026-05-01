@@ -115,11 +115,16 @@ alter table product_images add column if not exists is_selected boolean default 
 alter table jobs add column if not exists input jsonb default '{}';
 alter table jobs add column if not exists output jsonb default '{}';
 
+alter table credit_ledger add column if not exists stripe_payment_id text;
+
 create index if not exists products_created_at_idx on products (created_at desc);
 create index if not exists products_user_created_idx on products (user_id, created_at desc);
 create index if not exists product_images_product_sort_idx on product_images (product_id, sort_order);
 create index if not exists jobs_product_created_idx on jobs (product_id, created_at desc);
 create index if not exists stores_user_active_idx on stores (user_id, is_active);
+create unique index if not exists credit_ledger_stripe_payment_id_idx
+on credit_ledger (stripe_payment_id)
+where stripe_payment_id is not null;
 
 alter table stores enable row level security;
 alter table products enable row level security;
