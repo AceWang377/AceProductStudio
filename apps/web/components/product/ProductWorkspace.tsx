@@ -21,7 +21,7 @@ import {
   Trash2,
   X
 } from "lucide-react";
-import type { Product, ProductImage } from "@/lib/types";
+import type { GenerationJob, Product, ProductImage } from "@/lib/types";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
 import { JobStatusPanel } from "@/components/jobs/JobStatusPanel";
@@ -46,6 +46,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [retryingJobId, setRetryingJobId] = useState<string | undefined>();
   const [showLivePublishConfirm, setShowLivePublishConfirm] = useState(false);
   const [livePublishAcknowledged, setLivePublishAcknowledged] = useState(false);
   const [message, setMessage] = useState("");
@@ -216,6 +217,26 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     setShowLivePublishConfirm(false);
     setLivePublishAcknowledged(false);
     await publishShopify("ACTIVE");
+  }
+
+  async function retryFailedJob(job: GenerationJob) {
+    setRetryingJobId(job.id);
+    setMessage("");
+
+    try {
+      if (job.type === "IMAGE_GENERATION") {
+        setActiveTab("media");
+        await generateImages();
+      } else if (job.type === "COPY_GENERATION") {
+        setActiveTab("copy");
+        await generateCopy();
+      } else {
+        setActiveTab("publish");
+        await publishShopify("DRAFT");
+      }
+    } finally {
+      setRetryingJobId(undefined);
+    }
   }
 
   async function deleteProductDraft() {
@@ -445,7 +466,11 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
 
         <div>
           <h2 className="mb-3 text-base font-semibold">Recent jobs</h2>
-          <JobStatusPanel jobs={product.jobs} />
+          <JobStatusPanel
+            jobs={product.jobs}
+            onRetry={retryFailedJob}
+            retryingJobId={retryingJobId}
+          />
         </div>
       </section>
 
