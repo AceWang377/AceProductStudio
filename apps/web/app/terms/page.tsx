@@ -4,13 +4,13 @@ import { LegalPage, LegalSection } from "@/components/legal/LegalPage";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `Terms of Service | ${siteConfig.name}`,
-  description: "Terms of service for AI Product Studio"
+  title: `Terms & Conditions | ${siteConfig.name}`,
+  description: "Terms and conditions for AI Product Studio"
 };
 
 export default function TermsPage() {
   return (
-    <LegalPage eyebrow="Terms" title="Terms of Service" updated="May 3, 2026">
+    <LegalPage eyebrow="Terms" title="Terms & Conditions" updated="May 3, 2026">
       <LegalSection title="Using the Service">
         <p>
           {siteConfig.name} provides tools for creating ecommerce product media,
@@ -39,8 +39,12 @@ export default function TermsPage() {
       <LegalSection title="Credits and Billing">
         <p>
           The app may use credits to meter image generation and other actions.
-          Paid credit terms, refunds, and subscriptions will be shown before
-          checkout when billing is enabled.
+          Paid credit terms, subscriptions, and checkout terms will be shown
+          before checkout when billing is enabled. Refunds are handled under the{" "}
+          <Link className="text-action underline-offset-4 hover:underline" href="/refund">
+            Refund Policy
+          </Link>
+          .
         </p>
       </LegalSection>
 
@@ -76,6 +80,10 @@ export default function TermsPage() {
           Read the{" "}
           <Link className="text-action underline-offset-4 hover:underline" href="/privacy">
             Privacy Policy
+          </Link>
+          , the{" "}
+          <Link className="text-action underline-offset-4 hover:underline" href="/refund">
+            Refund Policy
           </Link>{" "}
           or visit{" "}
           <Link className="text-action underline-offset-4 hover:underline" href="/support">

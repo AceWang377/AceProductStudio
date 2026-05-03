@@ -113,6 +113,9 @@ export default async function RootLayout({
                 <Link className="hover:text-ink" href="/privacy">
                   Privacy
                 </Link>
+                <Link className="hover:text-ink" href="/refund">
+                  Refund
+                </Link>
                 <Link className="hover:text-ink" href="/terms">
                   Terms
                 </Link>

@@ -74,7 +74,11 @@ export default function PrivacyPage() {
         <p>
           Read the{" "}
           <Link className="text-action underline-offset-4 hover:underline" href="/terms">
-            Terms of Service
+            Terms & Conditions
+          </Link>
+          , the{" "}
+          <Link className="text-action underline-offset-4 hover:underline" href="/refund">
+            Refund Policy
           </Link>{" "}
           or visit{" "}
           <Link className="text-action underline-offset-4 hover:underline" href="/support">
