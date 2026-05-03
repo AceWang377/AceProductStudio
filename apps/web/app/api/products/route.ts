@@ -17,6 +17,12 @@ export async function POST(request: Request) {
     name: body.name || analysis?.name,
     category: body.category || analysis?.category,
     style: body.style || analysis?.style,
+    targetMarket: body.targetMarket,
+    tone: body.tone,
+    seoKeywords: Array.isArray(body.seoKeywords) ? body.seoKeywords : [],
+    language: body.language,
+    brandVoice: body.brandVoice,
+    imageStylePreset: body.imageStylePreset || body.style,
     notes: analysis?.notes,
     originalImageUrl: body.originalImageUrl,
     storageKey: body.storageKey

@@ -13,6 +13,7 @@ import {
   PenLine,
   Send,
   ShoppingBag,
+  SlidersHorizontal,
   Sparkles,
   Store
 } from "lucide-react";
@@ -20,11 +21,13 @@ import type { Product, ProductImage } from "@/lib/types";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
 import { JobStatusPanel } from "@/components/jobs/JobStatusPanel";
+import { ProductBriefControls } from "./ProductBriefControls";
 import { StatusBadge } from "./StatusBadge";
 
-type ProductTab = "media" | "copy" | "commerce" | "publish";
+type ProductTab = "brief" | "media" | "copy" | "commerce" | "publish";
 
 const tabs: Array<{ id: ProductTab; label: string }> = [
+  { id: "brief", label: "Brief" },
   { id: "media", label: "Media" },
   { id: "copy", label: "Copy" },
   { id: "commerce", label: "Commerce" },
@@ -33,7 +36,7 @@ const tabs: Array<{ id: ProductTab; label: string }> = [
 
 export function ProductWorkspace({ initialProduct }: { initialProduct: Product }) {
   const [product, setProduct] = useState(initialProduct);
-  const [activeTab, setActiveTab] = useState<ProductTab>("media");
+  const [activeTab, setActiveTab] = useState<ProductTab>("brief");
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -120,7 +123,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
       body: JSON.stringify({
         styles: [
           "white_background",
-          product.style || "lifestyle_home",
+          product.imageStylePreset || product.style || "lifestyle_home",
           "product_detail",
           "product_intro"
         ],
@@ -250,6 +253,9 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                   <p className="mt-2 text-sm text-muted">
                     Shopify will publish generated images only: lifestyle first, white background last.
                   </p>
+                  <p className="mt-1 text-sm text-muted">
+                    Style: {product.imageStylePreset || product.style || "minimal studio"}
+                  </p>
                 </div>
                 <div className="grid gap-3 sm:grid-cols-3">
                   <Metric label="Generated" value={`${publishImages.length}`} />
@@ -279,6 +285,21 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
               </div>
             </div>
             <GeneratedImageGrid images={product.images} />
+          </div>
+        ) : null}
+
+        {activeTab === "brief" ? (
+          <div className="border border-line bg-white p-4 sm:p-6">
+            <div className="flex items-center gap-2">
+              <SlidersHorizontal className="h-5 w-5" aria-hidden />
+              <h2 className="text-xl font-semibold">Generation brief</h2>
+            </div>
+            <p className="mt-2 text-sm text-muted">
+              Quality controls used by image and copy generation.
+            </p>
+            <div className="mt-5">
+              <ProductBriefControls product={product} onSaved={setProduct} />
+            </div>
           </div>
         ) : null}
 

@@ -21,6 +21,12 @@ create table if not exists products (
   name text,
   category text,
   style text,
+  target_market text,
+  tone text default 'clear and trustworthy',
+  seo_keywords text[] default '{}',
+  language text default 'English',
+  brand_voice text,
+  image_style_preset text,
   status text not null default 'DRAFT',
   original_image_url text,
   background_removed_image_url text,
@@ -98,6 +104,12 @@ alter table stores add column if not exists is_active boolean not null default f
 
 alter table products add column if not exists name text;
 alter table products add column if not exists style text;
+alter table products add column if not exists target_market text;
+alter table products add column if not exists tone text default 'clear and trustworthy';
+alter table products add column if not exists seo_keywords text[] default '{}';
+alter table products add column if not exists language text default 'English';
+alter table products add column if not exists brand_voice text;
+alter table products add column if not exists image_style_preset text;
 alter table products add column if not exists original_image_url text;
 alter table products add column if not exists background_removed_image_url text;
 alter table products add column if not exists description text;

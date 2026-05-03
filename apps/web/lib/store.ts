@@ -30,6 +30,12 @@ type ProductPatch = Partial<
     | "name"
     | "category"
     | "style"
+    | "targetMarket"
+    | "tone"
+    | "seoKeywords"
+    | "language"
+    | "brandVoice"
+    | "imageStylePreset"
     | "title"
     | "description"
     | "bulletPoints"
@@ -130,7 +136,7 @@ function getMissingStoreColumn(error: { message?: string; code?: string } | null
   const message = error.message ?? "";
   const quotedColumn = message.match(/'([^']+)' column/)?.[1];
   if (quotedColumn) return quotedColumn;
-  const dottedColumn = message.match(/column stores\.([a-z_]+) does not exist/)?.[1];
+  const dottedColumn = message.match(/column [a-z_]+\.([a-z_]+) does not exist/)?.[1];
   return dottedColumn ?? null;
 }
 
@@ -208,6 +214,12 @@ function mapProduct(row: ProductRow, images: ProductImage[] = [], jobs: Generati
     name: asString(row.name) || asString(row.title) || "Uploaded product",
     category: asString(row.category) || "General ecommerce",
     style: asString(row.style) || "minimal studio",
+    targetMarket: asString(row.target_market),
+    tone: asString(row.tone) || "clear and trustworthy",
+    seoKeywords: asStringArray(row.seo_keywords),
+    language: asString(row.language) || "English",
+    brandVoice: asString(row.brand_voice),
+    imageStylePreset: asString(row.image_style_preset) || asString(row.style) || "minimal studio",
     status: asString(row.status, "DRAFT") as ProductStatus,
     originalImageUrl,
     backgroundRemovedImageUrl: asString(row.background_removed_image_url) || undefined,
@@ -386,6 +398,12 @@ export async function createProduct(input: {
   category?: string;
   style?: string;
   notes?: string;
+  targetMarket?: string;
+  tone?: string;
+  seoKeywords?: string[];
+  language?: string;
+  brandVoice?: string;
+  imageStylePreset?: string;
   originalImageUrl: string;
   storageKey?: string;
 }) {
@@ -398,6 +416,12 @@ export async function createProduct(input: {
       name: input.name?.trim() || "Uploaded product",
       category: input.category?.trim() || "General ecommerce",
       style: input.style?.trim() || "minimal studio",
+      targetMarket: input.targetMarket?.trim() || "",
+      tone: input.tone?.trim() || "clear and trustworthy",
+      seoKeywords: input.seoKeywords ?? [],
+      language: input.language?.trim() || "English",
+      brandVoice: input.brandVoice?.trim() || "",
+      imageStylePreset: input.imageStylePreset?.trim() || input.style?.trim() || "minimal studio",
       status: "DRAFT",
       originalImageUrl: input.originalImageUrl,
       title: input.name?.trim() || "Uploaded product",
@@ -440,33 +464,45 @@ export async function createProduct(input: {
   const name = input.name?.trim() || "Uploaded product";
   const category = input.category?.trim() || "General ecommerce";
   const style = input.style?.trim() || "minimal studio";
+  const imageStylePreset = input.imageStylePreset?.trim() || style;
 
-  const { data, error } = await supabase
-    .from("products")
-    .insert({
-      id,
-      user_id: userId,
-      name,
-      category,
-      style,
-      status: "DRAFT",
-      original_image_url: input.originalImageUrl,
-      title: name,
-      description: "",
-      bullet_points: [],
-      tags: [],
-      faq: [],
-      price: "",
-      compare_at_price: "",
-      sku: "",
-      inventory_quantity: 0,
-      track_inventory: false,
-      shopify_status: "NOT_CONNECTED",
-      created_at: now,
-      updated_at: now
-    })
-    .select("*")
-    .single();
+  const insertPayload = {
+    id,
+    user_id: userId,
+    name,
+    category,
+    style,
+    target_market: input.targetMarket?.trim() || "",
+    tone: input.tone?.trim() || "clear and trustworthy",
+    seo_keywords: input.seoKeywords ?? [],
+    language: input.language?.trim() || "English",
+    brand_voice: input.brandVoice?.trim() || "",
+    image_style_preset: imageStylePreset,
+    status: "DRAFT",
+    original_image_url: input.originalImageUrl,
+    title: name,
+    description: "",
+    bullet_points: [],
+    tags: [],
+    faq: [],
+    price: "",
+    compare_at_price: "",
+    sku: "",
+    inventory_quantity: 0,
+    track_inventory: false,
+    shopify_status: "NOT_CONNECTED",
+    created_at: now,
+    updated_at: now
+  };
+
+  const { data, error } = await retryStoreMutationWithoutMissingColumns(insertPayload, async (nextPayload) => {
+    const result = await supabase
+      .from("products")
+      .insert(nextPayload)
+      .select("*")
+      .single();
+    return { data: result.data, error: result.error };
+  });
 
   if (error) throw new Error(`Could not create product: ${error.message}`);
 
@@ -509,6 +545,12 @@ export async function updateProduct(id: string, patch: ProductPatch) {
   if ("name" in patch) update.name = patch.name;
   if ("category" in patch) update.category = patch.category;
   if ("style" in patch) update.style = patch.style;
+  if ("targetMarket" in patch) update.target_market = patch.targetMarket;
+  if ("tone" in patch) update.tone = patch.tone;
+  if ("seoKeywords" in patch) update.seo_keywords = patch.seoKeywords ?? [];
+  if ("language" in patch) update.language = patch.language;
+  if ("brandVoice" in patch) update.brand_voice = patch.brandVoice;
+  if ("imageStylePreset" in patch) update.image_style_preset = patch.imageStylePreset;
   if ("title" in patch) update.title = patch.title;
   if ("description" in patch) update.description = patch.description;
   if ("bulletPoints" in patch) update.bullet_points = patch.bulletPoints ?? [];
@@ -525,7 +567,10 @@ export async function updateProduct(id: string, patch: ProductPatch) {
 
   const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
-  const { error } = await supabase.from("products").update(update).eq("id", id).eq("user_id", userId);
+  const { error } = await retryStoreMutationWithoutMissingColumns(update, async (nextPayload) => {
+    const result = await supabase.from("products").update(nextPayload).eq("id", id).eq("user_id", userId);
+    return { data: result.data, error: result.error };
+  });
   if (error) throw new Error(`Could not update product: ${error.message}`);
 
   return getProduct(id);
@@ -738,6 +783,7 @@ export async function completeCopyGeneration(productId: string) {
 
   const category = product.category || "ecommerce";
   const name = product.name || "Featured Product";
+  const keywordTags = product.seoKeywords.length ? product.seoKeywords : [];
   const genericName = ["Uploaded product", "Featured Product"].includes(name);
   const titleBase = genericName
     ? `${category.replaceAll(">", "").replace(/\s+/g, " ").trim()} Product`
@@ -753,13 +799,14 @@ export async function completeCopyGeneration(productId: string) {
       "Search-oriented tags ready for further product-specific refinement."
     ],
     description: `${titleBase} is presented with clear, editable product copy for a polished online store listing. The content focuses on visible product details, practical customer benefits, and a simple structure that can be refined with exact size, material, condition, and care information before publishing. Review the final images and copy, add any missing specifications you know, and keep unsupported claims out of the live listing.`,
-    tags: [
+    tags: Array.from(new Set([
+      ...keywordTags,
       category.toLowerCase(),
       titleBase.toLowerCase(),
       "online store product",
       "everyday essential",
       "customer ready listing"
-    ],
+    ])),
     faq: [
       {
         question: "Can I edit this content before publishing?",

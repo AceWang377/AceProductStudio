@@ -184,6 +184,12 @@ export async function generateProductCopyWithOpenAI(input: {
   name?: string;
   category?: string;
   style?: string;
+  targetMarket?: string;
+  tone?: string;
+  seoKeywords?: string[];
+  language?: string;
+  brandVoice?: string;
+  imageStylePreset?: string;
 }): Promise<GeneratedProductCopy | null> {
   const key = getOpenAIKey();
   if (!key || key.startsWith("sk-or-")) return null;
@@ -212,7 +218,12 @@ Use the product image as the source of truth. Generate search-friendly product c
 Known draft data:
 - Product name: ${input.name || "infer from image"}
 - Category: ${input.category || "infer from image"}
-- Preferred style: ${input.style || "infer from image"}
+- Image style preset: ${input.imageStylePreset || input.style || "infer from image"}
+- Target market: ${input.targetMarket || "general online shoppers"}
+- Tone: ${input.tone || "clear and trustworthy"}
+- SEO keywords to prioritize: ${input.seoKeywords?.length ? input.seoKeywords.join(", ") : "infer from product"}
+- Language: ${input.language || "English"}
+- Brand voice: ${input.brandVoice || "plain, accurate, benefit-led, no exaggerated claims"}
 
 If the known draft data is generic, such as "Uploaded product", "General ecommerce", or "infer from image", ignore it and infer the product from the image.
 
@@ -231,6 +242,7 @@ SEO rules:
 - Never use filler phrases like "Uploaded product", "General ecommerce", "for sellers", "AI", "Shopify-ready", or "product draft" in customer-facing copy.
 - Tags must be 12-18 short buyer search phrases, lowercase, comma-ready, and specific.
 - Tags should include visible brand if present, product type, color, material or fit if visible, style, audience, occasion, and use cases.
+- Use the requested language, tone, target market, SEO keywords, and brand voice when they are provided.
 - Do not include operational tags like "shopify", "ai-content", "product-draft", or "ecommerce".
 - Bullet points should describe visible features and customer benefits without hype.
 - Avoid false claims. Do not invent exact size, fabric, condition, performance, or technical specs unless visible or provided.

@@ -14,7 +14,13 @@ export async function POST(
     imageUrl: product.originalImageUrl,
     name: product.name,
     category: product.category,
-    style: product.style
+    style: product.style,
+    targetMarket: product.targetMarket,
+    tone: product.tone,
+    seoKeywords: product.seoKeywords,
+    language: product.language,
+    brandVoice: product.brandVoice,
+    imageStylePreset: product.imageStylePreset
   });
   const updated = generatedCopy
     ? await applyGeneratedCopy(id, generatedCopy)

@@ -12,6 +12,12 @@ export function NewProductForm() {
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
   const [style, setStyle] = useState("");
+  const [targetMarket, setTargetMarket] = useState("");
+  const [tone, setTone] = useState("clear and trustworthy");
+  const [seoKeywords, setSeoKeywords] = useState("");
+  const [language, setLanguage] = useState("English");
+  const [brandVoice, setBrandVoice] = useState("");
+  const [imageStylePreset, setImageStylePreset] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -57,6 +63,12 @@ export function NewProductForm() {
           name,
           category,
           style,
+          targetMarket,
+          tone,
+          seoKeywords: seoKeywords.split(",").map((item) => item.trim()).filter(Boolean),
+          language,
+          brandVoice,
+          imageStylePreset: imageStylePreset || style,
           originalImageUrl: upload.url,
           storageKey: upload.key
         })
@@ -136,7 +148,10 @@ export function NewProductForm() {
             <span className="text-sm font-medium">Image style override</span>
             <select
               value={style}
-              onChange={(event) => setStyle(event.target.value)}
+              onChange={(event) => {
+                setStyle(event.target.value);
+                setImageStylePreset(event.target.value);
+              }}
               className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
             >
               <option value="">Infer from product</option>
@@ -145,6 +160,61 @@ export function NewProductForm() {
               <option>luxury product</option>
               <option>outdoor lifestyle</option>
             </select>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">Target market</span>
+            <input
+              value={targetMarket}
+              onChange={(event) => setTargetMarket(event.target.value)}
+              className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
+              placeholder="UK streetwear shoppers"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">Tone</span>
+            <select
+              value={tone}
+              onChange={(event) => setTone(event.target.value)}
+              className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
+            >
+              <option>clear and trustworthy</option>
+              <option>premium and concise</option>
+              <option>friendly and practical</option>
+              <option>bold and trend-led</option>
+              <option>minimal and editorial</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">SEO keywords</span>
+            <input
+              value={seoKeywords}
+              onChange={(event) => setSeoKeywords(event.target.value)}
+              className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
+              placeholder="black joggers, drawstring sweatpants"
+            />
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">Language</span>
+            <select
+              value={language}
+              onChange={(event) => setLanguage(event.target.value)}
+              className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
+            >
+              <option>English</option>
+              <option>Chinese</option>
+              <option>Spanish</option>
+              <option>French</option>
+              <option>German</option>
+            </select>
+          </label>
+          <label className="block">
+            <span className="text-sm font-medium">Brand voice</span>
+            <textarea
+              value={brandVoice}
+              onChange={(event) => setBrandVoice(event.target.value)}
+              className="studio-focus mt-2 min-h-24 w-full rounded border border-line bg-white p-3"
+              placeholder="Short, confident, product-led, no exaggerated claims."
+            />
           </label>
           </div>
         </details>

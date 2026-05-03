@@ -46,6 +46,12 @@ export interface Product {
   name?: string;
   category?: string;
   style?: string;
+  targetMarket?: string;
+  tone?: string;
+  seoKeywords: string[];
+  language?: string;
+  brandVoice?: string;
+  imageStylePreset?: string;
   status: ProductStatus;
   originalImageUrl: string;
   backgroundRemovedImageUrl?: string;

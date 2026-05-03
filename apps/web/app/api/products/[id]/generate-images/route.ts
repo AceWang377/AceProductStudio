@@ -30,6 +30,13 @@ export async function POST(
     ? body.styles
     : ["white_background", "lifestyle_home", "product_detail", "product_intro"];
   const count = Number.isFinite(body.count) ? Math.min(Math.max(body.count, 1), 3) : 2;
+  const imageBrief = [
+    `Image style preset: ${product.imageStylePreset || product.style || "minimal studio"}.`,
+    product.targetMarket ? `Target market: ${product.targetMarket}.` : "",
+    product.brandVoice ? `Brand voice: ${product.brandVoice}.` : "",
+    product.tone ? `Tone: ${product.tone}.` : "",
+    product.language ? `Visible text language, if any: ${product.language}.` : ""
+  ].filter(Boolean).join(" ");
 
   const prompts: Array<{
     style: string;
@@ -47,12 +54,12 @@ export async function POST(
             : ("LIFESTYLE" as const);
     const prompt =
       style === "white_background"
-        ? "Create a clean ecommerce product photo using the uploaded product image. Keep the product shape, color, texture, logo, and visible details accurate. Place the product centered on a pure white background with soft studio lighting. Do not add extra objects."
+        ? `Create a clean ecommerce product photo using the uploaded product image. Keep the product shape, color, texture, logo, and visible details accurate. Place the product centered on a pure white background with soft studio lighting. Do not add extra objects. ${imageBrief}`
         : style === "product_detail"
-          ? `Create a Shopify product detail page image for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show close-up product details, material/fit/feature callouts, and a clean ecommerce composition. Include concise readable English callout text only if it improves the image. Do not invent specifications. Keep the product logo, color, shape, and proportions accurate.`
+          ? `Create a Shopify product detail page image for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show close-up product details, material/fit/feature callouts, and a clean ecommerce composition. Include concise readable callout text only if it improves the image. Do not invent specifications. Keep the product logo, color, shape, and proportions accurate. ${imageBrief}`
           : style === "product_intro"
-            ? `Create a product introduction image for a Shopify product page hero section for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show the product clearly with a polished ecommerce layout, short intro-style headline space, premium lighting, and room for product-page copy. Keep the product accurate and do not invent specifications.`
-            : `Create a realistic ecommerce lifestyle product photo using the uploaded product. Keep the product accurate and recognizable. Place it in a ${String(style).replaceAll("_", " ")} environment with natural lighting. Do not change the product design.`;
+            ? `Create a product introduction image for a Shopify product page hero section for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show the product clearly with a polished ecommerce layout, short intro-style headline space, premium lighting, and room for product-page copy. Keep the product accurate and do not invent specifications. ${imageBrief}`
+            : `Create a realistic ecommerce lifestyle product photo using the uploaded product. Keep the product accurate and recognizable. Place it in a ${String(style).replaceAll("_", " ")} environment with natural lighting. Do not change the product design. ${imageBrief}`;
 
     return Array.from({ length: 1 }).map((_, index) => ({
       style,
