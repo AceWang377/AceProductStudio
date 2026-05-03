@@ -2,19 +2,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { Check, ImageIcon } from "lucide-react";
 import type { Product } from "@/lib/types";
+import type { ProductReadiness } from "@/lib/product-readiness";
 import { StatusBadge } from "./StatusBadge";
 
 export function ProductCard({
   product,
+  readiness,
   selected = false,
   onSelectionChange
 }: {
   product: Product;
+  readiness?: ProductReadiness;
   selected?: boolean;
   onSelectionChange?: (productId: string, selected: boolean) => void;
 }) {
+  const nextItem = readiness?.nextItem;
+
   return (
-    <div className="grid grid-cols-[40px_88px_1fr] gap-4 border-b border-line bg-transparent py-4 transition hover:bg-white/70 sm:grid-cols-[40px_112px_1fr_auto]">
+    <div className="grid grid-cols-[40px_88px_1fr] gap-4 border-b border-line bg-transparent py-4 transition hover:bg-white/70 sm:grid-cols-[40px_112px_1fr_170px]">
       <div className="flex items-center justify-center">
         {onSelectionChange ? (
           <button
@@ -55,13 +60,53 @@ export function ProductCard({
           <ImageIcon className="h-4 w-4" aria-hidden />
           {product.images.length} images · Shopify {product.shopifyStatus.toLowerCase().replaceAll("_", " ")}
         </p>
+        {readiness ? (
+          <div className="mt-3 sm:hidden">
+            <QualityScore readiness={readiness} />
+          </div>
+        ) : null}
       </Link>
-      <Link href={`/products/${product.id}`} className="studio-focus hidden self-center text-right text-sm text-muted sm:block">
-        Updated
-        <span className="block text-ink">
-          {new Date(product.updatedAt).toLocaleDateString()}
-        </span>
+      <Link href={`/products/${product.id}`} className="studio-focus hidden self-center text-sm sm:block">
+        {readiness ? <QualityScore readiness={readiness} /> : null}
+        <p className="mt-2 text-right text-xs text-muted">
+          Updated <span className="text-ink">{new Date(product.updatedAt).toLocaleDateString()}</span>
+        </p>
+        {nextItem ? (
+          <p className="mt-1 truncate text-right text-xs text-muted">
+            Next: {nextItem.label}
+          </p>
+        ) : null}
       </Link>
+    </div>
+  );
+}
+
+function QualityScore({ readiness }: { readiness: ProductReadiness }) {
+  const scoreTone =
+    readiness.score >= 90
+      ? "text-action"
+      : readiness.score >= 70
+        ? "text-amber-700"
+        : "text-red-700";
+
+  return (
+    <div>
+      <div className="flex items-baseline justify-between gap-3">
+        <span className="text-xs font-semibold uppercase text-muted">Quality</span>
+        <span className={`text-base font-semibold ${scoreTone}`}>{readiness.score}/100</span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded bg-line">
+        <div
+          className={`h-full rounded ${
+            readiness.score >= 90
+              ? "bg-action"
+              : readiness.score >= 70
+                ? "bg-amber-500"
+                : "bg-red-500"
+          }`}
+          style={{ width: `${readiness.score}%` }}
+        />
+      </div>
     </div>
   );
 }

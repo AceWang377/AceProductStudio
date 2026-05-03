@@ -1,13 +1,14 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Search, Trash2, X } from "lucide-react";
+import { Copy, Gauge, Search, Trash2, X } from "lucide-react";
 import type { Product, ProductStatus } from "@/lib/types";
+import { getProductReadiness } from "@/lib/product-readiness";
 import { ProductCard } from "./ProductCard";
 
 type ProductFilter = "ALL" | ProductStatus;
-type ProductSort = "updated" | "created" | "title";
+type ProductSort = "updated" | "created" | "title" | "quality";
 
 const filters: Array<{ value: ProductFilter; label: string }> = [
   { value: "ALL", label: "All" },
@@ -20,7 +21,8 @@ const filters: Array<{ value: ProductFilter; label: string }> = [
 const sortOptions: Array<{ value: ProductSort; label: string }> = [
   { value: "updated", label: "Recently updated" },
   { value: "created", label: "Newest created" },
-  { value: "title", label: "Title A-Z" }
+  { value: "title", label: "Title A-Z" },
+  { value: "quality", label: "Highest quality" }
 ];
 
 export function ProductList({ products }: { products: Product[] }) {
@@ -31,6 +33,45 @@ export function ProductList({ products }: { products: Product[] }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isActing, setIsActing] = useState(false);
   const [actionMessage, setActionMessage] = useState("");
+  const [shopifyConnected, setShopifyConnected] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+    fetch("/api/settings/shopify/status")
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload) => {
+        if (isMounted) setShopifyConnected(Boolean(payload?.connected));
+      })
+      .catch(() => {
+        if (isMounted) setShopifyConnected(false);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const productReadiness = useMemo(
+    () =>
+      new Map(
+        products.map((product) => [
+          product.id,
+          getProductReadiness({ product, shopifyConnected })
+        ])
+      ),
+    [products, shopifyConnected]
+  );
+
+  const qualitySummary = useMemo(() => {
+    const scores = Array.from(productReadiness.values()).map((readiness) => readiness.score);
+    const average = scores.length
+      ? Math.round(scores.reduce((total, score) => total + score, 0) / scores.length)
+      : 0;
+    const ready = scores.filter((score) => score >= 90).length;
+    const needsWork = scores.filter((score) => score < 70).length;
+
+    return { average, ready, needsWork };
+  }, [productReadiness]);
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -53,6 +94,9 @@ export function ProductList({ products }: { products: Product[] }) {
           .includes(normalizedQuery);
       })
       .sort((left, right) => {
+        if (sort === "quality") {
+          return (productReadiness.get(right.id)?.score ?? 0) - (productReadiness.get(left.id)?.score ?? 0);
+        }
         if (sort === "title") {
           return (left.title || left.name || "").localeCompare(right.title || right.name || "");
         }
@@ -60,7 +104,7 @@ export function ProductList({ products }: { products: Product[] }) {
         const rightDate = sort === "created" ? right.createdAt : right.updatedAt;
         return rightDate.localeCompare(leftDate);
       });
-  }, [filter, products, query, sort]);
+  }, [filter, productReadiness, products, query, sort]);
 
   const visibleIds = filteredProducts.map((product) => product.id);
   const selectedVisibleCount = visibleIds.filter((id) => selectedIds.has(id)).length;
@@ -141,6 +185,12 @@ export function ProductList({ products }: { products: Product[] }) {
 
   return (
     <div className="space-y-4">
+      <div className="grid gap-3 border border-line bg-white p-4 md:grid-cols-3">
+        <QualityMetric label="Average quality" value={`${qualitySummary.average}`} suffix="/100" />
+        <QualityMetric label="Ready listings" value={`${qualitySummary.ready}`} suffix={`/${products.length}`} />
+        <QualityMetric label="Needs work" value={`${qualitySummary.needsWork}`} suffix="products" />
+      </div>
+
       <div className="grid gap-3 border border-line bg-white p-4 lg:grid-cols-[minmax(0,1fr)_180px]">
         <label className="relative block">
           <span className="sr-only">Search products</span>
@@ -253,6 +303,7 @@ export function ProductList({ products }: { products: Product[] }) {
             <ProductCard
               key={product.id}
               product={product}
+              readiness={productReadiness.get(product.id)}
               selected={selectedIds.has(product.id)}
               onSelectionChange={toggleProductSelection}
             />
@@ -263,6 +314,28 @@ export function ProductList({ products }: { products: Product[] }) {
           No products match the current search or filter.
         </div>
       )}
+    </div>
+  );
+}
+
+function QualityMetric({
+  label,
+  value,
+  suffix
+}: {
+  label: string;
+  value: string;
+  suffix: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 border border-line bg-canvas px-3 py-3">
+      <Gauge className="h-4 w-4 text-action" aria-hidden />
+      <div>
+        <p className="text-xs text-muted">{label}</p>
+        <p className="mt-1 text-base font-semibold">
+          {value} <span className="text-xs font-medium text-muted">{suffix}</span>
+        </p>
+      </div>
     </div>
   );
 }
