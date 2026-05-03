@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreditAccount } from "@/lib/credits";
+import { siteConfig } from "@/lib/site";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -44,13 +45,13 @@ export default async function RootLayout({
         <div className="min-h-screen">
           <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-              <Link href="/dashboard" className="flex items-center gap-3">
+              <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-3">
                 <span className="grid h-9 w-9 place-items-center rounded bg-ink text-sm font-semibold text-white">
                   AI
                 </span>
                 <span>
                   <span className="block text-sm font-semibold leading-5">
-                    AI Product Studio
+                    {siteConfig.name}
                   </span>
                   <span className="block text-xs text-muted">
                     Product content workspace
@@ -102,6 +103,22 @@ export default async function RootLayout({
             </div>
           </header>
           <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
+          <footer className="border-t border-line">
+            <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <p>{siteConfig.company}</p>
+              <nav className="flex flex-wrap gap-4">
+                <Link className="hover:text-ink" href="/support">
+                  Support
+                </Link>
+                <Link className="hover:text-ink" href="/privacy">
+                  Privacy
+                </Link>
+                <Link className="hover:text-ink" href="/terms">
+                  Terms
+                </Link>
+              </nav>
+            </div>
+          </footer>
         </div>
       </body>
     </html>

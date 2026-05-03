@@ -168,7 +168,14 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       action: appUrlConfigured
         ? "No action needed"
         : "Set NEXT_PUBLIC_APP_URL to https://ace-product-studio.vercel.app."
-    }
+    },
+    envCheck({
+      label: "Support email",
+      name: "NEXT_PUBLIC_SUPPORT_EMAIL",
+      detail: "Users can reach support from the public support, privacy, and terms pages.",
+      action: "Add NEXT_PUBLIC_SUPPORT_EMAIL in Vercel before inviting real users.",
+      optional: true
+    })
   ];
 
   const shopifyChecks: ReadinessCheck[] = [
