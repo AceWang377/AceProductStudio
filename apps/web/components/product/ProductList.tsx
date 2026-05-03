@@ -8,6 +8,7 @@ import { getProductReadiness } from "@/lib/product-readiness";
 import { ProductCard } from "./ProductCard";
 
 type ProductFilter = "ALL" | ProductStatus;
+type QualityFilter = "ALL" | "READY" | "ALMOST" | "NEEDS_WORK";
 type ProductSort = "updated" | "created" | "title" | "quality";
 
 const filters: Array<{ value: ProductFilter; label: string }> = [
@@ -25,10 +26,18 @@ const sortOptions: Array<{ value: ProductSort; label: string }> = [
   { value: "quality", label: "Highest quality" }
 ];
 
+const qualityFilters: Array<{ value: QualityFilter; label: string }> = [
+  { value: "ALL", label: "All quality" },
+  { value: "READY", label: "Ready" },
+  { value: "ALMOST", label: "Almost ready" },
+  { value: "NEEDS_WORK", label: "Needs work" }
+];
+
 export function ProductList({ products }: { products: Product[] }) {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProductFilter>("ALL");
+  const [qualityFilter, setQualityFilter] = useState<QualityFilter>("ALL");
   const [sort, setSort] = useState<ProductSort>("updated");
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [isActing, setIsActing] = useState(false);
@@ -73,12 +82,27 @@ export function ProductList({ products }: { products: Product[] }) {
     return { average, ready, needsWork };
   }, [productReadiness]);
 
+  const qualityCounts = useMemo(() => {
+    const scores = Array.from(productReadiness.values()).map((readiness) => readiness.score);
+
+    return {
+      ALL: scores.length,
+      READY: scores.filter((score) => score >= 90).length,
+      ALMOST: scores.filter((score) => score >= 70 && score < 90).length,
+      NEEDS_WORK: scores.filter((score) => score < 70).length
+    };
+  }, [productReadiness]);
+
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
 
     return products
       .filter((product) => {
         if (filter !== "ALL" && product.status !== filter) return false;
+        const score = productReadiness.get(product.id)?.score ?? 0;
+        if (qualityFilter === "READY" && score < 90) return false;
+        if (qualityFilter === "ALMOST" && (score < 70 || score >= 90)) return false;
+        if (qualityFilter === "NEEDS_WORK" && score >= 70) return false;
         if (!normalizedQuery) return true;
 
         return [
@@ -104,11 +128,17 @@ export function ProductList({ products }: { products: Product[] }) {
         const rightDate = sort === "created" ? right.createdAt : right.updatedAt;
         return rightDate.localeCompare(leftDate);
       });
-  }, [filter, productReadiness, products, query, sort]);
+  }, [filter, productReadiness, products, qualityFilter, query, sort]);
 
   const visibleIds = filteredProducts.map((product) => product.id);
   const selectedVisibleCount = visibleIds.filter((id) => selectedIds.has(id)).length;
   const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+  const readyVisibleIds = filteredProducts
+    .filter((product) => (productReadiness.get(product.id)?.score ?? 0) >= 90)
+    .map((product) => product.id);
+  const selectedReadyVisibleCount = readyVisibleIds.filter((id) => selectedIds.has(id)).length;
+  const allReadyVisibleSelected =
+    readyVisibleIds.length > 0 && selectedReadyVisibleCount === readyVisibleIds.length;
   const selectedProducts = products.filter((product) => selectedIds.has(product.id));
   const draftEligibleProducts = selectedProducts.filter((product) => {
     const readiness = productReadiness.get(product.id);
@@ -141,6 +171,19 @@ export function ProductList({ products }: { products: Product[] }) {
         visibleIds.forEach((id) => next.delete(id));
       } else {
         visibleIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  function toggleReadyVisibleSelection() {
+    setActionMessage("");
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (allReadyVisibleSelected) {
+        readyVisibleIds.forEach((id) => next.delete(id));
+      } else {
+        readyVisibleIds.forEach((id) => next.add(id));
       }
       return next;
     });
@@ -295,6 +338,26 @@ export function ProductList({ products }: { products: Product[] }) {
             </button>
           );
         })}
+      </div>
+
+      <div className="flex flex-wrap gap-2">
+        {qualityFilters.map((item) => (
+          <button
+            key={item.value}
+            type="button"
+            onClick={() => setQualityFilter(item.value)}
+            className={`studio-focus inline-flex h-9 items-center gap-2 rounded border px-3 text-sm font-semibold transition ${
+              qualityFilter === item.value
+                ? "border-ink bg-ink text-white"
+                : "border-line bg-white text-muted hover:text-ink"
+            }`}
+          >
+            {item.label}
+            <span className={qualityFilter === item.value ? "text-white/80" : "text-muted"}>
+              {qualityCounts[item.value]}
+            </span>
+          </button>
+        ))}
         {filteredProducts.length ? (
           <button
             type="button"
@@ -303,6 +366,16 @@ export function ProductList({ products }: { products: Product[] }) {
           >
             {allVisibleSelected ? "Clear visible" : "Select visible"}
             <span className="text-muted">{selectedVisibleCount}/{visibleIds.length}</span>
+          </button>
+        ) : null}
+        {readyVisibleIds.length ? (
+          <button
+            type="button"
+            onClick={toggleReadyVisibleSelection}
+            className="studio-focus inline-flex h-9 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-muted hover:text-ink"
+          >
+            {allReadyVisibleSelected ? "Clear ready" : "Select ready"}
+            <span className="text-muted">{selectedReadyVisibleCount}/{readyVisibleIds.length}</span>
           </button>
         ) : null}
       </div>
