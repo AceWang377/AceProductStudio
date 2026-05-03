@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { listProducts } from "@/lib/store";
-import { ProductCard } from "@/components/product/ProductCard";
+import { ProductList } from "@/components/product/ProductList";
 
 export const dynamic = "force-dynamic";
 
@@ -24,11 +24,7 @@ export default async function ProductsPage() {
         </Link>
       </div>
       {products.length ? (
-        <div className="border-t border-line">
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
+        <ProductList products={products} />
       ) : (
         <div className="border border-line bg-white p-8 text-sm text-muted">
           No product drafts yet.
