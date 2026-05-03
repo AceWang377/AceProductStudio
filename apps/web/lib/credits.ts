@@ -49,7 +49,7 @@ function getAdminEmails() {
   );
 }
 
-function isAdminEmail(email?: string | null) {
+export function isAdminEmail(email?: string | null) {
   return Boolean(email && getAdminEmails().has(email.toLowerCase()));
 }
 

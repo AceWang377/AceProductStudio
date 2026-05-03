@@ -96,7 +96,8 @@ async function getDatabaseChecks(): Promise<ReadinessCheck[]> {
     checkTable("product_images", "id,storage_key,prompt,is_selected,sort_order,shopify_media_id"),
     checkTable("jobs", "id,input,output,result,error,progress"),
     checkTable("credit_accounts", "user_id,balance"),
-    checkTable("credit_ledger", "id,amount,reason,stripe_payment_id")
+    checkTable("credit_ledger", "id,amount,reason,stripe_payment_id"),
+    checkTable("rate_limits", "id,action_key,window_start,count")
   ]);
 }
 

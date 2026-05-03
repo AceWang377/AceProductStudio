@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { addJob, applyGeneratedCopy, completeCopyGeneration, getProduct } from "@/lib/store";
 import { generateProductCopyWithOpenAI, getOpenAIKeyStatus } from "@/lib/openai";
+import { enforceRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 export async function POST(
   _request: Request,
@@ -9,6 +10,19 @@ export async function POST(
   const { id } = await params;
   const product = await getProduct(id);
   if (!product) return NextResponse.json({ error: "Product not found." }, { status: 404 });
+
+  const rateLimit = await enforceRateLimit({
+    key: "copy_generation",
+    limit: 40,
+    windowSeconds: 60 * 60
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { error: rateLimit.error || "Copy generation limit reached." },
+      { status: rateLimit.userId ? 429 : 401, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
 
   const generatedCopy = await generateProductCopyWithOpenAI({
     imageUrl: product.originalImageUrl,
@@ -38,11 +52,14 @@ export async function POST(
     error: null
   });
 
-  return NextResponse.json({
-    jobId: job?.id,
-    status: "completed",
-    mode: generatedCopy ? "openai" : "local-simulation",
-    note: generatedCopy ? "Generated with OpenAI text model." : keyStatus.message,
-    product: updated
-  });
+  return NextResponse.json(
+    {
+      jobId: job?.id,
+      status: "completed",
+      mode: generatedCopy ? "openai" : "local-simulation",
+      note: generatedCopy ? "Generated with OpenAI text model." : keyStatus.message,
+      product: updated
+    },
+    { headers: rateLimitHeaders(rateLimit) }
+  );
 }

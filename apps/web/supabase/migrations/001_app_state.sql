@@ -97,6 +97,17 @@ create table if not exists credit_ledger (
   created_at timestamptz default now()
 );
 
+create table if not exists rate_limits (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete cascade,
+  action_key text not null,
+  window_start timestamptz not null,
+  count integer not null default 0,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+  unique (user_id, action_key, window_start)
+);
+
 alter table stores add column if not exists admin_access_token text;
 alter table stores add column if not exists client_id text;
 alter table stores add column if not exists client_secret text;
@@ -137,6 +148,8 @@ create index if not exists stores_user_active_idx on stores (user_id, is_active)
 create unique index if not exists credit_ledger_stripe_payment_id_idx
 on credit_ledger (stripe_payment_id)
 where stripe_payment_id is not null;
+create index if not exists rate_limits_user_action_window_idx
+on rate_limits (user_id, action_key, window_start desc);
 
 alter table stores enable row level security;
 alter table products enable row level security;
@@ -144,6 +157,7 @@ alter table product_images enable row level security;
 alter table jobs enable row level security;
 alter table credit_accounts enable row level security;
 alter table credit_ledger enable row level security;
+alter table rate_limits enable row level security;
 
 drop policy if exists "Users can manage own stores" on stores;
 create policy "Users can manage own stores"
@@ -176,4 +190,9 @@ using (auth.uid() = user_id);
 drop policy if exists "Users can view own credit ledger" on credit_ledger;
 create policy "Users can view own credit ledger"
 on credit_ledger for select
+using (auth.uid() = user_id);
+
+drop policy if exists "Users can view own rate limits" on rate_limits;
+create policy "Users can view own rate limits"
+on rate_limits for select
 using (auth.uid() = user_id);

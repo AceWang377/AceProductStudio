@@ -16,6 +16,7 @@ import {
   getCreditAccount,
   spendCredits
 } from "@/lib/credits";
+import { enforceRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 export async function POST(
   request: Request,
@@ -24,6 +25,19 @@ export async function POST(
   const { id } = await params;
   const product = await getProduct(id);
   if (!product) return NextResponse.json({ error: "Product not found." }, { status: 404 });
+
+  const rateLimit = await enforceRateLimit({
+    key: "image_generation",
+    limit: 20,
+    windowSeconds: 60 * 60
+  });
+
+  if (!rateLimit.ok) {
+    return NextResponse.json(
+      { error: rateLimit.error || "Image generation limit reached." },
+      { status: rateLimit.userId ? 429 : 401, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
 
   const body = await request.json().catch(() => ({}));
   const styles = Array.isArray(body.styles) && body.styles.length
@@ -101,7 +115,7 @@ export async function POST(
           isUnlimited: Boolean(creditSpend.isUnlimited)
         }
       },
-      { status: 402 }
+      { status: 402, headers: rateLimitHeaders(rateLimit) }
     );
   }
 
@@ -171,7 +185,7 @@ export async function POST(
           isUnlimited: Boolean(refundedCredits.isUnlimited)
         }
       },
-      { status: 402 }
+      { status: 402, headers: rateLimitHeaders(rateLimit) }
     );
   }
 
@@ -196,16 +210,19 @@ export async function POST(
     error: null
   });
 
-  return NextResponse.json({
-    jobId: job?.id,
-    status: "completed",
-    mode: usedOpenAI ? "openai" : "local-simulation",
-    note,
-    credits: {
-      balance: credits.balance,
-      spent: credits.isUnlimited ? 0 : creditsRequired,
-      isUnlimited: Boolean(credits.isUnlimited)
+  return NextResponse.json(
+    {
+      jobId: job?.id,
+      status: "completed",
+      mode: usedOpenAI ? "openai" : "local-simulation",
+      note,
+      credits: {
+        balance: credits.balance,
+        spent: credits.isUnlimited ? 0 : creditsRequired,
+        isUnlimited: Boolean(credits.isUnlimited)
+      },
+      images
     },
-    images
-  });
+    { headers: rateLimitHeaders(rateLimit) }
+  );
 }
