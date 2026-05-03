@@ -1,6 +1,4 @@
-import { randomUUID } from "crypto";
-import { mkdir, writeFile } from "fs/promises";
-import path from "path";
+import { mimeTypeToExtension, saveMediaBuffer } from "@/lib/media-storage";
 
 const allowedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 const maxSize = 10 * 1024 * 1024;
@@ -14,17 +12,12 @@ export async function saveUploadedImage(file: File) {
     throw new Error("Images must be 10MB or smaller.");
   }
 
-  const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
-  const key = `${randomUUID()}.${extension}`;
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  const filePath = path.join(uploadDir, key);
   const buffer = Buffer.from(await file.arrayBuffer());
 
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(filePath, buffer);
-
-  return {
-    key: `uploads/${key}`,
-    url: `/uploads/${key}`
-  };
+  return saveMediaBuffer({
+    buffer,
+    mimeType: file.type,
+    extension: mimeTypeToExtension(file.type),
+    folder: "uploads"
+  });
 }

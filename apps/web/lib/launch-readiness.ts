@@ -1,5 +1,6 @@
 import "server-only";
 import { isStripeBillingConfigured } from "@/lib/billing";
+import { checkMediaStorageBucket, getMediaStorageBucketName } from "@/lib/media-storage";
 import { getShopifyAppConfig } from "@/lib/shopify-oauth";
 import { createSupabaseAdminClient, isSupabaseStorageEnabled } from "@/lib/supabase-admin";
 
@@ -97,6 +98,35 @@ async function getDatabaseChecks(): Promise<ReadinessCheck[]> {
     checkTable("credit_accounts", "user_id,balance"),
     checkTable("credit_ledger", "id,amount,reason,stripe_payment_id")
   ]);
+}
+
+async function getStorageChecks(): Promise<ReadinessCheck[]> {
+  const bucket = getMediaStorageBucketName();
+
+  if (!isSupabaseStorageEnabled()) {
+    return [
+      {
+        label: "Image storage",
+        status: "missing",
+        detail: "Uploaded and generated images need Supabase Storage for production.",
+        action: "Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel."
+      }
+    ];
+  }
+
+  const status = await checkMediaStorageBucket();
+  return [
+    {
+      label: "Storage bucket",
+      status: status.ok ? "ready" : "warning",
+      detail: status.ok
+        ? `${bucket} is available for durable product images.`
+        : `${bucket} does not exist yet. The first image upload can create it automatically.`,
+      action: status.ok
+        ? "No action needed"
+        : `Create a public Supabase Storage bucket named ${bucket}, or upload one image in the app.`
+    }
+  ];
 }
 
 export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
@@ -200,6 +230,11 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       title: "Supabase schema",
       description: "Tables and columns used by products, jobs, stores, images, and credits.",
       checks: await getDatabaseChecks()
+    },
+    {
+      title: "Image storage",
+      description: "Durable storage for uploaded originals and generated Shopify media.",
+      checks: await getStorageChecks()
     },
     {
       title: "Shopify publishing",

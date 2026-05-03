@@ -1,7 +1,7 @@
 import { randomUUID } from "crypto";
 import { readFileSync } from "fs";
-import { mkdir, readFile, writeFile } from "fs/promises";
 import path from "path";
+import { readImageBytesFromUrl, saveMediaBuffer } from "@/lib/media-storage";
 
 type ProductAnalysis = {
   name: string;
@@ -84,20 +84,9 @@ export function getOpenAIKeyStatus() {
   };
 }
 
-function publicUrlToFilePath(url: string) {
-  if (!url.startsWith("/uploads/")) {
-    throw new Error("Only local uploaded images can be sent to OpenAI from this MVP.");
-  }
-  return path.join(process.cwd(), "public", url);
-}
-
 async function fileToDataUrl(url: string) {
-  const filePath = publicUrlToFilePath(url);
-  const bytes = await readFile(filePath);
-  const ext = path.extname(filePath).toLowerCase();
-  const mime =
-    ext === ".png" ? "image/png" : ext === ".webp" ? "image/webp" : "image/jpeg";
-  return `data:${mime};base64,${bytes.toString("base64")}`;
+  const image = await readImageBytesFromUrl(url);
+  return `data:${image.mimeType};base64,${image.bytes.toString("base64")}`;
 }
 
 function outputText(response: { output_text?: string; output?: Array<{ content?: Array<{ text?: string }> }> }) {
@@ -293,14 +282,13 @@ export async function generateProductImageWithOpenAI(input: {
   const key = getOpenAIKey();
   if (!key || key.startsWith("sk-or-")) return null;
 
-  const originalPath = publicUrlToFilePath(input.imageUrl);
-  const originalBytes = await readFile(originalPath);
-  const blob = new Blob([originalBytes], {
-    type: path.extname(originalPath).toLowerCase() === ".png" ? "image/png" : "image/jpeg"
+  const original = await readImageBytesFromUrl(input.imageUrl);
+  const blob = new Blob([new Uint8Array(original.bytes)], {
+    type: original.mimeType
   });
   const formData = new FormData();
   formData.set("model", getConfigValue("OPENAI_IMAGE_MODEL", "gpt-image-2"));
-  formData.set("image", blob, path.basename(originalPath));
+  formData.set("image", blob, original.filename);
   formData.set("prompt", input.prompt);
   formData.set("size", "1024x1024");
 
@@ -334,14 +322,16 @@ export async function generateProductImageWithOpenAI(input: {
   const base64 = payload.data?.[0]?.b64_json;
   if (!base64) return null;
 
-  const uploadDir = path.join(process.cwd(), "public", "uploads");
-  await mkdir(uploadDir, { recursive: true });
-  const keyName = `${input.productId}-${input.type.toLowerCase()}-${input.index}-${randomUUID()}.png`;
-  const filePath = path.join(uploadDir, keyName);
-  await writeFile(filePath, Buffer.from(base64, "base64"));
+  const stored = await saveMediaBuffer({
+    buffer: Buffer.from(base64, "base64"),
+    mimeType: "image/png",
+    extension: "png",
+    folder: "generated",
+    keyPrefix: `${input.productId}-${input.type.toLowerCase()}-${input.index}-${randomUUID()}`
+  });
 
   return {
-    url: `/uploads/${keyName}`,
-    storageKey: `uploads/${keyName}`
+    url: stored.url,
+    storageKey: stored.key
   };
 }
