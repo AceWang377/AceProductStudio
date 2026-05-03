@@ -265,6 +265,11 @@ function mapStore(row: StoreRow): ShopifyConnection {
   };
 }
 
+function duplicateLabel(value?: string) {
+  const base = value?.trim() || "Uploaded product";
+  return /\bcopy\b/i.test(base) ? base : `${base} Copy`;
+}
+
 async function fetchProductRelations(productIds: string[]) {
   if (!productIds.length) {
     return { imagesByProductId: new Map<string, ProductImage[]>(), jobsByProductId: new Map<string, GenerationJob[]>() };
@@ -526,6 +531,113 @@ export async function createProduct(input: {
   if (imageError) throw new Error(`Could not create original image: ${imageError.message}`);
 
   return mapProduct(data as ProductRow, [mapImage(imageData as ProductImageRow)], []);
+}
+
+export async function duplicateProduct(id: string) {
+  const original = await getProduct(id);
+  if (!original) return null;
+
+  const now = new Date().toISOString();
+  const nextId = randomUUID();
+  const name = duplicateLabel(original.name || original.title);
+  const title = duplicateLabel(original.title || original.name);
+
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    const product: Product = {
+      ...original,
+      id: nextId,
+      name,
+      title,
+      status: "DRAFT",
+      shopifyStatus: "NOT_CONNECTED",
+      shopifyProductId: undefined,
+      images: original.images.map((image, index) => ({
+        ...image,
+        id: randomUUID(),
+        productId: nextId,
+        storageKey: undefined,
+        sortOrder: image.sortOrder ?? index,
+        createdAt: now
+      })),
+      jobs: [],
+      createdAt: now,
+      updatedAt: now
+    };
+
+    state.products.push(product);
+    await writeLocalState(state);
+    return product;
+  }
+
+  const userId = await requireCurrentUserId();
+  const supabase = createSupabaseAdminClient();
+  const insertPayload = {
+    id: nextId,
+    user_id: userId,
+    name,
+    category: original.category || "General ecommerce",
+    style: original.style || "minimal studio",
+    target_market: original.targetMarket || "",
+    tone: original.tone || "clear and trustworthy",
+    seo_keywords: original.seoKeywords ?? [],
+    language: original.language || "English",
+    brand_voice: original.brandVoice || "",
+    image_style_preset: original.imageStylePreset || original.style || "minimal studio",
+    status: "DRAFT",
+    original_image_url: original.originalImageUrl,
+    background_removed_image_url: original.backgroundRemovedImageUrl ?? null,
+    title,
+    description: original.description || "",
+    bullet_points: original.bulletPoints ?? [],
+    tags: original.tags ?? [],
+    faq: original.faq ?? [],
+    price: original.price || "",
+    compare_at_price: original.compareAtPrice || "",
+    sku: original.sku ? `${original.sku}-COPY` : "",
+    inventory_quantity: original.inventoryQuantity ?? 0,
+    track_inventory: original.trackInventory ?? false,
+    shopify_status: "NOT_CONNECTED",
+    created_at: now,
+    updated_at: now
+  };
+
+  const { data, error } = await retryStoreMutationWithoutMissingColumns(insertPayload, async (nextPayload) => {
+    const result = await supabase
+      .from("products")
+      .insert(nextPayload)
+      .select("*")
+      .single();
+    return { data: result.data, error: result.error };
+  });
+
+  if (error) throw new Error(`Could not duplicate product: ${error.message}`);
+
+  const imageRows = original.images.map((image, index) => ({
+    id: randomUUID(),
+    product_id: nextId,
+    user_id: userId,
+    image_type: image.type,
+    url: image.url,
+    prompt: image.prompt ?? null,
+    is_selected: image.isSelected,
+    sort_order: image.sortOrder ?? index,
+    created_at: now
+  }));
+
+  if (!imageRows.length) return mapProduct(data as ProductRow, [], []);
+
+  const { data: imageData, error: imageError } = await supabase
+    .from("product_images")
+    .insert(imageRows)
+    .select("*");
+
+  if (imageError) {
+    await supabase.from("products").delete().eq("id", nextId).eq("user_id", userId);
+    throw new Error(`Could not duplicate product images: ${imageError.message}`);
+  }
+
+  return mapProduct(data as ProductRow, ((imageData ?? []) as ProductImageRow[]).map(mapImage), []);
 }
 
 export async function updateProduct(id: string, patch: ProductPatch) {

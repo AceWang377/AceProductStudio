@@ -8,6 +8,7 @@ import {
   CheckCircle2,
   Circle,
   Coins,
+  Copy,
   ExternalLink,
   ImagePlus,
   ListChecks,
@@ -45,6 +46,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isDuplicating, setIsDuplicating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState<string | undefined>();
   const [showLivePublishConfirm, setShowLivePublishConfirm] = useState(false);
@@ -265,6 +267,30 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     } catch {
       setDeleteMessage("Could not delete this product. Check your connection and try again.");
       setIsDeleting(false);
+    }
+  }
+
+  async function duplicateProductDraft() {
+    setIsDuplicating(true);
+    setDeleteMessage("");
+
+    try {
+      const response = await fetch(`/api/products/${product.id}/duplicate`, {
+        method: "POST"
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setDeleteMessage(payload.error || "Could not duplicate this product.");
+        setIsDuplicating(false);
+        return;
+      }
+
+      router.push(`/products/${payload.id}`);
+      router.refresh();
+    } catch {
+      setDeleteMessage("Could not duplicate this product. Check your connection and try again.");
+      setIsDuplicating(false);
     }
   }
 
@@ -491,21 +517,30 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
             />
           </dl>
         </div>
-        <div className="border border-red-200 bg-red-50 p-4">
+        <div className="border border-line bg-white p-4">
           <div className="flex items-start gap-3">
-            <Trash2 className="mt-0.5 h-5 w-5 text-red-700" aria-hidden />
+            <Copy className="mt-0.5 h-5 w-5 text-action" aria-hidden />
             <div>
-              <h2 className="text-base font-semibold text-red-950">Product controls</h2>
-              <p className="mt-2 text-sm leading-6 text-red-900">
-                Delete this draft when a test product, generated media, or copy should no longer appear in the workspace.
+              <h2 className="text-base font-semibold">Product controls</h2>
+              <p className="mt-2 text-sm leading-6 text-muted">
+                Duplicate this draft to test a new image style, copy angle, or price setup. Delete only when it should no longer appear in the workspace.
               </p>
             </div>
           </div>
           <button
             type="button"
+            onClick={duplicateProductDraft}
+            disabled={isDuplicating || isDeleting}
+            className="studio-focus mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold text-ink hover:bg-canvas disabled:opacity-60"
+          >
+            <Copy className="h-4 w-4" aria-hidden />
+            {isDuplicating ? "Duplicating..." : "Duplicate draft"}
+          </button>
+          <button
+            type="button"
             onClick={deleteProductDraft}
-            disabled={isDeleting}
-            className="studio-focus mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+            disabled={isDeleting || isDuplicating}
+            className="studio-focus mt-3 inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
           >
             <Trash2 className="h-4 w-4" aria-hidden />
             {isDeleting ? "Deleting..." : "Delete draft"}
