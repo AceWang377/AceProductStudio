@@ -4,6 +4,7 @@ import { FormEvent, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { UploadCloud } from "lucide-react";
+import { briefPresets, imageStyleOptions, toneOptions, type BriefPreset } from "@/lib/brief-presets";
 
 export function NewProductForm() {
   const router = useRouter();
@@ -34,6 +35,16 @@ export function NewProductForm() {
       return;
     }
     setPreview(URL.createObjectURL(nextFile));
+  }
+
+  function applyPreset(preset: BriefPreset) {
+    if (!category.trim()) setCategory(preset.category);
+    setStyle(preset.imageStylePreset);
+    setImageStylePreset(preset.imageStylePreset);
+    setTargetMarket(preset.targetMarket);
+    setTone(preset.tone);
+    setSeoKeywords(preset.seoKeywords.join(", "));
+    setBrandVoice(preset.brandVoice);
   }
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -126,6 +137,24 @@ export function NewProductForm() {
             Optional draft details
           </summary>
           <div className="mt-4 space-y-4">
+            <div>
+              <p className="text-sm font-medium">Brief preset</p>
+              <div className="mt-2 grid gap-2">
+                {briefPresets.map((preset) => (
+                  <button
+                    key={preset.id}
+                    type="button"
+                    onClick={() => applyPreset(preset)}
+                    className="studio-focus rounded border border-line bg-canvas p-3 text-left transition hover:border-action hover:bg-white"
+                  >
+                    <span className="block text-sm font-semibold">{preset.label}</span>
+                    <span className="mt-1 block text-xs leading-5 text-muted">
+                      {preset.imageStylePreset} · {preset.tone}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </div>
           <label className="block">
             <span className="text-sm font-medium">Product name override</span>
             <input
@@ -155,10 +184,9 @@ export function NewProductForm() {
               className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
             >
               <option value="">Infer from product</option>
-              <option>minimal studio</option>
-              <option>modern home</option>
-              <option>luxury product</option>
-              <option>outdoor lifestyle</option>
+              {imageStyleOptions.map((option) => (
+                <option key={option}>{option}</option>
+              ))}
             </select>
           </label>
           <label className="block">
@@ -177,11 +205,9 @@ export function NewProductForm() {
               onChange={(event) => setTone(event.target.value)}
               className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
             >
-              <option>clear and trustworthy</option>
-              <option>premium and concise</option>
-              <option>friendly and practical</option>
-              <option>bold and trend-led</option>
-              <option>minimal and editorial</option>
+              {toneOptions.map((option) => (
+                <option key={option}>{option}</option>
+              ))}
             </select>
           </label>
           <label className="block">

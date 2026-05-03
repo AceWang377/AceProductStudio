@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { briefPresets, imageStyleOptions, toneOptions, type BriefPreset } from "@/lib/brief-presets";
 import type { Product } from "@/lib/types";
 
 export function ProductBriefControls({
@@ -66,8 +67,32 @@ export function ProductBriefControls({
     if (response.ok) onSaved(updated);
   }
 
+  function applyPreset(preset: BriefPreset) {
+    setCategory(preset.category);
+    setImageStylePreset(preset.imageStylePreset);
+    setTargetMarket(preset.targetMarket);
+    setTone(preset.tone);
+    setSeoKeywords(preset.seoKeywords.join(", "));
+    setBrandVoice(preset.brandVoice);
+  }
+
   return (
     <div className="grid gap-4">
+      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {briefPresets.map((preset) => (
+          <button
+            key={preset.id}
+            type="button"
+            onClick={() => applyPreset(preset)}
+            className="studio-focus rounded border border-line bg-canvas p-3 text-left transition hover:border-action hover:bg-white"
+          >
+            <span className="block text-sm font-semibold">{preset.label}</span>
+            <span className="mt-1 block text-xs leading-5 text-muted">
+              {preset.imageStylePreset} · {preset.tone}
+            </span>
+          </button>
+        ))}
+      </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="block">
           <span className="text-sm font-medium">Product name</span>
@@ -94,12 +119,9 @@ export function ProductBriefControls({
             onChange={(event) => setImageStylePreset(event.target.value)}
             className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
           >
-            <option>minimal studio</option>
-            <option>modern home</option>
-            <option>luxury product</option>
-            <option>outdoor lifestyle</option>
-            <option>streetwear editorial</option>
-            <option>clean marketplace</option>
+            {imageStyleOptions.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
           </select>
         </label>
         <label className="block">
@@ -118,11 +140,9 @@ export function ProductBriefControls({
             onChange={(event) => setTone(event.target.value)}
             className="studio-focus mt-2 h-11 w-full rounded border border-line bg-white px-3"
           >
-            <option>clear and trustworthy</option>
-            <option>premium and concise</option>
-            <option>friendly and practical</option>
-            <option>bold and trend-led</option>
-            <option>minimal and editorial</option>
+            {toneOptions.map((option) => (
+              <option key={option}>{option}</option>
+            ))}
           </select>
         </label>
         <label className="block">
