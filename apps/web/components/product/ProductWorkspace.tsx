@@ -24,9 +24,11 @@ import {
 } from "lucide-react";
 import type { GenerationJob, Product, ProductImage } from "@/lib/types";
 import { getOrderedPublishImages } from "@/lib/product-images";
+import { getProductReadiness } from "@/lib/product-readiness";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
 import { JobStatusPanel } from "@/components/jobs/JobStatusPanel";
+import { ListingQualityPanel } from "./ListingQualityPanel";
 import { ProductBriefControls } from "./ProductBriefControls";
 import { StatusBadge } from "./StatusBadge";
 
@@ -64,6 +66,15 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
 
   const publishImages = useMemo(() => getPublishImages(product.images), [product.images]);
   const previewImage = publishImages[0] ?? product.images.find((image) => image.type === "ORIGINAL");
+  const readiness = useMemo(
+    () =>
+      getProductReadiness({
+        product,
+        publishImages,
+        shopifyConnected
+      }),
+    [product, publishImages, shopifyConnected]
+  );
   const checklist = [
     {
       label: "Shopify connected",
@@ -91,7 +102,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
       detail: product.trackInventory ? `${product.inventoryQuantity ?? 0} tracked` : "Not tracked"
     }
   ];
-  const readyToPublish = checklist.every((item) => item.complete);
+  const readyToPublish = readiness.score >= 90 && checklist.every((item) => item.complete);
 
   useEffect(() => {
     let isMounted = true;
@@ -491,7 +502,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                 </a>
               ) : null}
             </div>
-            <Checklist items={checklist} />
+            <ListingQualityPanel readiness={readiness} onOpenTab={setActiveTab} />
           </div>
         ) : null}
 
@@ -507,6 +518,9 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
 
       <aside className="space-y-5 xl:sticky xl:top-24 xl:self-start">
         <ShopifyPreview product={product} image={previewImage} />
+        {activeTab === "publish" ? null : (
+          <ListingQualityPanel readiness={readiness} onOpenTab={setActiveTab} />
+        )}
         <Checklist items={checklist} />
         <div className="border border-line bg-white p-4">
           <h2 className="text-base font-semibold">Draft state</h2>
