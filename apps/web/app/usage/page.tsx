@@ -54,6 +54,9 @@ export default async function UsagePage() {
     )
     .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
     .slice(0, 40);
+  const failedJobs = jobs.filter((job) => job.status === "FAILED");
+  const activeJobs = jobs.filter((job) => job.status === "QUEUED" || job.status === "PROCESSING");
+  const completedJobs = jobs.filter((job) => job.status === "COMPLETED");
   const spent = ledger
     .filter((entry) => entry.amount < 0)
     .reduce((total, entry) => total + Math.abs(entry.amount), 0);
@@ -77,14 +80,15 @@ export default async function UsagePage() {
         </Link>
       </div>
 
-      <section className="grid gap-3 md:grid-cols-3">
+      <section className="grid gap-3 md:grid-cols-4">
         <Metric
           icon={Coins}
           label="Current credits"
           value={credits.isUnlimited ? "Unlimited" : credits.balance}
         />
         <Metric icon={Activity} label="Credits used" value={credits.isUnlimited ? "Admin" : spent} />
-        <Metric icon={History} label="Credits added" value={credits.isUnlimited ? "Bypassed" : added} />
+        <Metric icon={CircleAlert} label="Failed jobs" value={failedJobs.length} />
+        <Metric icon={History} label="Completed jobs" value={completedJobs.length} />
       </section>
 
       {credits.isUnlimited ? (
@@ -93,11 +97,70 @@ export default async function UsagePage() {
         </div>
       ) : null}
 
+      <section className="border border-line bg-white">
+        <div className="border-b border-line p-5">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+            <div>
+              <h2 className="text-lg font-semibold">Failed job triage</h2>
+              <p className="mt-1 text-sm text-muted">
+                The newest blocked actions, with product links and the recorded error message.
+              </p>
+            </div>
+            <span
+              className={`inline-flex h-9 items-center rounded px-3 text-sm font-semibold ${
+                failedJobs.length
+                  ? "bg-red-50 text-red-700 ring-1 ring-red-200"
+                  : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+              }`}
+            >
+              {failedJobs.length ? `${failedJobs.length} needs review` : "No failures"}
+            </span>
+          </div>
+        </div>
+        {failedJobs.length ? (
+          <div className="divide-y divide-line">
+            {failedJobs.slice(0, 6).map((job) => (
+              <div key={job.id} className="grid gap-3 p-4 text-sm lg:grid-cols-[1fr_auto]">
+                <div className="min-w-0">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-semibold capitalize">
+                      {job.type.toLowerCase().replaceAll("_", " ")}
+                    </span>
+                    <span className="rounded bg-red-50 px-2 py-1 text-xs font-semibold text-red-700">
+                      failed
+                    </span>
+                  </div>
+                  <p className="mt-1 text-muted">
+                    {job.productTitle} · {formatDate(job.updatedAt)}
+                  </p>
+                  <p className="mt-3 break-words rounded border border-red-100 bg-red-50 p-3 text-red-800">
+                    {job.error || "No error message was recorded."}
+                  </p>
+                </div>
+                <Link
+                  href={`/products/${job.productId}`}
+                  className="studio-focus inline-flex h-10 items-center justify-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold hover:bg-canvas"
+                >
+                  Open product
+                  <ArrowUpRight className="h-4 w-4" aria-hidden />
+                </Link>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="p-6 text-sm text-muted">
+            Failed generation and Shopify publish jobs will appear here when they need attention.
+          </div>
+        )}
+      </section>
+
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <div className="border border-line bg-white">
           <div className="border-b border-line p-5">
             <h2 className="text-lg font-semibold">Credit ledger</h2>
-            <p className="mt-1 text-sm text-muted">Charges, refunds, trial credits, and future purchases.</p>
+            <p className="mt-1 text-sm text-muted">
+              Charges, refunds, trial credits, and future purchases. Total added: {credits.isUnlimited ? "admin bypass" : added}.
+            </p>
           </div>
           <div className="divide-y divide-line">
             {ledger.length ? (
@@ -133,7 +196,9 @@ export default async function UsagePage() {
         <div className="border border-line bg-white">
           <div className="border-b border-line p-5">
             <h2 className="text-lg font-semibold">Job history</h2>
-            <p className="mt-1 text-sm text-muted">Image, copy, and Shopify publish jobs.</p>
+            <p className="mt-1 text-sm text-muted">
+              Image, copy, and Shopify publish jobs. Active now: {activeJobs.length}.
+            </p>
           </div>
           <div className="divide-y divide-line">
             {jobs.length ? (
@@ -151,9 +216,12 @@ export default async function UsagePage() {
                       <p className="font-semibold capitalize">
                         {job.type.toLowerCase().replaceAll("_", " ")}
                       </p>
-                      <p className="mt-1 truncate text-muted">
+                      <Link
+                        href={`/products/${job.productId}`}
+                        className="mt-1 block truncate text-muted underline-offset-4 hover:text-action hover:underline"
+                      >
                         {job.productTitle} · {formatDate(job.updatedAt)}
-                      </p>
+                      </Link>
                       {job.error ? <p className="mt-2 break-words text-red-700">{job.error}</p> : null}
                     </div>
                     <span className="text-muted">{job.progress}%</span>
