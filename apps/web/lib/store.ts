@@ -928,3 +928,37 @@ export async function saveShopifyConnection(input: {
   if (error) throw new Error(`Could not save Shopify connection: ${error.message}`);
   return mapStore(data as StoreRow);
 }
+
+export async function disconnectShopifyConnection() {
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    state.shopifyConnection = undefined;
+    await writeLocalState(state);
+    return;
+  }
+
+  const existing = await getActiveShopifyConnection();
+  if (!existing) return;
+
+  const supabase = createSupabaseAdminClient();
+  const userId = await requireCurrentUserId();
+  const updatePayload = {
+    access_token: null,
+    admin_access_token: null,
+    client_id: null,
+    client_secret: null,
+    is_active: false,
+    updated_at: new Date().toISOString()
+  };
+
+  const { error } = await retryStoreMutationWithoutMissingColumns(updatePayload, async (nextPayload) => {
+    const result = await supabase
+      .from("stores")
+      .update(nextPayload)
+      .eq("id", existing.id)
+      .eq("user_id", userId);
+    return { data: null, error: result.error };
+  });
+
+  if (error) throw new Error(`Could not disconnect Shopify store: ${error.message}`);
+}

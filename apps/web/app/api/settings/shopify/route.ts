@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { readState, saveShopifyConnection } from "@/lib/store";
+import { disconnectShopifyConnection, readState, saveShopifyConnection } from "@/lib/store";
 import type { ShopifyConnection } from "@/lib/types";
 
 function redactConnection(connection?: ShopifyConnection) {
@@ -39,4 +39,9 @@ export async function POST(request: Request) {
     clientSecret: body.clientSecret || ""
   });
   return NextResponse.json(redactConnection(connection));
+}
+
+export async function DELETE() {
+  await disconnectShopifyConnection();
+  return NextResponse.json({ disconnected: true });
 }

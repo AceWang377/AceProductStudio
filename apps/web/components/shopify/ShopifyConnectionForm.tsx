@@ -1,11 +1,12 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, Unplug } from "lucide-react";
 import type { ShopifyConnection } from "@/lib/types";
 
 type CredentialStatus = {
   configured: boolean;
+  connected?: boolean;
   shopDomain: string | null;
   authMode: string;
   imagesCanPublish: boolean;
@@ -32,6 +33,7 @@ export function ShopifyConnectionForm({
   );
   const [credentialStatus, setCredentialStatus] = useState(initialCredentialStatus);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [showManual, setShowManual] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
@@ -69,6 +71,37 @@ export function ShopifyConnectionForm({
       return;
     }
     window.location.href = `/api/shopify/oauth/start?shop=${encodeURIComponent(shopDomain)}`;
+  }
+
+  async function disconnectShopify() {
+    if (!window.confirm("Disconnect this Shopify store and remove the saved token from this account?")) {
+      return;
+    }
+
+    setIsDisconnecting(true);
+    setStatus("");
+    const response = await fetch("/api/settings/shopify", {
+      method: "DELETE"
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok) {
+      setShopDomain("");
+      setAdminAccessToken("");
+      setClientId("");
+      setClientSecret("");
+      setCredentialStatus({
+        configured: false,
+        shopDomain: null,
+        authMode: "none",
+        imagesCanPublish: false
+      });
+      setStatus("Shopify store disconnected.");
+    } else {
+      setStatus(payload.error || "Could not disconnect Shopify store.");
+    }
+
+    setIsDisconnecting(false);
   }
 
   return (
@@ -174,17 +207,30 @@ export function ShopifyConnectionForm({
           </dl>
         </div>
       </div>
-      <div className="mt-5 flex items-center justify-between gap-3">
+      <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted">{status}</p>
-        {showManual ? (
-          <button
-            type="submit"
-            disabled={isSaving}
-            className="studio-focus h-10 rounded bg-action px-4 text-sm font-semibold text-white disabled:opacity-60"
-          >
-            {isSaving ? "Saving..." : "Save manual connection"}
-          </button>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {credentialStatus.connected || credentialStatus.configured ? (
+            <button
+              type="button"
+              onClick={disconnectShopify}
+              disabled={isDisconnecting}
+              className="studio-focus inline-flex h-10 items-center gap-2 rounded border border-red-200 bg-red-50 px-4 text-sm font-semibold text-red-800 disabled:opacity-60"
+            >
+              <Unplug className="h-4 w-4" aria-hidden />
+              {isDisconnecting ? "Disconnecting..." : "Disconnect"}
+            </button>
+          ) : null}
+          {showManual ? (
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="studio-focus h-10 rounded bg-action px-4 text-sm font-semibold text-white disabled:opacity-60"
+            >
+              {isSaving ? "Saving..." : "Save manual connection"}
+            </button>
+          ) : null}
+        </div>
       </div>
     </form>
   );
