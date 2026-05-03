@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createShopifyProductDraft, getShopifyCredentialStatus } from "@ai-product-studio/shopify";
 import { addJob, getProduct, readState, updateProduct } from "@/lib/store";
+import { getOrderedPublishImages } from "@/lib/product-images";
 
 function escapeHtml(value: string) {
   return value
@@ -72,16 +73,7 @@ export async function POST(
     );
   }
 
-  const generatedImageUrls = product.images
-    .filter((image) => image.type !== "ORIGINAL")
-    .sort((a, b) => {
-      if (a.type === "LIFESTYLE" && b.type !== "LIFESTYLE") return -1;
-      if (a.type !== "LIFESTYLE" && b.type === "LIFESTYLE") return 1;
-      if (a.type === "WHITE_BACKGROUND" && b.type !== "WHITE_BACKGROUND") return 1;
-      if (a.type !== "WHITE_BACKGROUND" && b.type === "WHITE_BACKGROUND") return -1;
-      return a.sortOrder - b.sortOrder;
-    })
-    .map((image) => image.url);
+  const generatedImageUrls = getOrderedPublishImages(product.images).map((image) => image.url);
   if (generatedImageUrls.length > 0 && generatedImageUrls.length < 4) {
     return NextResponse.json(
       { error: "Generate at least 4 product images before publishing to Shopify." },

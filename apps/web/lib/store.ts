@@ -17,6 +17,7 @@ import {
 } from "./supabase-admin";
 import { getCurrentUser } from "./auth";
 import { deleteStoredMedia } from "./media-storage";
+import { getOrderedPublishImages } from "./product-images";
 
 const dataDir = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "app-state.json");
@@ -729,6 +730,133 @@ export async function deleteProduct(id: string) {
   return deleted;
 }
 
+export async function deleteProductImage(productId: string, imageId: string) {
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    const product = state.products.find((item) => item.id === productId);
+    if (!product) return null;
+
+    const image = product.images.find((item) => item.id === imageId);
+    if (!image || image.type === "ORIGINAL") return null;
+
+    product.images = product.images.filter((item) => item.id !== imageId);
+    product.updatedAt = new Date().toISOString();
+    await writeLocalState(state);
+    await deleteStoredMedia([image.storageKey]).catch(() => null);
+    return product;
+  }
+
+  const userId = await requireCurrentUserId();
+  const supabase = createSupabaseAdminClient();
+  const { data: imageRow, error: imageError } = await supabase
+    .from("product_images")
+    .select("*")
+    .eq("id", imageId)
+    .eq("product_id", productId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (imageError) throw new Error(`Could not load product image: ${imageError.message}`);
+  if (!imageRow) return null;
+  const image = mapImage(imageRow as ProductImageRow);
+  if (image.type === "ORIGINAL") return null;
+
+  const { error } = await supabase
+    .from("product_images")
+    .delete()
+    .eq("id", imageId)
+    .eq("product_id", productId)
+    .eq("user_id", userId);
+
+  if (error) throw new Error(`Could not delete product image: ${error.message}`);
+
+  await supabase
+    .from("products")
+    .update({ updated_at: new Date().toISOString() })
+    .eq("id", productId)
+    .eq("user_id", userId);
+
+  await deleteStoredMedia([image.storageKey]).catch(() => null);
+  return getProduct(productId);
+}
+
+export async function reorderProductImages(productId: string, orderedImageIds: string[]) {
+  const product = await getProduct(productId);
+  if (!product) return null;
+
+  const publishableImages = product.images.filter((image) => image.type !== "ORIGINAL");
+  const publishableIds = new Set(publishableImages.map((image) => image.id));
+  const nextIds = [
+    ...orderedImageIds.filter((id) => publishableIds.has(id)),
+    ...getOrderedPublishImages(product.images)
+      .map((image) => image.id)
+      .filter((id) => !orderedImageIds.includes(id))
+  ];
+  const orderById = new Map(nextIds.map((id, index) => [id, index + 1]));
+  const now = new Date().toISOString();
+
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    const localProduct = state.products.find((item) => item.id === productId);
+    if (!localProduct) return null;
+
+    localProduct.images = localProduct.images.map((image) => {
+      const nextOrder = orderById.get(image.id);
+      if (!nextOrder) return image;
+      return {
+        ...image,
+        isSelected: nextOrder === 1,
+        sortOrder: nextOrder
+      };
+    });
+    localProduct.updatedAt = now;
+    await writeLocalState(state);
+    return localProduct;
+  }
+
+  const userId = await requireCurrentUserId();
+  const supabase = createSupabaseAdminClient();
+  const imageUpdateResults = await Promise.all(
+    Array.from(orderById.entries()).map(([id, sortOrder]) =>
+      supabase
+        .from("product_images")
+        .update({
+          sort_order: sortOrder,
+          is_selected: sortOrder === 1
+        })
+        .eq("id", id)
+        .eq("product_id", productId)
+        .eq("user_id", userId)
+    )
+  );
+  const imageUpdateError = imageUpdateResults.find((result) => result.error)?.error;
+  if (imageUpdateError) throw new Error(`Could not reorder product images: ${imageUpdateError.message}`);
+
+  await supabase
+    .from("products")
+    .update({ updated_at: now })
+    .eq("id", productId)
+    .eq("user_id", userId);
+
+  return getProduct(productId);
+}
+
+export async function setProductImageCover(productId: string, imageId: string) {
+  const product = await getProduct(productId);
+  if (!product) return null;
+  const targetImage = product.images.find((image) => image.id === imageId);
+  if (!targetImage || targetImage.type === "ORIGINAL") return null;
+
+  const orderedIds = [
+    imageId,
+    ...getOrderedPublishImages(product.images)
+      .map((image) => image.id)
+      .filter((id) => id !== imageId)
+  ];
+
+  return reorderProductImages(productId, orderedIds);
+}
+
 export async function addJob(
   productId: string,
   input: Omit<GenerationJob, "id" | "productId" | "createdAt" | "updatedAt">
@@ -862,7 +990,7 @@ export async function addGeneratedProductImages(
       url: image.url,
       storageKey: image.storageKey,
       prompt: image.prompt,
-      isSelected: image.type === "WHITE_BACKGROUND",
+      isSelected: false,
       sortOrder: product.images.length + index + 1,
       createdAt: now
     }));
@@ -888,7 +1016,7 @@ export async function addGeneratedProductImages(
     url: image.url,
     storage_key: image.storageKey,
     prompt: image.prompt,
-    is_selected: image.type === "WHITE_BACKGROUND",
+    is_selected: false,
     sort_order: product.images.length + index + 1,
     created_at: now
   }));

@@ -23,6 +23,7 @@ import {
   X
 } from "lucide-react";
 import type { GenerationJob, Product, ProductImage } from "@/lib/types";
+import { getOrderedPublishImages } from "@/lib/product-images";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
 import { JobStatusPanel } from "@/components/jobs/JobStatusPanel";
@@ -386,7 +387,11 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                 </button>
               </div>
             </div>
-            <GeneratedImageGrid images={product.images} />
+            <GeneratedImageGrid
+              productId={product.id}
+              images={product.images}
+              onChanged={setProduct}
+            />
           </div>
         ) : null}
 
@@ -632,15 +637,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
 }
 
 function getPublishImages(images: ProductImage[]) {
-  return images
-    .filter((image) => image.type !== "ORIGINAL")
-    .sort((a, b) => {
-      if (a.type === "LIFESTYLE" && b.type !== "LIFESTYLE") return -1;
-      if (a.type !== "LIFESTYLE" && b.type === "LIFESTYLE") return 1;
-      if (a.type === "WHITE_BACKGROUND" && b.type !== "WHITE_BACKGROUND") return 1;
-      if (a.type !== "WHITE_BACKGROUND" && b.type === "WHITE_BACKGROUND") return -1;
-      return a.sortOrder - b.sortOrder;
-    });
+  return getOrderedPublishImages(images);
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
