@@ -25,12 +25,13 @@ import {
 import type { GenerationJob, Product, ProductImage } from "@/lib/types";
 import { getOrderedPublishImages } from "@/lib/product-images";
 import { getProductReadiness } from "@/lib/product-readiness";
-import { getLatestShopifyPublish } from "@/lib/shopify-publish-history";
+import { getLatestShopifyPublish, getShopifyPublishEvents } from "@/lib/shopify-publish-history";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
 import { JobStatusPanel } from "@/components/jobs/JobStatusPanel";
 import { ListingQualityPanel } from "./ListingQualityPanel";
 import { ProductBriefControls } from "./ProductBriefControls";
+import { ShopifyPublishHistory } from "./ShopifyPublishHistory";
 import { StatusBadge } from "./StatusBadge";
 
 type ProductTab = "brief" | "media" | "copy" | "commerce" | "publish";
@@ -68,6 +69,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const publishImages = useMemo(() => getPublishImages(product.images), [product.images]);
   const previewImage = publishImages[0] ?? product.images.find((image) => image.type === "ORIGINAL");
   const latestShopifyPublish = useMemo(() => getLatestShopifyPublish(product), [product]);
+  const shopifyPublishEvents = useMemo(() => getShopifyPublishEvents(product), [product]);
   const displayedShopifyAdminUrl = shopifyAdminUrl || latestShopifyPublish?.adminUrl || "";
   const readiness = useMemo(
     () =>
@@ -465,50 +467,53 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
 
         {activeTab === "publish" ? (
           <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
-            <div className="border border-line bg-white p-4 sm:p-6">
-              <div className="flex items-center gap-2">
-                <Store className="h-5 w-5" aria-hidden />
-                <h2 className="text-xl font-semibold">Publish controls</h2>
-              </div>
-              <p className="mt-2 text-sm text-muted">
-                Create a draft for final Shopify review, or publish live when the checklist is complete.
-              </p>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                <button
-                  type="button"
-                  onClick={() => publishShopify("DRAFT")}
-                  disabled={isPublishing}
-                  className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
-                >
-                  <Send className="h-4 w-4" aria-hidden />
-                  {isPublishing ? "Preparing..." : "Create draft"}
-                </button>
-                <button
-                  type="button"
-                  onClick={openLivePublishConfirm}
-                  disabled={isPublishing || !readyToPublish}
-                  className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-ink px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
-                >
-                  <PackageCheck className="h-4 w-4" aria-hidden />
-                  {isPublishing ? "Preparing..." : "Publish live"}
-                </button>
-              </div>
-              {message ? <p className="mt-4 text-sm text-muted">{message}</p> : null}
-              {displayedShopifyAdminUrl ? (
-                <a
-                  href={displayedShopifyAdminUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="studio-focus mt-4 inline-flex items-center gap-2 text-sm font-semibold text-action underline-offset-4 hover:underline"
-                >
-                  Open Shopify product <ExternalLink className="h-4 w-4" aria-hidden />
-                </a>
-              ) : null}
-              {latestShopifyPublish && !shopifyAdminUrl ? (
-                <p className="mt-2 text-xs text-muted">
-                  Last Shopify draft saved {new Date(latestShopifyPublish.publishedAt).toLocaleDateString()}.
+            <div className="space-y-5">
+              <div className="border border-line bg-white p-4 sm:p-6">
+                <div className="flex items-center gap-2">
+                  <Store className="h-5 w-5" aria-hidden />
+                  <h2 className="text-xl font-semibold">Publish controls</h2>
+                </div>
+                <p className="mt-2 text-sm text-muted">
+                  Create a draft for final Shopify review, or publish live when the checklist is complete.
                 </p>
-              ) : null}
+                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                  <button
+                    type="button"
+                    onClick={() => publishShopify("DRAFT")}
+                    disabled={isPublishing}
+                    className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
+                  >
+                    <Send className="h-4 w-4" aria-hidden />
+                    {isPublishing ? "Preparing..." : "Create draft"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={openLivePublishConfirm}
+                    disabled={isPublishing || !readyToPublish}
+                    className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-ink px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
+                  >
+                    <PackageCheck className="h-4 w-4" aria-hidden />
+                    {isPublishing ? "Preparing..." : "Publish live"}
+                  </button>
+                </div>
+                {message ? <p className="mt-4 text-sm text-muted">{message}</p> : null}
+                {displayedShopifyAdminUrl ? (
+                  <a
+                    href={displayedShopifyAdminUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="studio-focus mt-4 inline-flex items-center gap-2 text-sm font-semibold text-action underline-offset-4 hover:underline"
+                  >
+                    Open Shopify product <ExternalLink className="h-4 w-4" aria-hidden />
+                  </a>
+                ) : null}
+                {latestShopifyPublish && !shopifyAdminUrl ? (
+                  <p className="mt-2 text-xs text-muted">
+                    Last Shopify draft saved {new Date(latestShopifyPublish.publishedAt).toLocaleDateString()}.
+                  </p>
+                ) : null}
+              </div>
+              <ShopifyPublishHistory events={shopifyPublishEvents} />
             </div>
             <ListingQualityPanel readiness={readiness} onOpenTab={setActiveTab} />
           </div>
