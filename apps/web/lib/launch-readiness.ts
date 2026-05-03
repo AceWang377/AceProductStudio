@@ -1,0 +1,230 @@
+import "server-only";
+import { isStripeBillingConfigured } from "@/lib/billing";
+import { getShopifyAppConfig } from "@/lib/shopify-oauth";
+import { createSupabaseAdminClient, isSupabaseStorageEnabled } from "@/lib/supabase-admin";
+
+export type ReadinessStatus = "ready" | "warning" | "missing";
+
+export type ReadinessCheck = {
+  label: string;
+  status: ReadinessStatus;
+  detail: string;
+  action: string;
+};
+
+export type ReadinessGroup = {
+  title: string;
+  description: string;
+  checks: ReadinessCheck[];
+};
+
+function hasEnv(name: string) {
+  return Boolean(process.env[name]?.trim());
+}
+
+function envCheck({
+  label,
+  name,
+  detail,
+  action,
+  optional = false
+}: {
+  label: string;
+  name: string;
+  detail: string;
+  action: string;
+  optional?: boolean;
+}): ReadinessCheck {
+  const configured = hasEnv(name);
+  return {
+    label,
+    status: configured ? "ready" : optional ? "warning" : "missing",
+    detail: configured ? detail : optional ? `${label} is not configured yet.` : `${label} is missing.`,
+    action: configured ? "No action needed" : action
+  };
+}
+
+async function checkTable(name: string, select: string): Promise<ReadinessCheck> {
+  try {
+    const supabase = createSupabaseAdminClient();
+    const { error } = await supabase.from(name).select(select).limit(1);
+
+    if (error) {
+      return {
+        label: name,
+        status: "missing",
+        detail: error.message,
+        action: "Run apps/web/supabase/migrations/001_app_state.sql in Supabase SQL editor."
+      };
+    }
+
+    return {
+      label: name,
+      status: "ready",
+      detail: "Table and required columns are available.",
+      action: "No action needed"
+    };
+  } catch (error) {
+    return {
+      label: name,
+      status: "missing",
+      detail: error instanceof Error ? error.message : "Could not check table.",
+      action: "Add Supabase service role key and run the migration SQL."
+    };
+  }
+}
+
+async function getDatabaseChecks(): Promise<ReadinessCheck[]> {
+  if (!isSupabaseStorageEnabled()) {
+    return [
+      {
+        label: "Supabase database",
+        status: "missing",
+        detail: "The app cannot verify tables without NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
+        action: "Add Supabase env vars in Vercel, then redeploy."
+      }
+    ];
+  }
+
+  return Promise.all([
+    checkTable("stores", "id,is_active,shop_domain,admin_access_token"),
+    checkTable(
+      "products",
+      "id,target_market,tone,seo_keywords,language,brand_voice,image_style_preset,price,inventory_quantity"
+    ),
+    checkTable("product_images", "id,storage_key,prompt,is_selected,sort_order,shopify_media_id"),
+    checkTable("jobs", "id,input,output,result,error,progress"),
+    checkTable("credit_accounts", "user_id,balance"),
+    checkTable("credit_ledger", "id,amount,reason,stripe_payment_id")
+  ]);
+}
+
+export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
+  const shopifyConfig = getShopifyAppConfig();
+  const appUrlConfigured = hasEnv("APP_PUBLIC_URL") || hasEnv("NEXT_PUBLIC_APP_URL");
+
+  const coreChecks: ReadinessCheck[] = [
+    envCheck({
+      label: "OpenAI API key",
+      name: "OPENAI_API_KEY",
+      detail: "AI image and copy generation can call OpenAI.",
+      action: "Add OPENAI_API_KEY in Vercel Environment Variables."
+    }),
+    envCheck({
+      label: "Supabase URL",
+      name: "NEXT_PUBLIC_SUPABASE_URL",
+      detail: "The app can reach your Supabase project.",
+      action: "Add NEXT_PUBLIC_SUPABASE_URL in Vercel Environment Variables."
+    }),
+    envCheck({
+      label: "Supabase publishable key",
+      name: "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
+      detail: "Browser and server auth helpers can initialize Supabase.",
+      action: "Add NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY in Vercel Environment Variables."
+    }),
+    envCheck({
+      label: "Supabase service role key",
+      name: "SUPABASE_SERVICE_ROLE_KEY",
+      detail: "Server routes can store products, jobs, credits, and private Shopify tokens.",
+      action: "Add SUPABASE_SERVICE_ROLE_KEY in Vercel Environment Variables."
+    }),
+    {
+      label: "App public URL",
+      status: appUrlConfigured ? "ready" : "missing",
+      detail: appUrlConfigured
+        ? "OAuth and email links can redirect back to the deployed app."
+        : "OAuth and email redirects do not have a production base URL.",
+      action: appUrlConfigured
+        ? "No action needed"
+        : "Set NEXT_PUBLIC_APP_URL to https://ace-product-studio.vercel.app."
+    }
+  ];
+
+  const shopifyChecks: ReadinessCheck[] = [
+    {
+      label: "Shopify OAuth app",
+      status: shopifyConfig.configured ? "ready" : "missing",
+      detail: shopifyConfig.configured
+        ? "Users can connect their own Shopify store through OAuth."
+        : "Shopify client credentials are missing.",
+      action: shopifyConfig.configured
+        ? "No action needed"
+        : "Add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Vercel."
+    },
+    {
+      label: "Shopify scopes",
+      status: shopifyConfig.configured ? "ready" : "warning",
+      detail: shopifyConfig.configured
+        ? "The app requests product, file, inventory, location, and publication permissions."
+        : "Scopes can only be tested after OAuth credentials are configured.",
+      action: shopifyConfig.configured
+        ? "Keep the same scopes in the Shopify developer dashboard."
+        : "Configure OAuth credentials first."
+    }
+  ];
+
+  const billingChecks: ReadinessCheck[] = [
+    {
+      label: "Stripe checkout",
+      status: isStripeBillingConfigured() ? "ready" : "warning",
+      detail: isStripeBillingConfigured()
+        ? "Credit pack checkout can start."
+        : "Credit charging works in trial/admin mode, but paid packs are not enabled.",
+      action: isStripeBillingConfigured()
+        ? "No action needed"
+        : "Add STRIPE_SECRET_KEY when you are ready to sell credits."
+    },
+    envCheck({
+      label: "Stripe webhook secret",
+      name: "STRIPE_WEBHOOK_SECRET",
+      detail: "Verified Stripe webhooks can add purchased credits.",
+      action: "Add STRIPE_WEBHOOK_SECRET after creating the Stripe webhook endpoint.",
+      optional: true
+    }),
+    envCheck({
+      label: "Admin emails",
+      name: "ADMIN_EMAILS",
+      detail: "Internal admin accounts can generate without spending credits.",
+      action: "Add ADMIN_EMAILS with your login email for unlimited internal use.",
+      optional: true
+    })
+  ];
+
+  return [
+    {
+      title: "Core app",
+      description: "The minimum production settings needed for login, storage, and AI generation.",
+      checks: coreChecks
+    },
+    {
+      title: "Supabase schema",
+      description: "Tables and columns used by products, jobs, stores, images, and credits.",
+      checks: await getDatabaseChecks()
+    },
+    {
+      title: "Shopify publishing",
+      description: "OAuth setup required for users to connect their stores and publish drafts.",
+      checks: shopifyChecks
+    },
+    {
+      title: "Credits and billing",
+      description: "Usage limits, admin bypass, and future paid credit packs.",
+      checks: billingChecks
+    }
+  ];
+}
+
+export function summarizeReadiness(groups: ReadinessGroup[]) {
+  const checks = groups.flatMap((group) => group.checks);
+  const missing = checks.filter((check) => check.status === "missing").length;
+  const warnings = checks.filter((check) => check.status === "warning").length;
+  const ready = checks.filter((check) => check.status === "ready").length;
+
+  return {
+    ready,
+    warnings,
+    missing,
+    total: checks.length,
+    launchReady: missing === 0
+  };
+}

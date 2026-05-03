@@ -8,6 +8,7 @@ import {
   Images,
   LayoutDashboard,
   LogOut,
+  Rocket,
   Settings
 } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
@@ -25,7 +26,8 @@ const navItems = [
   { href: "/products/new", label: "Upload", icon: Images },
   { href: "/usage", label: "Usage", icon: History },
   { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/settings/shopify", label: "Shopify", icon: Settings }
+  { href: "/settings/shopify", label: "Shopify", icon: Settings },
+  { href: "/launch", label: "Launch", icon: Rocket }
 ];
 
 export default async function RootLayout({
