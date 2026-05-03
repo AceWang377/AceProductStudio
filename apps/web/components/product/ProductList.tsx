@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Copy, Gauge, Search, Trash2, X } from "lucide-react";
+import { Copy, Gauge, Search, Send, Trash2, X } from "lucide-react";
 import type { Product, ProductStatus } from "@/lib/types";
 import { getProductReadiness } from "@/lib/product-readiness";
 import { ProductCard } from "./ProductCard";
@@ -109,6 +109,16 @@ export function ProductList({ products }: { products: Product[] }) {
   const visibleIds = filteredProducts.map((product) => product.id);
   const selectedVisibleCount = visibleIds.filter((id) => selectedIds.has(id)).length;
   const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+  const selectedProducts = products.filter((product) => selectedIds.has(product.id));
+  const draftEligibleProducts = selectedProducts.filter((product) => {
+    const readiness = productReadiness.get(product.id);
+    return (
+      Boolean(shopifyConnected) &&
+      (readiness?.score ?? 0) >= 90 &&
+      product.shopifyStatus !== "PUBLISHED_AS_DRAFT" &&
+      product.shopifyStatus !== "PUBLISHED_LIVE"
+    );
+  });
 
   function toggleProductSelection(productId: string, selected: boolean) {
     setActionMessage("");
@@ -153,6 +163,49 @@ export function ProductList({ products }: { products: Product[] }) {
       failed
         ? `Duplicated ${ids.length - failed} products. ${failed} failed.`
         : `Duplicated ${ids.length} products.`
+    );
+    router.refresh();
+  }
+
+  async function createShopifyDraftsForSelectedProducts() {
+    if (!selectedIds.size) return;
+
+    if (!shopifyConnected) {
+      setActionMessage("Connect Shopify before creating product drafts.");
+      return;
+    }
+
+    if (!draftEligibleProducts.length) {
+      setActionMessage("No selected products are ready for Shopify draft creation.");
+      return;
+    }
+
+    setIsActing(true);
+    setActionMessage("");
+    const ids = draftEligibleProducts.map((product) => product.id);
+    const skipped = selectedIds.size - ids.length;
+    const results = await Promise.allSettled(
+      ids.map((id) =>
+        fetch(`/api/products/${id}/publish-shopify`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ publishMode: "DRAFT" })
+        })
+      )
+    );
+    const failed = results.filter((result) => result.status === "rejected" || !result.value.ok).length;
+    const created = ids.length - failed;
+
+    setSelectedIds(new Set());
+    setIsActing(false);
+    setActionMessage(
+      [
+        created ? `Created ${created} Shopify draft${created === 1 ? "" : "s"}.` : "",
+        failed ? `${failed} failed.` : "",
+        skipped ? `${skipped} skipped because they need fixes or were already published.` : ""
+      ]
+        .filter(Boolean)
+        .join(" ")
     );
     router.refresh();
   }
@@ -268,6 +321,20 @@ export function ProductList({ products }: { products: Product[] }) {
             >
               <Copy className="h-4 w-4" aria-hidden />
               {isActing ? "Working..." : "Duplicate"}
+            </button>
+            <button
+              type="button"
+              onClick={createShopifyDraftsForSelectedProducts}
+              disabled={isActing || !draftEligibleProducts.length}
+              title={
+                draftEligibleProducts.length
+                  ? "Create Shopify drafts for ready selected products"
+                  : "Select ready products to create Shopify drafts"
+              }
+              className="studio-focus inline-flex h-9 items-center justify-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
+            >
+              <Send className="h-4 w-4" aria-hidden />
+              {isActing ? "Working..." : `Create drafts (${draftEligibleProducts.length})`}
             </button>
             <button
               type="button"
