@@ -25,6 +25,7 @@ import {
 import type { GenerationJob, Product, ProductImage } from "@/lib/types";
 import { getOrderedPublishImages } from "@/lib/product-images";
 import { getProductReadiness } from "@/lib/product-readiness";
+import { getLatestShopifyPublish } from "@/lib/shopify-publish-history";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
 import { JobStatusPanel } from "@/components/jobs/JobStatusPanel";
@@ -66,6 +67,8 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
 
   const publishImages = useMemo(() => getPublishImages(product.images), [product.images]);
   const previewImage = publishImages[0] ?? product.images.find((image) => image.type === "ORIGINAL");
+  const latestShopifyPublish = useMemo(() => getLatestShopifyPublish(product), [product]);
+  const displayedShopifyAdminUrl = shopifyAdminUrl || latestShopifyPublish?.adminUrl || "";
   const readiness = useMemo(
     () =>
       getProductReadiness({
@@ -491,15 +494,20 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                 </button>
               </div>
               {message ? <p className="mt-4 text-sm text-muted">{message}</p> : null}
-              {shopifyAdminUrl ? (
+              {displayedShopifyAdminUrl ? (
                 <a
-                  href={shopifyAdminUrl}
+                  href={displayedShopifyAdminUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="studio-focus mt-4 inline-flex items-center gap-2 text-sm font-semibold text-action underline-offset-4 hover:underline"
                 >
                   Open Shopify product <ExternalLink className="h-4 w-4" aria-hidden />
                 </a>
+              ) : null}
+              {latestShopifyPublish && !shopifyAdminUrl ? (
+                <p className="mt-2 text-xs text-muted">
+                  Last Shopify draft saved {new Date(latestShopifyPublish.publishedAt).toLocaleDateString()}.
+                </p>
               ) : null}
             </div>
             <ListingQualityPanel readiness={readiness} onOpenTab={setActiveTab} />
@@ -528,6 +536,10 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
             <Definition label="Category" value={product.category || "Unset"} />
             <Definition label="Style" value={product.style || "Unset"} />
             <Definition label="Shopify" value={product.shopifyStatus.toLowerCase().replaceAll("_", " ")} />
+            <Definition
+              label="Shopify link"
+              value={displayedShopifyAdminUrl ? "Available" : "Not created"}
+            />
             <Definition label="Images" value={`${product.images.length}`} />
             <Definition label="Price" value={product.price || "Unset"} />
             <Definition
