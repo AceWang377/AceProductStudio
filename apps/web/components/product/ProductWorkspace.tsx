@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
+  AlertTriangle,
   CheckCircle2,
   Circle,
   Coins,
@@ -17,7 +18,8 @@ import {
   SlidersHorizontal,
   Sparkles,
   Store,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 import type { Product, ProductImage } from "@/lib/types";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
@@ -44,6 +46,8 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showLivePublishConfirm, setShowLivePublishConfirm] = useState(false);
+  const [livePublishAcknowledged, setLivePublishAcknowledged] = useState(false);
   const [message, setMessage] = useState("");
   const [deleteMessage, setDeleteMessage] = useState("");
   const [shopifyAdminUrl, setShopifyAdminUrl] = useState("");
@@ -195,6 +199,23 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     }
     await refresh();
     setIsPublishing(false);
+  }
+
+  function openLivePublishConfirm() {
+    setLivePublishAcknowledged(false);
+    setShowLivePublishConfirm(true);
+  }
+
+  function closeLivePublishConfirm() {
+    if (isPublishing) return;
+    setShowLivePublishConfirm(false);
+    setLivePublishAcknowledged(false);
+  }
+
+  async function confirmLivePublish() {
+    setShowLivePublishConfirm(false);
+    setLivePublishAcknowledged(false);
+    await publishShopify("ACTIVE");
   }
 
   async function deleteProductDraft() {
@@ -398,7 +419,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                 </button>
                 <button
                   type="button"
-                  onClick={() => publishShopify("ACTIVE")}
+                  onClick={openLivePublishConfirm}
                   disabled={isPublishing || !readyToPublish}
                   className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-ink px-4 text-sm font-semibold text-white hover:opacity-90 disabled:opacity-60"
                 >
@@ -467,6 +488,85 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
           {deleteMessage ? <p className="mt-3 text-sm text-red-700">{deleteMessage}</p> : null}
         </div>
       </aside>
+
+      {showLivePublishConfirm ? (
+        <div
+          className="fixed inset-0 z-50 grid place-items-center bg-ink/40 px-4 py-6"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="live-publish-title"
+        >
+          <div className="w-full max-w-lg border border-line bg-white shadow-xl">
+            <div className="flex items-start justify-between gap-4 border-b border-line p-5">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="mt-0.5 h-5 w-5 text-red-600" aria-hidden />
+                <div>
+                  <h2 id="live-publish-title" className="text-lg font-semibold">
+                    Publish live to Shopify?
+                  </h2>
+                  <p className="mt-1 text-sm leading-6 text-muted">
+                    This product will be visible to customers as an active Shopify product.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={closeLivePublishConfirm}
+                className="studio-focus inline-flex h-9 w-9 items-center justify-center rounded hover:bg-canvas"
+                aria-label="Close live publish confirmation"
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </div>
+
+            <div className="space-y-4 p-5">
+              <div className="border border-line bg-canvas p-4 text-sm">
+                <dl className="space-y-3">
+                  <Definition label="Product" value={product.title || product.name || "Untitled product"} />
+                  <Definition label="Price" value={product.price || "Unset"} />
+                  <Definition label="Generated images" value={`${publishImages.length}`} />
+                  <Definition
+                    label="Inventory"
+                    value={product.trackInventory ? `${product.inventoryQuantity ?? 0}` : "Not tracked"}
+                  />
+                </dl>
+              </div>
+
+              <label className="flex items-start gap-3 text-sm leading-6">
+                <input
+                  type="checkbox"
+                  checked={livePublishAcknowledged}
+                  onChange={(event) => setLivePublishAcknowledged(event.target.checked)}
+                  className="mt-1 h-4 w-4 accent-action"
+                />
+                <span>
+                  I reviewed the title, description, images, price, and inventory, and I want to publish this product live.
+                </span>
+              </label>
+            </div>
+
+            <div className="flex flex-col-reverse gap-2 border-t border-line p-5 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={closeLivePublishConfirm}
+                disabled={isPublishing}
+                className="studio-focus inline-flex h-10 items-center justify-center rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
+              >
+                Keep as draft
+              </button>
+              <button
+                type="button"
+                onClick={confirmLivePublish}
+                disabled={isPublishing || !livePublishAcknowledged}
+                className="studio-focus inline-flex h-10 items-center justify-center gap-2 rounded bg-red-600 px-4 text-sm font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+              >
+                <PackageCheck className="h-4 w-4" aria-hidden />
+                {isPublishing ? "Publishing..." : "Publish live"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
