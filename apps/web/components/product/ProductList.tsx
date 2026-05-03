@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Search } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Copy, Search, Trash2, X } from "lucide-react";
 import type { Product, ProductStatus } from "@/lib/types";
 import { ProductCard } from "./ProductCard";
 
@@ -23,9 +24,13 @@ const sortOptions: Array<{ value: ProductSort; label: string }> = [
 ];
 
 export function ProductList({ products }: { products: Product[] }) {
+  const router = useRouter();
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<ProductFilter>("ALL");
   const [sort, setSort] = useState<ProductSort>("updated");
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isActing, setIsActing] = useState(false);
+  const [actionMessage, setActionMessage] = useState("");
 
   const filteredProducts = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
@@ -56,6 +61,83 @@ export function ProductList({ products }: { products: Product[] }) {
         return rightDate.localeCompare(leftDate);
       });
   }, [filter, products, query, sort]);
+
+  const visibleIds = filteredProducts.map((product) => product.id);
+  const selectedVisibleCount = visibleIds.filter((id) => selectedIds.has(id)).length;
+  const allVisibleSelected = visibleIds.length > 0 && selectedVisibleCount === visibleIds.length;
+
+  function toggleProductSelection(productId: string, selected: boolean) {
+    setActionMessage("");
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (selected) {
+        next.add(productId);
+      } else {
+        next.delete(productId);
+      }
+      return next;
+    });
+  }
+
+  function toggleVisibleSelection() {
+    setActionMessage("");
+    setSelectedIds((current) => {
+      const next = new Set(current);
+      if (allVisibleSelected) {
+        visibleIds.forEach((id) => next.delete(id));
+      } else {
+        visibleIds.forEach((id) => next.add(id));
+      }
+      return next;
+    });
+  }
+
+  async function duplicateSelectedProducts() {
+    if (!selectedIds.size) return;
+
+    setIsActing(true);
+    setActionMessage("");
+    const ids = Array.from(selectedIds);
+    const results = await Promise.allSettled(
+      ids.map((id) => fetch(`/api/products/${id}/duplicate`, { method: "POST" }))
+    );
+    const failed = results.filter((result) => result.status === "rejected" || !result.value.ok).length;
+
+    setSelectedIds(new Set());
+    setIsActing(false);
+    setActionMessage(
+      failed
+        ? `Duplicated ${ids.length - failed} products. ${failed} failed.`
+        : `Duplicated ${ids.length} products.`
+    );
+    router.refresh();
+  }
+
+  async function deleteSelectedProducts() {
+    if (!selectedIds.size) return;
+
+    const confirmed = window.confirm(
+      `Delete ${selectedIds.size} selected product draft${selectedIds.size === 1 ? "" : "s"}? This removes their generated media, copy, jobs, and publish history from this workspace.`
+    );
+    if (!confirmed) return;
+
+    setIsActing(true);
+    setActionMessage("");
+    const ids = Array.from(selectedIds);
+    const results = await Promise.allSettled(
+      ids.map((id) => fetch(`/api/products/${id}`, { method: "DELETE" }))
+    );
+    const failed = results.filter((result) => result.status === "rejected" || !result.value.ok).length;
+
+    setSelectedIds(new Set());
+    setIsActing(false);
+    setActionMessage(
+      failed
+        ? `Deleted ${ids.length - failed} products. ${failed} failed.`
+        : `Deleted ${ids.length} products.`
+    );
+    router.refresh();
+  }
 
   return (
     <div className="space-y-4">
@@ -110,12 +192,70 @@ export function ProductList({ products }: { products: Product[] }) {
             </button>
           );
         })}
+        {filteredProducts.length ? (
+          <button
+            type="button"
+            onClick={toggleVisibleSelection}
+            className="studio-focus inline-flex h-9 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-muted hover:text-ink"
+          >
+            {allVisibleSelected ? "Clear visible" : "Select visible"}
+            <span className="text-muted">{selectedVisibleCount}/{visibleIds.length}</span>
+          </button>
+        ) : null}
       </div>
+
+      {selectedIds.size ? (
+        <div className="flex flex-wrap items-center justify-between gap-3 border border-line bg-white p-3">
+          <p className="text-sm font-semibold">
+            {selectedIds.size} selected
+          </p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={duplicateSelectedProducts}
+              disabled={isActing}
+              className="studio-focus inline-flex h-9 items-center justify-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
+            >
+              <Copy className="h-4 w-4" aria-hidden />
+              {isActing ? "Working..." : "Duplicate"}
+            </button>
+            <button
+              type="button"
+              onClick={deleteSelectedProducts}
+              disabled={isActing}
+              className="studio-focus inline-flex h-9 items-center justify-center gap-2 rounded border border-red-300 bg-white px-3 text-sm font-semibold text-red-700 hover:bg-red-50 disabled:opacity-60"
+            >
+              <Trash2 className="h-4 w-4" aria-hidden />
+              Delete
+            </button>
+            <button
+              type="button"
+              onClick={() => setSelectedIds(new Set())}
+              disabled={isActing}
+              className="studio-focus inline-flex h-9 w-9 items-center justify-center rounded border border-line bg-white hover:bg-canvas disabled:opacity-60"
+              aria-label="Clear selected products"
+            >
+              <X className="h-4 w-4" aria-hidden />
+            </button>
+          </div>
+        </div>
+      ) : null}
+
+      {actionMessage ? (
+        <div className="border border-line bg-white p-3 text-sm text-muted">
+          {actionMessage}
+        </div>
+      ) : null}
 
       {filteredProducts.length ? (
         <div className="border-t border-line">
           {filteredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+            <ProductCard
+              key={product.id}
+              product={product}
+              selected={selectedIds.has(product.id)}
+              onSelectionChange={toggleProductSelection}
+            />
           ))}
         </div>
       ) : (
