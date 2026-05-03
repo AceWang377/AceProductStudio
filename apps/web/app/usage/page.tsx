@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   CircleAlert,
   Coins,
+  Download,
   History,
   Loader2
 } from "lucide-react";
@@ -71,13 +72,29 @@ export default async function UsagePage() {
           <p className="text-sm text-muted">Account activity</p>
           <h1 className="text-3xl font-semibold">Usage history</h1>
         </div>
-        <Link
-          href="/products/new"
-          className="studio-focus inline-flex h-10 items-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
-        >
-          Create product
-          <ArrowUpRight className="h-4 w-4" aria-hidden />
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            href="/api/usage/export?type=jobs"
+            className="studio-focus inline-flex h-10 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            Jobs CSV
+            <Download className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            href="/api/usage/export?type=credits"
+            className="studio-focus inline-flex h-10 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            Credits CSV
+            <Download className="h-4 w-4" aria-hidden />
+          </Link>
+          <Link
+            href="/products/new"
+            className="studio-focus inline-flex h-10 items-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
+          >
+            Create product
+            <ArrowUpRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
       </div>
 
       <section className="grid gap-3 md:grid-cols-4">
