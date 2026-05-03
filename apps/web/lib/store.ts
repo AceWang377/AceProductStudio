@@ -16,6 +16,7 @@ import {
   isSupabaseStorageEnabled
 } from "./supabase-admin";
 import { getCurrentUser } from "./auth";
+import { deleteStoredMedia } from "./media-storage";
 
 const dataDir = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "app-state.json");
@@ -579,14 +580,27 @@ export async function updateProduct(id: string, patch: ProductPatch) {
 export async function deleteProduct(id: string) {
   if (!usingSupabase()) {
     const state = await readLocalState();
+    const product = state.products.find((item) => item.id === id);
     const before = state.products.length;
     state.products = state.products.filter((product) => product.id !== id);
     await writeLocalState(state);
-    return state.products.length !== before;
+    const deleted = state.products.length !== before;
+    if (deleted) {
+      await deleteStoredMedia(product?.images.map((image) => image.storageKey) ?? []).catch(() => null);
+    }
+    return deleted;
   }
 
   const userId = await requireCurrentUserId();
   const supabase = createSupabaseAdminClient();
+  const { data: imageRows, error: imageError } = await supabase
+    .from("product_images")
+    .select("storage_key")
+    .eq("product_id", id)
+    .eq("user_id", userId);
+
+  if (imageError) throw new Error(`Could not load product images for cleanup: ${imageError.message}`);
+
   const { error, count } = await supabase
     .from("products")
     .delete({ count: "exact" })
@@ -594,7 +608,13 @@ export async function deleteProduct(id: string) {
     .eq("user_id", userId);
 
   if (error) throw new Error(`Could not delete product: ${error.message}`);
-  return Boolean(count);
+  const deleted = Boolean(count);
+  if (deleted) {
+    await deleteStoredMedia(
+      (imageRows ?? []).map((row) => (row as { storage_key?: string | null }).storage_key)
+    ).catch(() => null);
+  }
+  return deleted;
 }
 
 export async function addJob(

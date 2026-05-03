@@ -1,6 +1,6 @@
 import "server-only";
 import { randomUUID } from "crypto";
-import { mkdir, readFile, writeFile } from "fs/promises";
+import { mkdir, readFile, unlink, writeFile } from "fs/promises";
 import path from "path";
 import { createSupabaseAdminClient, isSupabaseStorageEnabled } from "@/lib/supabase-admin";
 
@@ -96,6 +96,35 @@ export async function saveMediaBuffer(input: {
     key: `uploads/${filename}`,
     url: `/uploads/${filename}`
   };
+}
+
+export async function deleteStoredMedia(keys: Array<string | null | undefined>) {
+  const uniqueKeys = Array.from(
+    new Set(keys.filter((key): key is string => Boolean(key?.trim())))
+  );
+
+  if (!uniqueKeys.length) return;
+
+  if (isDurableMediaStorageEnabled()) {
+    const supabase = createSupabaseAdminClient();
+    const { error } = await supabase.storage.from(bucketName).remove(uniqueKeys);
+    if (error) {
+      throw new Error(`Could not delete images from Supabase Storage: ${error.message}`);
+    }
+    return;
+  }
+
+  await Promise.all(
+    uniqueKeys
+      .filter((key) => key.startsWith("uploads/"))
+      .map(async (key) => {
+        try {
+          await unlink(path.join(process.cwd(), "public", key));
+        } catch {
+          // Missing local files should not block product deletion.
+        }
+      })
+  );
 }
 
 export async function readImageBytesFromUrl(url: string): Promise<ImageBytes> {
