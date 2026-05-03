@@ -64,7 +64,7 @@ export default async function RootLayout({
                 {user ? (
                   <span className="hidden h-10 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-ink sm:inline-flex">
                     <Coins aria-hidden className="h-4 w-4 text-action" />
-                    {credits?.balance ?? 0}
+                    {credits?.isUnlimited ? "Unlimited" : credits?.balance ?? 0}
                   </span>
                 ) : null}
                 {user ? (

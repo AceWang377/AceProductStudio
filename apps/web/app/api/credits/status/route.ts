@@ -11,6 +11,7 @@ export async function GET() {
   return NextResponse.json({
     balance: account.balance,
     enabled: account.enabled,
+    isUnlimited: Boolean(account.isUnlimited),
     costs: {
       image: IMAGE_GENERATION_CREDIT_COST,
       copy: COPY_GENERATION_CREDIT_COST

@@ -37,9 +37,15 @@ export default async function BillingPage({
               <Coins className="h-5 w-5" aria-hidden />
             </span>
             <div>
-              <p className="text-2xl font-semibold">{credits.balance}</p>
+              <p className="text-2xl font-semibold">
+                {credits.isUnlimited ? "Unlimited" : credits.balance}
+              </p>
               <p className="text-sm text-muted">
-                {credits.enabled ? "credits available" : "trial mode until credit tables are enabled"}
+                {credits.isUnlimited
+                  ? "admin access"
+                  : credits.enabled
+                    ? "credits available"
+                    : "trial mode until credit tables are enabled"}
               </p>
             </div>
           </div>
@@ -104,10 +110,10 @@ export default async function BillingPage({
               <p className="mt-1 text-sm text-muted">{pack.credits} image-generation credits</p>
               <button
                 type="submit"
-                disabled={!stripeReady}
+                disabled={!stripeReady || credits.isUnlimited}
                 className="studio-focus mt-5 inline-flex h-10 w-full items-center justify-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50"
               >
-                Buy pack
+                {credits.isUnlimited ? "Admin account" : "Buy pack"}
                 <ArrowUpRight className="h-4 w-4" aria-hidden />
               </button>
             </form>
@@ -121,6 +127,7 @@ export default async function BillingPage({
           <p>Image generation costs 1 credit per generated image.</p>
           <p>Copy generation stays free for the MVP so users can polish before spending more.</p>
           <p>Credits are added only after Stripe sends a verified payment webhook.</p>
+          <p>Admin emails listed in ADMIN_EMAILS bypass credit charging for internal use.</p>
         </div>
       </section>
     </div>

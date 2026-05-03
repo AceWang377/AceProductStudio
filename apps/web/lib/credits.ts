@@ -13,6 +13,7 @@ export const COPY_GENERATION_CREDIT_COST = 0;
 export type CreditAccount = {
   balance: number;
   enabled: boolean;
+  isUnlimited?: boolean;
 };
 
 type StorageError = {
@@ -23,6 +24,28 @@ type StorageError = {
 async function getCurrentUserId() {
   const user = await getCurrentUser();
   return user?.id ?? null;
+}
+
+async function getCurrentCreditUser() {
+  const user = await getCurrentUser();
+  return user ? { id: user.id, email: user.email ?? "" } : null;
+}
+
+function getAdminEmails() {
+  return new Set(
+    (process.env.ADMIN_EMAILS ?? "")
+      .split(",")
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function isAdminEmail(email?: string | null) {
+  return Boolean(email && getAdminEmails().has(email.toLowerCase()));
+}
+
+function getUnlimitedCreditAccount(): CreditAccount {
+  return { balance: 0, enabled: true, isUnlimited: true };
 }
 
 function isMissingCreditsTableError(error: StorageError | null | undefined) {
@@ -42,10 +65,11 @@ export async function getCreditAccount(): Promise<CreditAccount> {
     return { balance: TRIAL_CREDITS, enabled: false };
   }
 
-  const userId = await getCurrentUserId();
-  if (!userId) return { balance: 0, enabled: true };
+  const user = await getCurrentCreditUser();
+  if (!user) return { balance: 0, enabled: true };
+  if (isAdminEmail(user.email)) return getUnlimitedCreditAccount();
 
-  return getCreditAccountForUser(userId);
+  return getCreditAccountForUser(user.id);
 }
 
 async function getCreditAccountForUser(userId: string): Promise<CreditAccount> {
@@ -111,6 +135,7 @@ export async function spendCredits(input: {
 
   const amount = Math.max(0, Math.floor(input.amount));
   const account = await getCreditAccount();
+  if (account.isUnlimited) return { ok: true, balance: account.balance, enabled: true, isUnlimited: true };
   if (!account.enabled) return { ok: true, balance: account.balance, enabled: false };
   if (amount === 0) return { ok: true, balance: account.balance, enabled: true };
 
@@ -167,10 +192,11 @@ export async function grantCredits(input: {
     return { balance: TRIAL_CREDITS, enabled: false };
   }
 
-  const userId = await getCurrentUserId();
-  if (!userId) throw new Error("Sign in before using credits.");
+  const user = await getCurrentCreditUser();
+  if (!user) throw new Error("Sign in before using credits.");
+  if (isAdminEmail(user.email)) return getUnlimitedCreditAccount();
 
-  return grantCreditsForUser({ ...input, userId });
+  return grantCreditsForUser({ ...input, userId: user.id });
 }
 
 export async function grantCreditsForUser(input: {

@@ -35,7 +35,7 @@ export default async function DashboardPage() {
           <Metric icon={Boxes} label="Drafts" value={products.length} />
           <Metric icon={CheckCircle2} label="Ready" value={ready} />
           <Metric icon={CircleAlert} label="Failed jobs" value={failedJobs} />
-          <Metric icon={Coins} label="Credits" value={credits.balance} />
+          <Metric icon={Coins} label="Credits" value={credits.isUnlimited ? "Unlimited" : credits.balance} />
           <Metric
             icon={Clock}
             label="Shopify"

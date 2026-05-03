@@ -88,7 +88,11 @@ export async function POST(
         jobId: job?.id,
         status: "failed",
         error: message,
-        credits: { balance: creditSpend.balance, required: creditsRequired }
+        credits: {
+          balance: creditSpend.balance,
+          required: creditsRequired,
+          isUnlimited: Boolean(creditSpend.isUnlimited)
+        }
       },
       { status: 402 }
     );
@@ -154,7 +158,11 @@ export async function POST(
         status: "failed",
         mode: "openai",
         error: message,
-        credits: { balance: refundedCredits.balance, refunded: creditsRequired }
+        credits: {
+          balance: refundedCredits.balance,
+          refunded: creditsRequired,
+          isUnlimited: Boolean(refundedCredits.isUnlimited)
+        }
       },
       { status: 402 }
     );
@@ -186,7 +194,11 @@ export async function POST(
     status: "completed",
     mode: usedOpenAI ? "openai" : "local-simulation",
     note,
-    credits: { balance: credits.balance, spent: creditsRequired },
+    credits: {
+      balance: credits.balance,
+      spent: credits.isUnlimited ? 0 : creditsRequired,
+      isUnlimited: Boolean(credits.isUnlimited)
+    },
     images
   });
 }

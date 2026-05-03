@@ -40,7 +40,11 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const [message, setMessage] = useState("");
   const [shopifyAdminUrl, setShopifyAdminUrl] = useState("");
   const [shopifyConnected, setShopifyConnected] = useState<boolean | null>(null);
-  const [credits, setCredits] = useState<{ balance: number; imageCost: number } | null>(null);
+  const [credits, setCredits] = useState<{
+    balance: number;
+    imageCost: number;
+    isUnlimited: boolean;
+  } | null>(null);
 
   const publishImages = useMemo(() => getPublishImages(product.images), [product.images]);
   const previewImage = publishImages[0] ?? product.images.find((image) => image.type === "ORIGINAL");
@@ -90,7 +94,8 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
         if (isMounted && payload) {
           setCredits({
             balance: Number(payload.balance ?? 0),
-            imageCost: Number(payload.costs?.image ?? 1)
+            imageCost: Number(payload.costs?.image ?? 1),
+            isUnlimited: Boolean(payload.isUnlimited)
           });
         }
       })
@@ -126,7 +131,8 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     if (payload.credits) {
       setCredits((current) => ({
         balance: Number(payload.credits.balance ?? current?.balance ?? 0),
-        imageCost: current?.imageCost ?? 1
+        imageCost: current?.imageCost ?? 1,
+        isUnlimited: Boolean(payload.credits.isUnlimited ?? current?.isUnlimited)
       }));
     }
     setMessage(
@@ -252,9 +258,13 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                 </div>
                 <div className="inline-flex items-center gap-2 rounded border border-line bg-white px-3 py-2 text-sm">
                   <Coins className="h-4 w-4 text-action" aria-hidden />
-                  <span className="font-semibold">{credits?.balance ?? "..."}</span>
+                  <span className="font-semibold">
+                    {credits?.isUnlimited ? "Unlimited" : credits?.balance ?? "..."}
+                  </span>
                   <span className="text-muted">
-                    credits available · {credits?.imageCost ?? 1} per image
+                    {credits?.isUnlimited
+                      ? "admin access"
+                      : `credits available · ${credits?.imageCost ?? 1} per image`}
                   </span>
                 </div>
                 <button
