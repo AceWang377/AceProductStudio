@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   CheckCircle2,
   Circle,
@@ -15,7 +16,8 @@ import {
   ShoppingBag,
   SlidersHorizontal,
   Sparkles,
-  Store
+  Store,
+  Trash2
 } from "lucide-react";
 import type { Product, ProductImage } from "@/lib/types";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
@@ -35,12 +37,15 @@ const tabs: Array<{ id: ProductTab; label: string }> = [
 ];
 
 export function ProductWorkspace({ initialProduct }: { initialProduct: Product }) {
+  const router = useRouter();
   const [product, setProduct] = useState(initialProduct);
   const [activeTab, setActiveTab] = useState<ProductTab>("brief");
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [message, setMessage] = useState("");
+  const [deleteMessage, setDeleteMessage] = useState("");
   const [shopifyAdminUrl, setShopifyAdminUrl] = useState("");
   const [shopifyConnected, setShopifyConnected] = useState<boolean | null>(null);
   const [credits, setCredits] = useState<{
@@ -190,6 +195,35 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     }
     await refresh();
     setIsPublishing(false);
+  }
+
+  async function deleteProductDraft() {
+    const confirmed = window.confirm(
+      "Delete this product draft? This removes the product, generated images, copy, jobs, and Shopify publish history from this workspace."
+    );
+    if (!confirmed) return;
+
+    setIsDeleting(true);
+    setDeleteMessage("");
+
+    try {
+      const response = await fetch(`/api/products/${product.id}`, {
+        method: "DELETE"
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setDeleteMessage(payload.error || "Could not delete this product.");
+        setIsDeleting(false);
+        return;
+      }
+
+      router.push("/products");
+      router.refresh();
+    } catch {
+      setDeleteMessage("Could not delete this product. Check your connection and try again.");
+      setIsDeleting(false);
+    }
   }
 
   return (
@@ -410,6 +444,27 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
               value={product.trackInventory ? `${product.inventoryQuantity ?? 0}` : "Not tracked"}
             />
           </dl>
+        </div>
+        <div className="border border-red-200 bg-red-50 p-4">
+          <div className="flex items-start gap-3">
+            <Trash2 className="mt-0.5 h-5 w-5 text-red-700" aria-hidden />
+            <div>
+              <h2 className="text-base font-semibold text-red-950">Product controls</h2>
+              <p className="mt-2 text-sm leading-6 text-red-900">
+                Delete this draft when a test product, generated media, or copy should no longer appear in the workspace.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={deleteProductDraft}
+            disabled={isDeleting}
+            className="studio-focus mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-red-300 bg-white px-4 text-sm font-semibold text-red-700 hover:bg-red-100 disabled:opacity-60"
+          >
+            <Trash2 className="h-4 w-4" aria-hidden />
+            {isDeleting ? "Deleting..." : "Delete draft"}
+          </button>
+          {deleteMessage ? <p className="mt-3 text-sm text-red-700">{deleteMessage}</p> : null}
         </div>
       </aside>
     </div>
