@@ -1,6 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Boxes, Coins, CreditCard, Images, LayoutDashboard, LogOut, Settings } from "lucide-react";
+import {
+  Boxes,
+  Coins,
+  CreditCard,
+  History,
+  Images,
+  LayoutDashboard,
+  LogOut,
+  Settings
+} from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreditAccount } from "@/lib/credits";
 import "./globals.css";
@@ -14,6 +23,7 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Boxes },
   { href: "/products/new", label: "Upload", icon: Images },
+  { href: "/usage", label: "Usage", icon: History },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings/shopify", label: "Shopify", icon: Settings }
 ];

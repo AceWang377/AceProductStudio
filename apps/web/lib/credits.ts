@@ -16,6 +16,15 @@ export type CreditAccount = {
   isUnlimited?: boolean;
 };
 
+export type CreditLedgerEntry = {
+  id: string;
+  amount: number;
+  reason: string;
+  productId?: string;
+  stripePaymentId?: string;
+  createdAt: string;
+};
+
 type StorageError = {
   code?: string;
   message?: string;
@@ -263,4 +272,33 @@ export async function grantCreditsForUser(input: {
   }
 
   return { balance: nextBalance, enabled: true };
+}
+
+export async function listCreditLedger(limit = 30): Promise<CreditLedgerEntry[]> {
+  if (!isSupabaseStorageEnabled()) return [];
+
+  const user = await getCurrentCreditUser();
+  if (!user) return [];
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("credit_ledger")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    if (isMissingCreditsTableError(error)) return [];
+    throw new Error(`Could not load credit history: ${error.message}`);
+  }
+
+  return (data ?? []).map((row) => ({
+    id: String(row.id),
+    amount: Number(row.amount ?? 0),
+    reason: String(row.reason ?? "credit_event"),
+    productId: typeof row.product_id === "string" ? row.product_id : undefined,
+    stripePaymentId: typeof row.stripe_payment_id === "string" ? row.stripe_payment_id : undefined,
+    createdAt: typeof row.created_at === "string" ? row.created_at : new Date().toISOString()
+  }));
 }
