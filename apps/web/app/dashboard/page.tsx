@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight, Boxes, CheckCircle2, CircleAlert, Clock, Coins } from "lucide-react";
 import { listProducts, readState } from "@/lib/store";
 import { getCreditAccount } from "@/lib/credits";
+import { OnboardingChecklist } from "@/components/onboarding/OnboardingChecklist";
 import { ProductCard } from "@/components/product/ProductCard";
 
 export const dynamic = "force-dynamic";
@@ -42,6 +43,11 @@ export default async function DashboardPage() {
           />
         </div>
       </section>
+
+      <OnboardingChecklist
+        products={products}
+        shopifyConnection={state.shopifyConnection}
+      />
 
       <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
         <div>
