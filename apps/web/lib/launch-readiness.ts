@@ -265,15 +265,15 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
     },
     {
       label: "Shopify uninstall webhook",
-      status: appUrlConfigured && shopifyConfig.configured ? "warning" : "missing",
+      status: appUrlConfigured && shopifyConfig.configured ? "ready" : "missing",
       detail: shopifyWebhookUrl
-        ? `Webhook endpoint is available at ${shopifyWebhookUrl}.`
+        ? `OAuth automatically registers APP_UNINSTALLED to ${shopifyWebhookUrl}.`
         : "The webhook endpoint needs a production app URL before it can be added to Shopify.",
       action: shopifyWebhookUrl
-        ? "Add an app/uninstalled webhook subscription in Shopify so removed stores are disconnected automatically."
-        : "Set NEXT_PUBLIC_APP_URL, then add the app/uninstalled webhook in Shopify.",
-      actionHref: shopifyWebhookUrl ? "https://partners.shopify.com/" : VERCEL_ENV_URL,
-      actionLabel: shopifyWebhookUrl ? "Open Shopify Partners" : "Open env settings"
+        ? "Reconnect any existing Shopify stores once so the uninstall webhook is registered for that shop."
+        : "Set NEXT_PUBLIC_APP_URL, then reconnect Shopify.",
+      actionHref: shopifyWebhookUrl ? "/settings/shopify" : VERCEL_ENV_URL,
+      actionLabel: shopifyWebhookUrl ? "Open Shopify setup" : "Open env settings"
     }
   ];
 

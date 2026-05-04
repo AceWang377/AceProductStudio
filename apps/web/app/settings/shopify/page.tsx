@@ -36,6 +36,7 @@ export default async function ShopifySettingsPage({
   const params = searchParams ? await searchParams : {};
   const connectedShop = firstParam(params.shop);
   const oauthConnected = firstParam(params.connected) === "1";
+  const webhookStatus = firstParam(params.webhook);
   const oauthError = firstParam(params.error);
   const user = await requireCurrentUser();
   const allowManualCredentials = isAdminEmail(user.email);
@@ -73,6 +74,22 @@ export default async function ShopifySettingsPage({
           tone="success"
           title="Shopify connected successfully"
           text={connectedShop ? `${connectedShop} is ready for draft publishing.` : "Your store is ready for draft publishing."}
+        />
+      ) : null}
+      {oauthConnected && webhookStatus ? (
+        <StatusNotice
+          icon={webhookStatus === "warning" ? AlertTriangle : CheckCircle2}
+          tone={webhookStatus === "warning" ? "warning" : "success"}
+          title={
+            webhookStatus === "warning"
+              ? "Shopify uninstall webhook was not registered"
+              : "Shopify uninstall webhook is ready"
+          }
+          text={
+            webhookStatus === "warning"
+              ? "The store is connected, but automatic disconnect on uninstall could not be registered. Reconnect the store later or contact support."
+              : "If this store uninstalls the app, AI Product Studio will automatically mark the Shopify connection inactive."
+          }
         />
       ) : null}
       {errorMessage ? (

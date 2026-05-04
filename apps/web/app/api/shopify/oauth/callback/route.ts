@@ -6,6 +6,7 @@ import {
   isValidShopDomain,
   verifyShopifyHmac
 } from "@/lib/shopify-oauth";
+import { registerShopifyUninstallWebhook } from "@/lib/shopify-webhook-registration";
 import { saveShopifyConnection } from "@/lib/store";
 
 export async function GET(request: Request) {
@@ -61,6 +62,11 @@ export async function GET(request: Request) {
       shopDomain: shop,
       adminAccessToken: payload.access_token
     });
+    const webhookRegistration = await registerShopifyUninstallWebhook({
+      shopDomain: shop,
+      accessToken: payload.access_token,
+      appBaseUrl: getAppBaseUrl(request)
+    });
 
     cookieStore.delete("shopify_oauth_state");
     cookieStore.delete("shopify_oauth_shop");
@@ -68,6 +74,7 @@ export async function GET(request: Request) {
     const redirectUrl = new URL("/settings/shopify", getAppBaseUrl(request));
     redirectUrl.searchParams.set("connected", "1");
     redirectUrl.searchParams.set("shop", shop);
+    redirectUrl.searchParams.set("webhook", webhookRegistration.ok ? webhookRegistration.status : "warning");
     return NextResponse.redirect(redirectUrl);
   } catch {
     return oauthError(request, "callback_failed");
