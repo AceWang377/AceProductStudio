@@ -58,6 +58,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   const [showLivePublishConfirm, setShowLivePublishConfirm] = useState(false);
   const [livePublishAcknowledged, setLivePublishAcknowledged] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageTone, setMessageTone] = useState<"success" | "error" | "neutral">("neutral");
   const [deleteMessage, setDeleteMessage] = useState("");
   const [shopifyAdminUrl, setShopifyAdminUrl] = useState("");
   const [shopifyConnected, setShopifyConnected] = useState<boolean | null>(null);
@@ -109,6 +110,11 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     }
   ];
   const readyToPublish = readiness.score >= 90 && checklist.every((item) => item.complete);
+  const tabStates = getTabStates({
+    product,
+    readinessItems: readiness.items,
+    readyToPublish
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -147,6 +153,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   async function generateImages() {
     setIsGeneratingImages(true);
     setMessage("");
+    setMessageTone("neutral");
     const response = await fetch(`/api/products/${product.id}/generate-images`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -173,6 +180,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
         ? payload.note || "Generated image records are ready for review."
         : payload.error
     );
+    setMessageTone(response.ok ? "success" : "error");
     await refresh();
     if (response.ok) setActiveTab("media");
     setIsGeneratingImages(false);
@@ -181,6 +189,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   async function generateCopy() {
     setIsGeneratingCopy(true);
     setMessage("");
+    setMessageTone("neutral");
     const response = await fetch(`/api/products/${product.id}/generate-copy`, {
       method: "POST"
     });
@@ -188,6 +197,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
     setMessage(
       response.ok ? payload.note || "Copy draft generated. Review before publishing." : payload.error
     );
+    setMessageTone(response.ok ? "success" : "error");
     if (response.ok && payload.product) {
       setProduct(payload.product);
     }
@@ -199,6 +209,7 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
   async function publishShopify(publishMode: "DRAFT" | "ACTIVE") {
     setIsPublishing(true);
     setMessage("");
+    setMessageTone("neutral");
     setShopifyAdminUrl("");
     const response = await fetch(`/api/products/${product.id}/publish-shopify`, {
       method: "POST",
@@ -215,8 +226,10 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
             ? "Shopify product published live."
             : "Shopify draft created."
       );
+      setMessageTone("success");
     } else {
       setMessage(payload.error);
+      setMessageTone("error");
     }
     await refresh();
     setIsPublishing(false);
@@ -344,21 +357,42 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
           onOpenTab={setActiveTab}
         />
 
+        {message ? (
+          <WorkflowFeedback
+            tone={messageTone}
+            message={message}
+            shopifyAdminUrl={displayedShopifyAdminUrl}
+          />
+        ) : null}
+
         <div className="flex flex-wrap items-center gap-2 border-b border-line">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => setActiveTab(tab.id)}
-              className={`studio-focus -mb-px h-11 px-3 text-sm font-semibold transition ${
-                activeTab === tab.id
-                  ? "border-b-2 border-action text-ink"
-                  : "border-b-2 border-transparent text-muted hover:text-ink"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const tabState = tabStates[tab.id];
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`studio-focus -mb-px inline-flex h-11 items-center gap-2 px-3 text-sm font-semibold transition ${
+                  activeTab === tab.id
+                    ? "border-b-2 border-action text-ink"
+                    : "border-b-2 border-transparent text-muted hover:text-ink"
+                }`}
+              >
+                <span
+                  className={`h-2 w-2 rounded-full ${
+                    tabState === "complete"
+                      ? "bg-action"
+                      : tabState === "attention"
+                        ? "bg-amber-500"
+                        : "bg-stone-300"
+                  }`}
+                  aria-hidden
+                />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
 
         {activeTab === "media" ? (
@@ -506,7 +540,6 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
                     {isPublishing ? "Preparing..." : "Publish live"}
                   </button>
                 </div>
-                {message ? <p className="mt-4 text-sm text-muted">{message}</p> : null}
                 {displayedShopifyAdminUrl ? (
                   <a
                     href={displayedShopifyAdminUrl}
@@ -737,6 +770,69 @@ function NextRequirementStrip({
       </button>
     </div>
   );
+}
+
+function WorkflowFeedback({
+  tone,
+  message,
+  shopifyAdminUrl
+}: {
+  tone: "success" | "error" | "neutral";
+  message: string;
+  shopifyAdminUrl: string;
+}) {
+  const Icon = tone === "error" ? AlertTriangle : CheckCircle2;
+  const toneClass =
+    tone === "error"
+      ? "border-red-200 bg-red-50 text-red-800"
+      : tone === "success"
+        ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+        : "border-line bg-white text-ink";
+
+  return (
+    <div className={`flex flex-col gap-3 border p-4 text-sm sm:flex-row sm:items-center sm:justify-between ${toneClass}`}>
+      <div className="flex min-w-0 items-start gap-3">
+        <Icon className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+        <p className="leading-6">{message}</p>
+      </div>
+      {shopifyAdminUrl && tone === "success" ? (
+        <a
+          href={shopifyAdminUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="studio-focus inline-flex h-9 shrink-0 items-center justify-center gap-2 rounded bg-white px-3 font-semibold text-ink ring-1 ring-line hover:bg-canvas"
+        >
+          Open Shopify
+          <ExternalLink className="h-4 w-4" aria-hidden />
+        </a>
+      ) : null}
+    </div>
+  );
+}
+
+function getTabStates({
+  product,
+  readinessItems,
+  readyToPublish
+}: {
+  product: Product;
+  readinessItems: ReadinessItem[];
+  readyToPublish: boolean;
+}): Record<ProductTab, "complete" | "attention" | "neutral"> {
+  const allComplete = (tab: ProductTab) => {
+    const tabItems = readinessItems.filter((item) => item.tab === tab);
+    return tabItems.length > 0 && tabItems.every((item) => item.complete);
+  };
+
+  const hasAttention = (tab: ProductTab) => readinessItems.some((item) => item.tab === tab && !item.complete);
+
+  return {
+    brief: product.targetMarket || product.brandVoice || product.imageStylePreset ? "complete" : "neutral",
+    media: allComplete("media") ? "complete" : hasAttention("media") ? "attention" : "neutral",
+    copy: allComplete("copy") ? "complete" : hasAttention("copy") ? "attention" : "neutral",
+    commerce: allComplete("commerce") ? "complete" : hasAttention("commerce") ? "attention" : "neutral",
+    publish: readyToPublish ? "complete" : hasAttention("publish") ? "attention" : "neutral"
+  };
 }
 
 function getPublishImages(images: ProductImage[]) {
