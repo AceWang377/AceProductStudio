@@ -11,7 +11,8 @@ import {
   LayoutDashboard,
   LogOut,
   Rocket,
-  Settings
+  Settings,
+  UserRound
 } from "lucide-react";
 
 const navItems = [
@@ -21,6 +22,7 @@ const navItems = [
   { href: "/usage", label: "Usage", icon: History },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings/shopify", label: "Shopify", icon: Settings },
+  { href: "/account", label: "Account", icon: UserRound },
   { href: "/launch", label: "Launch", icon: Rocket }
 ];
 
