@@ -1164,6 +1164,8 @@ export async function saveShopifyConnection(input: {
   clientId?: string;
   clientSecret?: string;
 }) {
+  const shopDomain = input.shopDomain.trim().toLowerCase();
+
   if (!usingSupabase()) {
     const state = await readLocalState();
     const now = new Date().toISOString();
@@ -1172,14 +1174,14 @@ export async function saveShopifyConnection(input: {
     const clientSecret = input.clientSecret?.trim() || "";
     state.shopifyConnection = {
       id: state.shopifyConnection?.id ?? randomUUID(),
-      shopDomain: input.shopDomain.trim(),
+      shopDomain,
       adminAccessToken: adminAccessToken || undefined,
       clientId: clientId || undefined,
       clientSecret: clientSecret || undefined,
       accessTokenHint: adminAccessToken ? `••••${adminAccessToken.slice(-4)}` : "not saved",
       clientIdHint: clientId ? `••••${clientId.slice(-4)}` : "not saved",
       clientSecretHint: clientSecret ? `••••${clientSecret.slice(-4)}` : "not saved",
-      isActive: Boolean(input.shopDomain.trim() && (adminAccessToken || (clientId && clientSecret))),
+      isActive: Boolean(shopDomain && (adminAccessToken || (clientId && clientSecret))),
       createdAt: state.shopifyConnection?.createdAt ?? now,
       updatedAt: now
     };
@@ -1194,14 +1196,14 @@ export async function saveShopifyConnection(input: {
   const clientSecret = input.clientSecret?.trim() || "";
   const encryptedAdminAccessToken = encryptSecret(adminAccessToken);
   const encryptedClientSecret = encryptSecret(clientSecret);
-  const isActive = Boolean(input.shopDomain.trim() && (adminAccessToken || (clientId && clientSecret)));
+  const isActive = Boolean(shopDomain && (adminAccessToken || (clientId && clientSecret)));
   const userId = await requireCurrentUserId();
 
   const existing = await getActiveShopifyConnection();
 
   if (existing) {
     const updatePayload = {
-      shop_domain: input.shopDomain.trim(),
+      shop_domain: shopDomain,
       user_id: userId,
       access_token: encryptedAdminAccessToken,
       admin_access_token: encryptedAdminAccessToken,
@@ -1229,7 +1231,7 @@ export async function saveShopifyConnection(input: {
   const insertPayload = {
     id: randomUUID(),
     user_id: userId,
-    shop_domain: input.shopDomain.trim(),
+    shop_domain: shopDomain,
     access_token: encryptedAdminAccessToken,
     admin_access_token: encryptedAdminAccessToken,
     client_id: clientId || null,
@@ -1284,4 +1286,37 @@ export async function disconnectShopifyConnection() {
   });
 
   if (error) throw new Error(`Could not disconnect Shopify store: ${error.message}`);
+}
+
+export async function disconnectShopifyConnectionByShopDomain(shopDomain: string) {
+  const normalizedShopDomain = shopDomain.trim().toLowerCase();
+  if (!normalizedShopDomain) return 0;
+
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    if (state.shopifyConnection?.shopDomain.toLowerCase() === normalizedShopDomain) {
+      state.shopifyConnection = undefined;
+      await writeLocalState(state);
+      return 1;
+    }
+    return 0;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const updatePayload = {
+    access_token: null,
+    admin_access_token: null,
+    client_id: null,
+    client_secret: null,
+    is_active: false,
+    updated_at: new Date().toISOString()
+  };
+
+  const { error, count } = await supabase
+    .from("stores")
+    .update(updatePayload, { count: "exact" })
+    .eq("shop_domain", normalizedShopDomain);
+
+  if (error) throw new Error(`Could not disconnect Shopify store: ${error.message}`);
+  return count ?? 0;
 }

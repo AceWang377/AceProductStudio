@@ -177,6 +177,8 @@ async function getStorageChecks(): Promise<ReadinessCheck[]> {
 export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
   const shopifyConfig = getShopifyAppConfig();
   const appUrlConfigured = hasEnv("APP_PUBLIC_URL") || hasEnv("NEXT_PUBLIC_APP_URL");
+  const appUrl = process.env.APP_PUBLIC_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
+  const shopifyWebhookUrl = appUrl ? `${appUrl.replace(/\/$/, "")}/api/shopify/webhooks` : "";
 
   const coreChecks: ReadinessCheck[] = [
     envCheck({
@@ -260,6 +262,18 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "Configure OAuth credentials first.",
       actionHref: "/settings/shopify",
       actionLabel: "Open Shopify setup"
+    },
+    {
+      label: "Shopify uninstall webhook",
+      status: appUrlConfigured && shopifyConfig.configured ? "warning" : "missing",
+      detail: shopifyWebhookUrl
+        ? `Webhook endpoint is available at ${shopifyWebhookUrl}.`
+        : "The webhook endpoint needs a production app URL before it can be added to Shopify.",
+      action: shopifyWebhookUrl
+        ? "Add an app/uninstalled webhook subscription in Shopify so removed stores are disconnected automatically."
+        : "Set NEXT_PUBLIC_APP_URL, then add the app/uninstalled webhook in Shopify.",
+      actionHref: shopifyWebhookUrl ? "https://partners.shopify.com/" : VERCEL_ENV_URL,
+      actionLabel: shopifyWebhookUrl ? "Open Shopify Partners" : "Open env settings"
     }
   ];
 
