@@ -2,6 +2,7 @@ import "server-only";
 import { isStripeBillingConfigured } from "@/lib/billing";
 import { checkMediaStorageBucket, getMediaStorageBucketName } from "@/lib/media-storage";
 import { getShopifyAppConfig } from "@/lib/shopify-oauth";
+import { isSecretEncryptionConfigured } from "@/lib/secret-vault";
 import { createSupabaseAdminClient, isSupabaseStorageEnabled } from "@/lib/supabase-admin";
 
 export type ReadinessStatus = "ready" | "warning" | "missing";
@@ -235,6 +236,18 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "Add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Vercel.",
       actionHref: shopifyConfig.configured ? undefined : "/settings/shopify",
       actionLabel: shopifyConfig.configured ? undefined : "Open Shopify setup"
+    },
+    {
+      label: "Shopify token encryption",
+      status: isSecretEncryptionConfigured() ? "ready" : "warning",
+      detail: isSecretEncryptionConfigured()
+        ? "Saved Shopify tokens are encrypted before storage."
+        : "Saved Shopify tokens are readable in the database until an encryption key is configured.",
+      action: isSecretEncryptionConfigured()
+        ? "No action needed"
+        : "Add SHOPIFY_TOKEN_ENCRYPTION_KEY in Vercel before inviting real users.",
+      actionHref: isSecretEncryptionConfigured() ? undefined : VERCEL_ENV_URL,
+      actionLabel: isSecretEncryptionConfigured() ? undefined : "Open env settings"
     },
     {
       label: "Shopify scopes",

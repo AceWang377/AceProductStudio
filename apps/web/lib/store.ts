@@ -18,6 +18,7 @@ import {
 import { getCurrentUser } from "./auth";
 import { deleteStoredMedia } from "./media-storage";
 import { getOrderedPublishImages } from "./product-images";
+import { decryptSecret, encryptSecret, secretHint } from "./secret-vault";
 
 const dataDir = path.join(process.cwd(), "data");
 const dataFile = path.join(dataDir, "app-state.json");
@@ -247,9 +248,11 @@ function mapProduct(row: ProductRow, images: ProductImage[] = [], jobs: Generati
 }
 
 function mapStore(row: StoreRow): ShopifyConnection {
-  const adminAccessToken = asString(row.admin_access_token) || asString(row.access_token);
+  const storedAdminAccessToken = asString(row.admin_access_token) || asString(row.access_token);
+  const storedClientSecret = asString(row.client_secret);
+  const adminAccessToken = decryptSecret(storedAdminAccessToken);
   const clientId = asString(row.client_id);
-  const clientSecret = asString(row.client_secret);
+  const clientSecret = decryptSecret(storedClientSecret);
 
   return {
     id: row.id,
@@ -257,9 +260,9 @@ function mapStore(row: StoreRow): ShopifyConnection {
     adminAccessToken: adminAccessToken || undefined,
     clientId: clientId || undefined,
     clientSecret: clientSecret || undefined,
-    accessTokenHint: adminAccessToken ? `••••${adminAccessToken.slice(-4)}` : "not saved",
+    accessTokenHint: secretHint(storedAdminAccessToken),
     clientIdHint: clientId ? `••••${clientId.slice(-4)}` : "not saved",
-    clientSecretHint: clientSecret ? `••••${clientSecret.slice(-4)}` : "not saved",
+    clientSecretHint: secretHint(storedClientSecret),
     isActive: Boolean(row.is_active),
     createdAt: row.created_at ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.created_at ?? new Date().toISOString()
@@ -1131,6 +1134,8 @@ export async function saveShopifyConnection(input: {
   const adminAccessToken = input.adminAccessToken?.trim() || "";
   const clientId = input.clientId?.trim() || "";
   const clientSecret = input.clientSecret?.trim() || "";
+  const encryptedAdminAccessToken = encryptSecret(adminAccessToken);
+  const encryptedClientSecret = encryptSecret(clientSecret);
   const isActive = Boolean(input.shopDomain.trim() && (adminAccessToken || (clientId && clientSecret)));
   const userId = await requireCurrentUserId();
 
@@ -1140,10 +1145,10 @@ export async function saveShopifyConnection(input: {
     const updatePayload = {
       shop_domain: input.shopDomain.trim(),
       user_id: userId,
-      access_token: adminAccessToken || null,
-      admin_access_token: adminAccessToken || null,
+      access_token: encryptedAdminAccessToken,
+      admin_access_token: encryptedAdminAccessToken,
       client_id: clientId || null,
-      client_secret: clientSecret || null,
+      client_secret: encryptedClientSecret,
       is_active: isActive,
       updated_at: now
     };
@@ -1167,10 +1172,10 @@ export async function saveShopifyConnection(input: {
     id: randomUUID(),
     user_id: userId,
     shop_domain: input.shopDomain.trim(),
-    access_token: adminAccessToken || null,
-    admin_access_token: adminAccessToken || null,
+    access_token: encryptedAdminAccessToken,
+    admin_access_token: encryptedAdminAccessToken,
     client_id: clientId || null,
-    client_secret: clientSecret || null,
+    client_secret: encryptedClientSecret,
     is_active: isActive,
     created_at: now,
     updated_at: now

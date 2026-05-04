@@ -191,7 +191,8 @@ export function ShopifyConnectionForm({
         <div className="rounded border border-line bg-canvas p-4 text-sm">
           <p className="font-medium">Connection status</p>
           <p className="mt-2 text-muted">
-            Credentials are saved in the local app state for this studio. Use scopes <code>read_products</code>,{" "}
+            OAuth tokens are saved server-side for this account. Configure <code>SHOPIFY_TOKEN_ENCRYPTION_KEY</code>{" "}
+            before inviting real users so saved tokens are encrypted at rest. Use scopes <code>read_products</code>,{" "}
             <code>write_products</code>, <code>write_files</code>, <code>read_locations</code>, and{" "}
             <code>write_inventory</code>, plus <code>read_publications</code> and <code>write_publications</code> for live publishing.
           </p>
