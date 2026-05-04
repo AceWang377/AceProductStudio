@@ -1,5 +1,7 @@
 import { getShopifyCredentialStatus } from "@ai-product-studio/shopify";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
+import { requireCurrentUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/credits";
 import { getShopifyAppConfig } from "@/lib/shopify-oauth";
 import { readState } from "@/lib/store";
 import { ShopifyConnectionForm } from "@/components/shopify/ShopifyConnectionForm";
@@ -32,6 +34,8 @@ export default async function ShopifySettingsPage({
   const connectedShop = firstParam(params.shop);
   const oauthConnected = firstParam(params.connected) === "1";
   const oauthError = firstParam(params.error);
+  const user = await requireCurrentUser();
+  const allowManualCredentials = isAdminEmail(user.email);
   const state = await readState();
   const credentialStatus = getShopifyCredentialStatus({
     shopDomain: state.shopifyConnection?.shopDomain,
@@ -86,6 +90,7 @@ export default async function ShopifySettingsPage({
       <ShopifyConnectionForm
         initialConnection={redactConnection(state.shopifyConnection)}
         initialCredentialStatus={credentialStatus}
+        allowManualCredentials={allowManualCredentials}
       />
     </div>
   );

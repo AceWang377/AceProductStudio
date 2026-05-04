@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser } from "@/lib/auth";
+import { isAdminEmail } from "@/lib/credits";
 import { disconnectShopifyConnection, readState, saveShopifyConnection } from "@/lib/store";
 import type { ShopifyConnection } from "@/lib/types";
 
@@ -18,6 +20,17 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in before connecting Shopify." }, { status: 401 });
+  }
+  if (!isAdminEmail(user.email)) {
+    return NextResponse.json(
+      { error: "Manual Shopify credentials are restricted to admin accounts. Use Shopify OAuth instead." },
+      { status: 403 }
+    );
+  }
+
   const body = await request.json();
   if (!body.shopDomain) {
     return NextResponse.json(

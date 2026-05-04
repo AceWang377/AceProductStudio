@@ -16,10 +16,12 @@ type SafeShopifyConnection = Omit<ShopifyConnection, "adminAccessToken" | "clien
 
 export function ShopifyConnectionForm({
   initialConnection,
-  initialCredentialStatus
+  initialCredentialStatus,
+  allowManualCredentials = false
 }: {
   initialConnection?: SafeShopifyConnection;
   initialCredentialStatus: CredentialStatus;
+  allowManualCredentials?: boolean;
 }) {
   const [shopDomain, setShopDomain] = useState(initialConnection?.shopDomain || "");
   const [authMode, setAuthMode] = useState(
@@ -130,16 +132,18 @@ export function ShopifyConnectionForm({
         >
           Connect Shopify <ExternalLink className="h-4 w-4" aria-hidden />
         </button>
-        <div className="border-t border-line pt-4">
-          <button
-            type="button"
-            onClick={() => setShowManual((value) => !value)}
-            className="studio-focus text-sm font-semibold text-muted underline-offset-4 hover:text-ink hover:underline"
-          >
-            {showManual ? "Hide manual connection" : "Use manual credentials instead"}
-          </button>
-        </div>
-        {showManual ? (
+        {allowManualCredentials ? (
+          <div className="border-t border-line pt-4">
+            <button
+              type="button"
+              onClick={() => setShowManual((value) => !value)}
+              className="studio-focus text-sm font-semibold text-muted underline-offset-4 hover:text-ink hover:underline"
+            >
+              {showManual ? "Hide manual connection" : "Use manual credentials instead"}
+            </button>
+          </div>
+        ) : null}
+        {allowManualCredentials && showManual ? (
           <div className="space-y-4">
             <label className="block">
               <span className="text-sm font-medium">Connection type</span>
@@ -190,12 +194,18 @@ export function ShopifyConnectionForm({
         ) : null}
         <div className="rounded border border-line bg-canvas p-4 text-sm">
           <p className="font-medium">Connection status</p>
-          <p className="mt-2 text-muted">
-            OAuth tokens are saved server-side for this account. Configure <code>SHOPIFY_TOKEN_ENCRYPTION_KEY</code>{" "}
-            before inviting real users so saved tokens are encrypted at rest. Use scopes <code>read_products</code>,{" "}
-            <code>write_products</code>, <code>write_files</code>, <code>read_locations</code>, and{" "}
-            <code>write_inventory</code>, plus <code>read_publications</code> and <code>write_publications</code> for live publishing.
-          </p>
+          {allowManualCredentials ? (
+            <p className="mt-2 text-muted">
+              OAuth tokens are saved server-side for this account. Configure <code>SHOPIFY_TOKEN_ENCRYPTION_KEY</code>{" "}
+              before inviting real users so saved tokens are encrypted at rest. Use scopes <code>read_products</code>,{" "}
+              <code>write_products</code>, <code>write_files</code>, <code>read_locations</code>, and{" "}
+              <code>write_inventory</code>, plus <code>read_publications</code> and <code>write_publications</code> for live publishing.
+            </p>
+          ) : (
+            <p className="mt-2 text-muted">
+              OAuth keeps your store connection saved server-side for this account. The app only uses this connection to create and update product drafts you approve.
+            </p>
+          )}
           <dl className="mt-4 grid gap-2 sm:grid-cols-2">
             <div>
               <dt className="text-muted">Auth mode</dt>
@@ -222,7 +232,7 @@ export function ShopifyConnectionForm({
               {isDisconnecting ? "Disconnecting..." : "Disconnect"}
             </button>
           ) : null}
-          {showManual ? (
+          {allowManualCredentials && showManual ? (
             <button
               type="submit"
               disabled={isSaving}
