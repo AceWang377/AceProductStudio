@@ -41,8 +41,8 @@ export function verifyShopifyWebhook(request: Request, rawBody: Buffer): Shopify
   const digest = createHmac("sha256", appConfig.clientSecret)
     .update(rawBody)
     .digest("base64");
-  const digestBuffer = Buffer.from(digest);
-  const hmacBuffer = Buffer.from(hmac);
+  const digestBuffer = Buffer.from(digest, "base64");
+  const hmacBuffer = Buffer.from(hmac, "base64");
 
   if (digestBuffer.length !== hmacBuffer.length || !timingSafeEqual(digestBuffer, hmacBuffer)) {
     return {
