@@ -145,6 +145,10 @@ type DashboardAction = {
   cta: string;
 };
 
+function productTabHref(productId: string, tab: "brief" | "media" | "copy" | "commerce" | "publish") {
+  return `/products/${productId}?tab=${tab}`;
+}
+
 function getDashboardNextAction({
   productsWithReadiness,
   shopifyConnected
@@ -176,11 +180,18 @@ function getDashboardNextAction({
     product.jobs.some((job) => job.status === "FAILED")
   );
   if (failedProduct) {
+    const failedJob = failedProduct.product.jobs.find((job) => job.status === "FAILED");
+    const failedTab =
+      failedJob?.type === "IMAGE_GENERATION"
+        ? "media"
+        : failedJob?.type === "COPY_GENERATION"
+          ? "copy"
+          : "publish";
     return {
       eyebrow: "Retry needed",
       title: `Review failed jobs for ${failedProduct.product.title || failedProduct.product.name || "this product"}`,
       detail: "Open the product workspace and retry the failed generation or Shopify publish job from the job panel.",
-      href: `/products/${failedProduct.product.id}`,
+      href: productTabHref(failedProduct.product.id, failedTab),
       cta: "Review job"
     };
   }
@@ -194,7 +205,7 @@ function getDashboardNextAction({
       eyebrow: "Ready to publish",
       title: `${readyProduct.product.title || readyProduct.product.name || "Product"} is ready for a Shopify draft`,
       detail: "The listing has the required media, copy, price, inventory decision, and connected store.",
-      href: `/products/${readyProduct.product.id}`,
+      href: productTabHref(readyProduct.product.id, "publish"),
       cta: "Create Shopify draft"
     };
   }
@@ -208,7 +219,7 @@ function getDashboardNextAction({
         ? `Finish ${nextItem.label.toLowerCase()}`
         : `Continue ${unfinishedProduct.product.title || unfinishedProduct.product.name || "this product"}`,
       detail: nextItem?.detail || "Open the workspace and complete the remaining listing requirements.",
-      href: `/products/${unfinishedProduct.product.id}`,
+      href: productTabHref(unfinishedProduct.product.id, nextItem?.tab ?? "brief"),
       cta: "Continue product"
     };
   }

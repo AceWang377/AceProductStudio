@@ -37,6 +37,10 @@ function getLatestProduct(products: Product[]) {
   return products[0] ?? null;
 }
 
+function productTabHref(product: Product | null, tab: "brief" | "media" | "copy" | "commerce" | "publish") {
+  return product ? `/products/${product.id}?tab=${tab}` : "/products/new";
+}
+
 export function OnboardingChecklist({
   products,
   shopifyConnection
@@ -45,7 +49,6 @@ export function OnboardingChecklist({
   shopifyConnection?: ShopifyConnection;
 }) {
   const latestProduct = getLatestProduct(products);
-  const productHref = latestProduct ? `/products/${latestProduct.id}` : "/products/new";
   const steps: OnboardingStep[] = [
     {
       title: "Connect Shopify",
@@ -58,15 +61,15 @@ export function OnboardingChecklist({
     {
       title: "Upload first product",
       description: "Start from one original product photo.",
-      href: "/products/new",
-      action: latestProduct ? "View product" : "Upload photo",
+      href: latestProduct ? productTabHref(latestProduct, "brief") : "/products/new",
+      action: latestProduct ? "View brief" : "Upload photo",
       complete: Boolean(latestProduct),
       icon: UploadCloud
     },
     {
       title: "Generate images",
       description: "Create lifestyle, detail, intro, and white background media.",
-      href: productHref,
+      href: productTabHref(latestProduct, "media"),
       action: "Open media workflow",
       complete: products.some(hasGeneratedImages),
       icon: Images
@@ -74,7 +77,7 @@ export function OnboardingChecklist({
     {
       title: "Generate copy",
       description: "Prepare title, description, bullets, tags, and FAQ.",
-      href: productHref,
+      href: productTabHref(latestProduct, "copy"),
       action: "Open copy editor",
       complete: products.some(hasGeneratedCopy),
       icon: FileText
@@ -82,7 +85,7 @@ export function OnboardingChecklist({
     {
       title: "Publish draft",
       description: "Send the completed product to Shopify as a draft.",
-      href: productHref,
+      href: productTabHref(latestProduct, "publish"),
       action: "Review publish",
       complete: products.some((product) =>
         ["PUBLISHED_AS_DRAFT", "PUBLISHED_LIVE"].includes(product.shopifyStatus)

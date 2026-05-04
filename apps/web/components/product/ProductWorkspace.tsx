@@ -35,7 +35,7 @@ import { ProductBriefControls } from "./ProductBriefControls";
 import { ShopifyPublishHistory } from "./ShopifyPublishHistory";
 import { StatusBadge } from "./StatusBadge";
 
-type ProductTab = "brief" | "media" | "copy" | "commerce" | "publish";
+export type ProductTab = "brief" | "media" | "copy" | "commerce" | "publish";
 
 const tabs: Array<{ id: ProductTab; label: string }> = [
   { id: "brief", label: "Brief" },
@@ -45,10 +45,16 @@ const tabs: Array<{ id: ProductTab; label: string }> = [
   { id: "publish", label: "Publish" }
 ];
 
-export function ProductWorkspace({ initialProduct }: { initialProduct: Product }) {
+export function ProductWorkspace({
+  initialProduct,
+  initialTab
+}: {
+  initialProduct: Product;
+  initialTab?: string;
+}) {
   const router = useRouter();
   const [product, setProduct] = useState(initialProduct);
-  const [activeTab, setActiveTab] = useState<ProductTab>("brief");
+  const [activeTab, setActiveTab] = useState<ProductTab>(getInitialTab(initialTab));
   const [isGeneratingImages, setIsGeneratingImages] = useState(false);
   const [isGeneratingCopy, setIsGeneratingCopy] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
@@ -144,6 +150,10 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    setActiveTab(getInitialTab(initialTab));
+  }, [initialTab]);
 
   async function refresh() {
     const response = await fetch(`/api/products/${product.id}`);
@@ -837,6 +847,10 @@ function getTabStates({
 
 function getPublishImages(images: ProductImage[]) {
   return getOrderedPublishImages(images);
+}
+
+function getInitialTab(value?: string): ProductTab {
+  return tabs.some((tab) => tab.id === value) ? (value as ProductTab) : "brief";
 }
 
 function Metric({ label, value }: { label: string; value: string }) {

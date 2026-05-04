@@ -19,6 +19,9 @@ export function ProductCard({
 }) {
   const nextItem = readiness?.nextItem;
   const latestShopifyPublish = getLatestShopifyPublish(product);
+  const productHref = nextItem
+    ? `/products/${product.id}?tab=${nextItem.tab}`
+    : `/products/${product.id}`;
 
   return (
     <div className="grid grid-cols-[40px_88px_1fr] gap-4 border-b border-line bg-transparent py-4 transition hover:bg-white/70 sm:grid-cols-[40px_112px_1fr_170px]">
@@ -39,7 +42,7 @@ export function ProductCard({
           </button>
         ) : null}
       </div>
-      <Link href={`/products/${product.id}`} className="studio-focus relative h-24 overflow-hidden rounded bg-white">
+      <Link href={productHref} className="studio-focus relative h-24 overflow-hidden rounded bg-white">
         <Image
           src={product.originalImageUrl}
           alt={product.name || "Product image"}
@@ -49,7 +52,7 @@ export function ProductCard({
         />
       </Link>
       <div className="min-w-0 self-center">
-        <Link href={`/products/${product.id}`} className="studio-focus block min-w-0">
+        <Link href={productHref} className="studio-focus block min-w-0">
           <div className="flex min-w-0 flex-wrap items-center gap-2">
             <h3 className="min-w-0 truncate text-base font-semibold">
               {product.title || product.name || "Untitled product"}
@@ -80,7 +83,7 @@ export function ProductCard({
           </div>
         ) : null}
       </div>
-      <Link href={`/products/${product.id}`} className="studio-focus hidden self-center text-sm sm:block">
+      <Link href={productHref} className="studio-focus hidden self-center text-sm sm:block">
         {readiness ? <QualityScore readiness={readiness} /> : null}
         <p className="mt-2 text-right text-xs text-muted">
           Updated <span className="text-ink">{new Date(product.updatedAt).toLocaleDateString()}</span>
