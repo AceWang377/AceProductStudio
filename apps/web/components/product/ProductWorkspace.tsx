@@ -5,6 +5,7 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
+  ArrowRight,
   CheckCircle2,
   Circle,
   Coins,
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 import type { GenerationJob, Product, ProductImage } from "@/lib/types";
 import { getOrderedPublishImages } from "@/lib/product-images";
-import { getProductReadiness } from "@/lib/product-readiness";
+import { getProductReadiness, type ReadinessItem } from "@/lib/product-readiness";
 import { getLatestShopifyPublish, getShopifyPublishEvents } from "@/lib/shopify-publish-history";
 import { GeneratedImageGrid } from "@/components/image-generator/GeneratedImageGrid";
 import { ProductCopyEditor } from "@/components/copy-editor/ProductCopyEditor";
@@ -333,6 +334,15 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
             </div>
           </div>
         </div>
+
+        <NextRequirementStrip
+          product={product}
+          readinessScore={readiness.score}
+          readinessLevel={readiness.level}
+          nextItem={readiness.nextItem}
+          readyToPublish={readyToPublish}
+          onOpenTab={setActiveTab}
+        />
 
         <div className="flex flex-wrap items-center gap-2 border-b border-line">
           {tabs.map((tab) => (
@@ -663,6 +673,68 @@ export function ProductWorkspace({ initialProduct }: { initialProduct: Product }
           </div>
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function NextRequirementStrip({
+  product,
+  readinessScore,
+  readinessLevel,
+  nextItem,
+  readyToPublish,
+  onOpenTab
+}: {
+  product: Product;
+  readinessScore: number;
+  readinessLevel: string;
+  nextItem?: ReadinessItem;
+  readyToPublish: boolean;
+  onOpenTab: (tab: ProductTab) => void;
+}) {
+  const alreadyPublished = ["PUBLISHED_AS_DRAFT", "PUBLISHED_LIVE"].includes(product.shopifyStatus);
+  const targetTab = readyToPublish ? "publish" : nextItem?.tab ?? "brief";
+  const title = alreadyPublished
+    ? "Shopify draft already created"
+    : readyToPublish
+      ? "Ready for Shopify draft review"
+      : nextItem
+        ? `Next requirement: ${nextItem.label}`
+        : "Listing workflow is ready";
+  const detail = alreadyPublished
+    ? "Open the publish tab to view the saved Shopify link and publish history."
+    : readyToPublish
+      ? "Create a Shopify draft first, then review everything in Shopify before publishing live."
+      : nextItem?.detail || "All required listing checks are passing.";
+  const buttonLabel = alreadyPublished
+    ? "View publish history"
+    : readyToPublish
+      ? "Open publish controls"
+      : nextItem
+        ? `Fix ${nextItem.group}`
+        : "Open workflow";
+
+  return (
+    <div className="grid gap-4 border border-line bg-white p-4 sm:grid-cols-[auto_minmax(0,1fr)_auto] sm:items-center">
+      <div className="flex h-14 w-14 items-center justify-center rounded border border-line bg-canvas">
+        <div className="text-center">
+          <p className="text-lg font-semibold leading-none">{readinessScore}</p>
+          <p className="mt-0.5 text-[10px] font-semibold uppercase text-muted">score</p>
+        </div>
+      </div>
+      <div>
+        <p className="text-xs font-semibold uppercase text-muted">{readinessLevel}</p>
+        <h2 className="mt-1 text-base font-semibold">{title}</h2>
+        <p className="mt-1 text-sm leading-6 text-muted">{detail}</p>
+      </div>
+      <button
+        type="button"
+        onClick={() => onOpenTab(targetTab)}
+        className="studio-focus inline-flex h-10 items-center justify-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+      >
+        {buttonLabel}
+        <ArrowRight className="h-4 w-4" aria-hidden />
+      </button>
     </div>
   );
 }
