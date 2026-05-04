@@ -11,6 +11,8 @@ export type ReadinessCheck = {
   status: ReadinessStatus;
   detail: string;
   action: string;
+  actionHref?: string;
+  actionLabel?: string;
 };
 
 export type ReadinessGroup = {
@@ -19,8 +21,33 @@ export type ReadinessGroup = {
   checks: ReadinessCheck[];
 };
 
+const VERCEL_ENV_URL = "https://vercel.com/dashboard";
+const MIGRATION_URL =
+  "https://github.com/AceWang377/AceProductStudio/blob/main/apps/web/supabase/migrations/001_app_state.sql";
+const STRIPE_DASHBOARD_URL = "https://dashboard.stripe.com/";
+
 function hasEnv(name: string) {
   return Boolean(process.env[name]?.trim());
+}
+
+function getSupabaseProjectRef() {
+  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
+  if (!supabaseUrl) {
+    return null;
+  }
+
+  try {
+    return new URL(supabaseUrl).hostname.split(".")[0] || null;
+  } catch {
+    return null;
+  }
+}
+
+function supabaseDashboardUrl(path: string) {
+  const projectRef = getSupabaseProjectRef();
+  return projectRef
+    ? `https://supabase.com/dashboard/project/${projectRef}${path}`
+    : "https://supabase.com/dashboard/projects";
 }
 
 function envCheck({
@@ -28,12 +55,16 @@ function envCheck({
   name,
   detail,
   action,
+  actionHref = VERCEL_ENV_URL,
+  actionLabel = "Open env settings",
   optional = false
 }: {
   label: string;
   name: string;
   detail: string;
   action: string;
+  actionHref?: string;
+  actionLabel?: string;
   optional?: boolean;
 }): ReadinessCheck {
   const configured = hasEnv(name);
@@ -41,7 +72,9 @@ function envCheck({
     label,
     status: configured ? "ready" : optional ? "warning" : "missing",
     detail: configured ? detail : optional ? `${label} is not configured yet.` : `${label} is missing.`,
-    action: configured ? "No action needed" : action
+    action: configured ? "No action needed" : action,
+    actionHref: configured ? undefined : actionHref,
+    actionLabel: configured ? undefined : actionLabel
   };
 }
 
@@ -55,7 +88,9 @@ async function checkTable(name: string, select: string): Promise<ReadinessCheck>
         label: name,
         status: "missing",
         detail: error.message,
-        action: "Run apps/web/supabase/migrations/001_app_state.sql in Supabase SQL editor."
+        action: "Run apps/web/supabase/migrations/001_app_state.sql in Supabase SQL editor.",
+        actionHref: MIGRATION_URL,
+        actionLabel: "Open migration"
       };
     }
 
@@ -70,7 +105,9 @@ async function checkTable(name: string, select: string): Promise<ReadinessCheck>
       label: name,
       status: "missing",
       detail: error instanceof Error ? error.message : "Could not check table.",
-      action: "Add Supabase service role key and run the migration SQL."
+      action: "Add Supabase service role key and run the migration SQL.",
+      actionHref: VERCEL_ENV_URL,
+      actionLabel: "Open env settings"
     };
   }
 }
@@ -82,7 +119,9 @@ async function getDatabaseChecks(): Promise<ReadinessCheck[]> {
         label: "Supabase database",
         status: "missing",
         detail: "The app cannot verify tables without NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.",
-        action: "Add Supabase env vars in Vercel, then redeploy."
+        action: "Add Supabase env vars in Vercel, then redeploy.",
+        actionHref: VERCEL_ENV_URL,
+        actionLabel: "Open env settings"
       }
     ];
   }
@@ -110,7 +149,9 @@ async function getStorageChecks(): Promise<ReadinessCheck[]> {
         label: "Image storage",
         status: "missing",
         detail: "Uploaded and generated images need Supabase Storage for production.",
-        action: "Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel."
+        action: "Add NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in Vercel.",
+        actionHref: VERCEL_ENV_URL,
+        actionLabel: "Open env settings"
       }
     ];
   }
@@ -125,7 +166,9 @@ async function getStorageChecks(): Promise<ReadinessCheck[]> {
         : `${bucket} does not exist yet. The first image upload can create it automatically.`,
       action: status.ok
         ? "No action needed"
-        : `Create a public Supabase Storage bucket named ${bucket}, or upload one image in the app.`
+        : `Create a public Supabase Storage bucket named ${bucket}, or upload one image in the app.`,
+      actionHref: status.ok ? undefined : supabaseDashboardUrl("/storage/buckets"),
+      actionLabel: status.ok ? undefined : "Open storage"
     }
   ];
 }
@@ -167,7 +210,9 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "OAuth and email redirects do not have a production base URL.",
       action: appUrlConfigured
         ? "No action needed"
-        : "Set NEXT_PUBLIC_APP_URL to https://ace-product-studio.vercel.app."
+        : "Set NEXT_PUBLIC_APP_URL to https://ace-product-studio.vercel.app.",
+      actionHref: appUrlConfigured ? undefined : VERCEL_ENV_URL,
+      actionLabel: appUrlConfigured ? undefined : "Open env settings"
     },
     envCheck({
       label: "Support email",
@@ -187,7 +232,9 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "Shopify client credentials are missing.",
       action: shopifyConfig.configured
         ? "No action needed"
-        : "Add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Vercel."
+        : "Add SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET in Vercel.",
+      actionHref: shopifyConfig.configured ? undefined : "/settings/shopify",
+      actionLabel: shopifyConfig.configured ? undefined : "Open Shopify setup"
     },
     {
       label: "Shopify scopes",
@@ -197,7 +244,9 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "Scopes can only be tested after OAuth credentials are configured.",
       action: shopifyConfig.configured
         ? "Keep the same scopes in the Shopify developer dashboard."
-        : "Configure OAuth credentials first."
+        : "Configure OAuth credentials first.",
+      actionHref: "/settings/shopify",
+      actionLabel: "Open Shopify setup"
     }
   ];
 
@@ -210,7 +259,9 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "Credit charging works in trial/admin mode, but paid packs are not enabled.",
       action: isStripeBillingConfigured()
         ? "No action needed"
-        : "Add STRIPE_SECRET_KEY when you are ready to sell credits."
+        : "Add STRIPE_SECRET_KEY when you are ready to sell credits.",
+      actionHref: isStripeBillingConfigured() ? undefined : STRIPE_DASHBOARD_URL,
+      actionLabel: isStripeBillingConfigured() ? undefined : "Open Stripe"
     },
     envCheck({
       label: "Stripe webhook secret",

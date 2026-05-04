@@ -5,6 +5,7 @@ import {
   CheckCircle2,
   CircleAlert,
   ClipboardCheck,
+  ExternalLink,
   Rocket
 } from "lucide-react";
 import {
@@ -36,6 +37,7 @@ export default async function LaunchPage() {
   await requireCurrentUser();
   const groups = await getLaunchReadiness();
   const summary = summarizeReadiness(groups);
+  const nextFix = getNextFix(groups);
 
   return (
     <div className="space-y-6">
@@ -103,6 +105,19 @@ export default async function LaunchPage() {
         />
       )}
 
+      {nextFix ? (
+        <section className="grid gap-4 border border-line bg-white p-5 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+              Recommended next fix
+            </p>
+            <h2 className="mt-2 text-lg font-semibold">{nextFix.label}</h2>
+            <p className="mt-1 max-w-3xl text-sm leading-6 text-muted">{nextFix.action}</p>
+          </div>
+          <FixAction check={nextFix} variant="primary" />
+        </section>
+      ) : null}
+
       <section className="grid gap-5 lg:grid-cols-2">
         {groups.map((group) => (
           <div key={group.title} className="border border-line bg-white">
@@ -125,6 +140,11 @@ export default async function LaunchPage() {
   );
 }
 
+function getNextFix(groups: Awaited<ReturnType<typeof getLaunchReadiness>>) {
+  const checks = groups.flatMap((group) => group.checks);
+  return checks.find((check) => check.status === "missing") ?? checks.find((check) => check.status === "warning");
+}
+
 function ReadinessRow({ check }: { check: ReadinessCheck }) {
   const StatusIcon =
     check.status === "ready" ? CheckCircle2 : check.status === "warning" ? AlertTriangle : CircleAlert;
@@ -145,12 +165,47 @@ function ReadinessRow({ check }: { check: ReadinessCheck }) {
       <div className="min-w-0">
         <p className="font-semibold">{check.label}</p>
         <p className="mt-1 break-words text-muted">{check.detail}</p>
-        <p className="mt-2 break-words text-xs text-muted">{check.action}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <p className="break-words text-xs text-muted">{check.action}</p>
+          <FixAction check={check} />
+        </div>
       </div>
       <span className={`h-8 rounded border px-3 py-1 text-xs font-semibold ${status.className}`}>
         {status.label}
       </span>
     </div>
+  );
+}
+
+function FixAction({ check, variant = "secondary" }: { check: ReadinessCheck; variant?: "primary" | "secondary" }) {
+  if (!check.actionHref || !check.actionLabel) {
+    return null;
+  }
+
+  const className =
+    variant === "primary"
+      ? "studio-focus inline-flex h-10 items-center justify-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
+      : "studio-focus inline-flex h-8 items-center justify-center gap-1 rounded border border-line bg-white px-3 text-xs font-semibold hover:bg-canvas";
+  const icon = check.actionHref.startsWith("/") ? (
+    <ArrowUpRight className="h-4 w-4" aria-hidden />
+  ) : (
+    <ExternalLink className="h-4 w-4" aria-hidden />
+  );
+
+  if (check.actionHref.startsWith("/")) {
+    return (
+      <Link href={check.actionHref} className={className}>
+        {check.actionLabel}
+        {icon}
+      </Link>
+    );
+  }
+
+  return (
+    <a href={check.actionHref} className={className} target="_blank" rel="noreferrer">
+      {check.actionLabel}
+      {icon}
+    </a>
   );
 }
 
