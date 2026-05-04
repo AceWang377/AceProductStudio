@@ -39,9 +39,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const hasRootAuthCode = pathname === "/" && request.nextUrl.searchParams.has("code");
   const isProtectedPage =
-    (pathname === "/" && !hasRootAuthCode) ||
     pathname.startsWith("/dashboard") ||
     pathname.startsWith("/products") ||
     pathname.startsWith("/settings");
