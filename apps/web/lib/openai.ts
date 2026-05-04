@@ -84,6 +84,13 @@ export function getOpenAIKeyStatus() {
   };
 }
 
+export function isLocalAISimulationAllowed() {
+  return (
+    process.env.NODE_ENV !== "production" ||
+    getConfigValue("ALLOW_LOCAL_AI_SIMULATION") === "true"
+  );
+}
+
 async function fileToDataUrl(url: string) {
   const image = await readImageBytesFromUrl(url);
   return `data:${image.mimeType};base64,${image.bytes.toString("base64")}`;

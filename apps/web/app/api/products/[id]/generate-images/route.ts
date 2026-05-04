@@ -9,7 +9,8 @@ import {
 import {
   OpenAIRequestError,
   generateProductImageWithOpenAI,
-  getOpenAIKeyStatus
+  getOpenAIKeyStatus,
+  isLocalAISimulationAllowed
 } from "@/lib/openai";
 import {
   IMAGE_GENERATION_CREDIT_COST,
@@ -46,6 +47,9 @@ export async function POST(
       { status: rateLimit.userId ? 429 : 401, headers: rateLimitHeaders(rateLimit) }
     );
   }
+
+  const keyStatus = getOpenAIKeyStatus();
+  const allowSimulation = isLocalAISimulationAllowed();
 
   const body = await request.json().catch(() => ({}));
   const styles = Array.isArray(body.styles) && body.styles.length
@@ -86,6 +90,32 @@ export async function POST(
     }));
   });
   const creditsRequired = prompts.length * IMAGE_GENERATION_CREDIT_COST;
+
+  if (!allowSimulation && !keyStatus.officialOpenAIShape) {
+    const message = keyStatus.message;
+    const job = await addJob(id, {
+      type: "IMAGE_GENERATION",
+      status: "FAILED",
+      progress: 100,
+      input: { styles, count, creditsRequired },
+      output: {
+        mode: "openai",
+        note: message
+      },
+      error: message
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job?.id,
+        status: "failed",
+        mode: "openai",
+        error: message
+      },
+      { status: 503, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
+
   const creditSpend = await spendCredits({
     amount: creditsRequired,
     reason: "image_generation",
@@ -156,7 +186,8 @@ export async function POST(
       styles,
       count,
       prompts,
-      creditsRequired
+      creditsRequired,
+      allowSimulation
     });
   });
 
@@ -183,7 +214,8 @@ async function processImageGenerationJob({
   styles,
   count,
   prompts,
-  creditsRequired
+  creditsRequired,
+  allowSimulation
 }: {
   jobId: string;
   productId: string;
@@ -192,6 +224,7 @@ async function processImageGenerationJob({
   count: number;
   prompts: ImagePrompt[];
   creditsRequired: number;
+  allowSimulation: boolean;
 }) {
   await updateJob(jobId, {
     status: "PROCESSING",
@@ -236,6 +269,13 @@ async function processImageGenerationJob({
       if (generated) {
         generatedImages.push({ ...item, ...generated });
       }
+    }
+
+    if (!generatedImages.length && !allowSimulation) {
+      throw new OpenAIRequestError(
+        "OpenAI did not return usable product images. Credits were refunded.",
+        { status: 502, code: "empty_image_generation" }
+      );
     }
   } catch (error) {
     await grantCredits({

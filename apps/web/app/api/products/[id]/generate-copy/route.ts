@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { addJob, applyGeneratedCopy, completeCopyGeneration, getProduct } from "@/lib/store";
-import { generateProductCopyWithOpenAI, getOpenAIKeyStatus } from "@/lib/openai";
+import {
+  generateProductCopyWithOpenAI,
+  getOpenAIKeyStatus,
+  isLocalAISimulationAllowed
+} from "@/lib/openai";
 import { enforceRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 export async function POST(
@@ -24,22 +28,101 @@ export async function POST(
     );
   }
 
-  const generatedCopy = await generateProductCopyWithOpenAI({
-    imageUrl: product.originalImageUrl,
-    name: product.name,
-    category: product.category,
-    style: product.style,
-    targetMarket: product.targetMarket,
-    tone: product.tone,
-    seoKeywords: product.seoKeywords,
-    language: product.language,
-    brandVoice: product.brandVoice,
-    imageStylePreset: product.imageStylePreset
-  });
+  const keyStatus = getOpenAIKeyStatus();
+  const allowSimulation = isLocalAISimulationAllowed();
+
+  if (!allowSimulation && !keyStatus.officialOpenAIShape) {
+    const message = keyStatus.message;
+    const job = await addJob(id, {
+      type: "COPY_GENERATION",
+      status: "FAILED",
+      progress: 100,
+      input: { productName: product.name, category: product.category },
+      output: {
+        mode: "openai",
+        note: message
+      },
+      error: message
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job?.id,
+        status: "failed",
+        mode: "openai",
+        error: message
+      },
+      { status: 503, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
+
+  let generatedCopy = null;
+  try {
+    generatedCopy = await generateProductCopyWithOpenAI({
+      imageUrl: product.originalImageUrl,
+      name: product.name,
+      category: product.category,
+      style: product.style,
+      targetMarket: product.targetMarket,
+      tone: product.tone,
+      seoKeywords: product.seoKeywords,
+      language: product.language,
+      brandVoice: product.brandVoice,
+      imageStylePreset: product.imageStylePreset
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "OpenAI copy generation failed.";
+    const job = await addJob(id, {
+      type: "COPY_GENERATION",
+      status: "FAILED",
+      progress: 100,
+      input: { productName: product.name, category: product.category },
+      output: {
+        mode: "openai",
+        note: message
+      },
+      error: message
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job?.id,
+        status: "failed",
+        mode: "openai",
+        error: message
+      },
+      { status: 502, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
+
+  if (!generatedCopy && !allowSimulation) {
+    const message = "OpenAI did not return usable Shopify copy. No fallback copy was created.";
+    const job = await addJob(id, {
+      type: "COPY_GENERATION",
+      status: "FAILED",
+      progress: 100,
+      input: { productName: product.name, category: product.category },
+      output: {
+        mode: "openai",
+        note: message
+      },
+      error: message
+    });
+
+    return NextResponse.json(
+      {
+        jobId: job?.id,
+        status: "failed",
+        mode: "openai",
+        error: message
+      },
+      { status: 502, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
+
   const updated = generatedCopy
     ? await applyGeneratedCopy(id, generatedCopy)
     : await completeCopyGeneration(id);
-  const keyStatus = getOpenAIKeyStatus();
   const job = await addJob(id, {
     type: "COPY_GENERATION",
     status: "COMPLETED",
