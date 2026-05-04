@@ -20,19 +20,19 @@ export async function GET(request: Request) {
     const expectedShop = cookieStore.get("shopify_oauth_shop")?.value;
 
     if (!appConfig.configured || !appConfig.clientId || !appConfig.clientSecret) {
-      return oauthError(request, "Shopify OAuth is not configured. Set SHOPIFY_CLIENT_ID and SHOPIFY_CLIENT_SECRET.");
+      return oauthError(request, "not_configured");
     }
     if (!shop || !isValidShopDomain(shop)) {
-      return oauthError(request, "Shopify returned an invalid shop domain.");
+      return oauthError(request, "invalid_shop");
     }
     if (!code) {
-      return oauthError(request, "Shopify did not return an authorization code.");
+      return oauthError(request, "missing_code");
     }
     if (!state || state !== expectedState || shop !== expectedShop) {
-      return oauthError(request, "Shopify OAuth state validation failed. Start the connection again.");
+      return oauthError(request, "state_failed");
     }
     if (!verifyShopifyHmac(url.searchParams, appConfig.clientSecret)) {
-      return oauthError(request, "Shopify OAuth signature validation failed.");
+      return oauthError(request, "signature_failed");
     }
 
     const tokenResponse = await fetch(`https://${shop}/admin/oauth/access_token`, {
@@ -49,13 +49,12 @@ export async function GET(request: Request) {
     });
 
     if (!tokenResponse.ok) {
-      const text = await tokenResponse.text();
-      return oauthError(request, `Shopify token exchange failed (${tokenResponse.status}): ${text.slice(0, 500)}`);
+      return oauthError(request, "token_exchange_failed");
     }
 
     const payload = (await tokenResponse.json()) as { access_token?: string; scope?: string };
     if (!payload.access_token) {
-      return oauthError(request, "Shopify token exchange did not return an access token.");
+      return oauthError(request, "token_exchange_failed");
     }
 
     await saveShopifyConnection({
@@ -70,9 +69,8 @@ export async function GET(request: Request) {
     redirectUrl.searchParams.set("connected", "1");
     redirectUrl.searchParams.set("shop", shop);
     return NextResponse.redirect(redirectUrl);
-  } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown Shopify OAuth callback error.";
-    return oauthError(request, message);
+  } catch {
+    return oauthError(request, "callback_failed");
   }
 }
 

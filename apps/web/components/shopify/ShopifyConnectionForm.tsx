@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useState } from "react";
-import { ExternalLink, Unplug } from "lucide-react";
+import { CheckCircle2, CircleAlert, ExternalLink, Loader2, Unplug } from "lucide-react";
 import type { ShopifyConnection } from "@/lib/types";
 
 type CredentialStatus = {
@@ -13,6 +13,7 @@ type CredentialStatus = {
 };
 
 type SafeShopifyConnection = Omit<ShopifyConnection, "adminAccessToken" | "clientSecret">;
+type StatusTone = "neutral" | "success" | "error";
 
 export function ShopifyConnectionForm({
   initialConnection,
@@ -33,6 +34,9 @@ export function ShopifyConnectionForm({
   const [status, setStatus] = useState(
     initialCredentialStatus.configured ? "Ready to publish drafts" : "Connect a store before publishing"
   );
+  const [statusTone, setStatusTone] = useState<StatusTone>(
+    initialCredentialStatus.configured ? "success" : "neutral"
+  );
   const [credentialStatus, setCredentialStatus] = useState(initialCredentialStatus);
   const [isSaving, setIsSaving] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
@@ -41,6 +45,8 @@ export function ShopifyConnectionForm({
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSaving(true);
+    setStatus("Saving Shopify connection...");
+    setStatusTone("neutral");
     const response = await fetch("/api/settings/shopify", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -58,11 +64,14 @@ export function ShopifyConnectionForm({
         const nextStatus = await statusResponse.json();
         setCredentialStatus(nextStatus);
         setStatus(nextStatus.connected ? "Ready to publish drafts" : "Credentials are incomplete.");
+        setStatusTone(nextStatus.connected ? "success" : "error");
       } else {
         setStatus(`Saved ${payload.shopDomain}`);
+        setStatusTone("success");
       }
     } else {
       setStatus(payload.error);
+      setStatusTone("error");
     }
     setIsSaving(false);
   }
@@ -70,6 +79,7 @@ export function ShopifyConnectionForm({
   function connectWithShopify() {
     if (!shopDomain.trim()) {
       setStatus("Enter a Shopify store domain first.");
+      setStatusTone("error");
       return;
     }
     window.location.href = `/api/shopify/oauth/start?shop=${encodeURIComponent(shopDomain)}`;
@@ -99,19 +109,36 @@ export function ShopifyConnectionForm({
         imagesCanPublish: false
       });
       setStatus("Shopify store disconnected.");
+      setStatusTone("neutral");
     } else {
       setStatus(payload.error || "Could not disconnect Shopify store.");
+      setStatusTone("error");
     }
 
     setIsDisconnecting(false);
   }
 
   return (
-    <form onSubmit={onSubmit} className="max-w-2xl border border-line bg-white p-5">
-      <h1 className="text-2xl font-semibold">Shopify connection</h1>
-      <p className="mt-2 text-sm text-muted">
-        Connect a store with Shopify OAuth. The app stores the shop token server-side and uses it for publishing.
-      </p>
+    <form onSubmit={onSubmit} className="border border-line bg-white p-5 shadow-soft">
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-semibold">Connect Shopify</h2>
+          <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
+            Enter the store domain, approve the app in Shopify, then return here with the connection saved to this account.
+          </p>
+        </div>
+        {credentialStatus.connected || credentialStatus.configured ? (
+          <span className="inline-flex items-center gap-2 rounded bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+            <CheckCircle2 className="h-4 w-4" aria-hidden />
+            Connected
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-2 rounded bg-amber-50 px-3 py-2 text-sm font-semibold text-amber-800">
+            <CircleAlert className="h-4 w-4" aria-hidden />
+            Not connected
+          </span>
+        )}
+      </div>
       <div className="mt-6 space-y-4">
         <label className="block">
           <span className="text-sm font-medium">Shopify store domain</span>
@@ -119,19 +146,24 @@ export function ShopifyConnectionForm({
             value={shopDomain}
             onChange={(event) => setShopDomain(event.target.value)}
             className="studio-focus mt-2 h-11 w-full rounded border border-line px-3"
-            placeholder="your-store.myshopify.com"
+            placeholder="store-name.myshopify.com"
           />
           <span className="mt-2 block text-xs text-muted">
-            Use your store's original .myshopify.com domain or paste an admin.shopify.com/store/... URL. Do not use the public customer domain.
+            Use the original .myshopify.com domain, a store handle, or an admin.shopify.com/store/... URL.
           </span>
         </label>
-        <button
-          type="button"
-          onClick={connectWithShopify}
-          className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
-        >
-          Connect Shopify <ExternalLink className="h-4 w-4" aria-hidden />
-        </button>
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={connectWithShopify}
+            className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
+          >
+            Connect Shopify <ExternalLink className="h-4 w-4" aria-hidden />
+          </button>
+          <span className="text-xs text-muted">
+            Example format: store-name.myshopify.com
+          </span>
+        </div>
         {allowManualCredentials ? (
           <div className="border-t border-line pt-4">
             <button
@@ -192,7 +224,7 @@ export function ShopifyConnectionForm({
             )}
           </div>
         ) : null}
-        <div className="rounded border border-line bg-canvas p-4 text-sm">
+        <div className="border border-line bg-canvas p-4 text-sm">
           <p className="font-medium">Connection status</p>
           {allowManualCredentials ? (
             <p className="mt-2 text-muted">
@@ -219,7 +251,7 @@ export function ShopifyConnectionForm({
         </div>
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm text-muted">{status}</p>
+        <StatusMessage tone={statusTone} text={status} />
         <div className="flex flex-wrap gap-2">
           {credentialStatus.connected || credentialStatus.configured ? (
             <button
@@ -236,13 +268,35 @@ export function ShopifyConnectionForm({
             <button
               type="submit"
               disabled={isSaving}
-              className="studio-focus h-10 rounded bg-action px-4 text-sm font-semibold text-white disabled:opacity-60"
+              className="studio-focus inline-flex h-10 items-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white disabled:opacity-60"
             >
-              {isSaving ? "Saving..." : "Save manual connection"}
+              {isSaving ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Saving...
+                </>
+              ) : (
+                "Save manual connection"
+              )}
             </button>
           ) : null}
         </div>
       </div>
     </form>
+  );
+}
+
+function StatusMessage({ tone, text }: { tone: StatusTone; text: string }) {
+  if (!text) return null;
+
+  const toneClass =
+    tone === "success" ? "text-action" : tone === "error" ? "text-red-700" : "text-muted";
+  const Icon = tone === "success" ? CheckCircle2 : tone === "error" ? CircleAlert : null;
+
+  return (
+    <p className={`inline-flex items-center gap-2 text-sm ${toneClass}`}>
+      {Icon ? <Icon className="h-4 w-4" aria-hidden /> : null}
+      {text}
+    </p>
   );
 }
