@@ -23,7 +23,8 @@ export type ReadinessGroup = {
 };
 
 const VERCEL_ENV_URL = "https://vercel.com/dashboard";
-const MIGRATION_URL =
+const MIGRATION_FILE_PATH = "apps/web/supabase/migrations/001_app_state.sql";
+const MIGRATION_SOURCE_URL =
   "https://github.com/AceWang377/AceProductStudio/blob/main/apps/web/supabase/migrations/001_app_state.sql";
 const STRIPE_DASHBOARD_URL = "https://dashboard.stripe.com/";
 
@@ -49,6 +50,20 @@ function supabaseDashboardUrl(path: string) {
   return projectRef
     ? `https://supabase.com/dashboard/project/${projectRef}${path}`
     : "https://supabase.com/dashboard/projects";
+}
+
+function getSupabaseProjectDetail() {
+  const projectRef = getSupabaseProjectRef();
+  return projectRef
+    ? `The app is connected to Supabase project ${projectRef}. Use that project when running SQL migrations.`
+    : "The app cannot identify the Supabase project until NEXT_PUBLIC_SUPABASE_URL is configured.";
+}
+
+function getMigrationAction() {
+  const projectRef = getSupabaseProjectRef();
+  return projectRef
+    ? `Open the SQL editor for project ${projectRef}, then run the full ${MIGRATION_FILE_PATH} migration.`
+    : `Configure NEXT_PUBLIC_SUPABASE_URL, then run the full ${MIGRATION_FILE_PATH} migration.`;
 }
 
 function envCheck({
@@ -85,13 +100,14 @@ async function checkTable(name: string, select: string): Promise<ReadinessCheck>
     const { error } = await supabase.from(name).select(select).limit(1);
 
     if (error) {
+      const projectRef = getSupabaseProjectRef();
       return {
         label: name,
         status: "missing",
-        detail: error.message,
-        action: "Run apps/web/supabase/migrations/001_app_state.sql in Supabase SQL editor.",
-        actionHref: MIGRATION_URL,
-        actionLabel: "Open migration"
+        detail: projectRef ? `${error.message} Checked Supabase project ${projectRef}.` : error.message,
+        action: getMigrationAction(),
+        actionHref: projectRef ? supabaseDashboardUrl("/sql/new") : MIGRATION_SOURCE_URL,
+        actionLabel: projectRef ? "Open SQL editor" : "Open migration"
       };
     }
 
@@ -106,7 +122,7 @@ async function checkTable(name: string, select: string): Promise<ReadinessCheck>
       label: name,
       status: "missing",
       detail: error instanceof Error ? error.message : "Could not check table.",
-      action: "Add Supabase service role key and run the migration SQL.",
+      action: "Add Supabase service role key in Vercel, then run the full migration SQL.",
       actionHref: VERCEL_ENV_URL,
       actionLabel: "Open env settings"
     };
@@ -208,6 +224,16 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       detail: "Server routes can store products, jobs, credits, and private Shopify tokens.",
       action: "Add SUPABASE_SERVICE_ROLE_KEY in Vercel Environment Variables."
     }),
+    {
+      label: "Supabase project target",
+      status: getSupabaseProjectRef() ? "ready" : "missing",
+      detail: getSupabaseProjectDetail(),
+      action: getSupabaseProjectRef()
+        ? "No action needed"
+        : "Add NEXT_PUBLIC_SUPABASE_URL so the checklist can point to the correct Supabase project.",
+      actionHref: getSupabaseProjectRef() ? undefined : VERCEL_ENV_URL,
+      actionLabel: getSupabaseProjectRef() ? undefined : "Open env settings"
+    },
     {
       label: "App public URL",
       status: appUrlConfigured ? "ready" : "missing",
