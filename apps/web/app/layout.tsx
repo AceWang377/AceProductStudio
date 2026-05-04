@@ -1,35 +1,15 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import {
-  Boxes,
-  Coins,
-  CreditCard,
-  History,
-  Images,
-  LayoutDashboard,
-  LogOut,
-  Rocket,
-  Settings
-} from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreditAccount } from "@/lib/credits";
 import { siteConfig } from "@/lib/site";
+import { AppNavigation } from "@/components/shell/AppNavigation";
 import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AI Product Studio",
   description: "AI ecommerce image and copy generation workspace"
 };
-
-const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/products", label: "Products", icon: Boxes },
-  { href: "/products/new", label: "Upload", icon: Images },
-  { href: "/usage", label: "Usage", icon: History },
-  { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/settings/shopify", label: "Shopify", icon: Settings },
-  { href: "/launch", label: "Launch", icon: Rocket }
-];
 
 export default async function RootLayout({
   children
@@ -38,6 +18,7 @@ export default async function RootLayout({
 }>) {
   const user = await getCurrentUser();
   const credits = user ? await getCreditAccount() : null;
+  const creditsLabel = credits?.isUnlimited ? "Unlimited" : String(credits?.balance ?? 0);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -58,39 +39,9 @@ export default async function RootLayout({
                   </span>
                 </span>
               </Link>
-              <nav className="flex items-center gap-1">
-                {user
-                  ? navItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <Link
-                          key={item.href}
-                          href={item.href}
-                          className="studio-focus inline-flex h-10 items-center gap-2 rounded px-3 text-sm text-muted transition hover:bg-white hover:text-ink"
-                        >
-                          <Icon aria-hidden className="h-4 w-4" />
-                          <span className="hidden sm:inline">{item.label}</span>
-                        </Link>
-                      );
-                    })
-                  : null}
+              <div className="flex min-w-0 items-center gap-1">
                 {user ? (
-                  <span className="hidden h-10 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-ink sm:inline-flex">
-                    <Coins aria-hidden className="h-4 w-4 text-action" />
-                    {credits?.isUnlimited ? "Unlimited" : credits?.balance ?? 0}
-                  </span>
-                ) : null}
-                {user ? (
-                  <form action="/auth/logout" method="post">
-                    <button
-                      type="submit"
-                      className="studio-focus inline-flex h-10 items-center gap-2 rounded px-3 text-sm text-muted transition hover:bg-white hover:text-ink"
-                      title={user.email ?? "Sign out"}
-                    >
-                      <LogOut aria-hidden className="h-4 w-4" />
-                      <span className="hidden sm:inline">Sign out</span>
-                    </button>
-                  </form>
+                  <AppNavigation creditsLabel={creditsLabel} userEmail={user.email} />
                 ) : (
                   <Link
                     href="/login"
@@ -99,7 +50,7 @@ export default async function RootLayout({
                     Sign in
                   </Link>
                 )}
-              </nav>
+              </div>
             </div>
           </header>
           <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
