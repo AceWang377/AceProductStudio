@@ -2,20 +2,21 @@
 
 import { FormEvent, useState } from "react";
 import { CheckCircle2, CircleAlert, Loader2, Mail } from "lucide-react";
+import type { AuthStatusType } from "@/lib/auth-messages";
 import { createClient } from "@/utils/supabase/client";
 
 export function LoginForm({
   initialStatus = "",
+  initialStatusType = "idle",
   nextPath = "/dashboard"
 }: {
   initialStatus?: string;
+  initialStatusType?: AuthStatusType;
   nextPath?: string;
 }) {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState(initialStatus);
-  const [statusType, setStatusType] = useState<"idle" | "success" | "error">(
-    initialStatus ? "error" : "idle"
-  );
+  const [statusType, setStatusType] = useState<AuthStatusType>(initialStatusType);
   const [isSending, setIsSending] = useState(false);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {

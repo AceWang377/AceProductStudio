@@ -4,6 +4,7 @@ import { CheckCircle2, ImagePlus, ShieldCheck, Store } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { getCurrentUser } from "@/lib/auth";
+import { getAuthStatusMessage } from "@/lib/auth-messages";
 import { siteConfig } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
@@ -28,7 +29,7 @@ export default async function LoginPage({
   if (user) redirect("/dashboard");
   const params = searchParams ? await searchParams : {};
   const nextPath = safeNextPath(firstParam(params.next));
-  const error = firstParam(params.error);
+  const statusMessage = getAuthStatusMessage(firstParam(params.error));
 
   return (
     <div className="grid min-h-[70vh] gap-8 py-8 lg:grid-cols-[minmax(0,1fr)_430px] lg:items-center">
@@ -60,7 +61,11 @@ export default async function LoginPage({
       </section>
 
       <aside className="space-y-4">
-        <LoginForm initialStatus={error} nextPath={nextPath} />
+        <LoginForm
+          initialStatus={statusMessage.text}
+          initialStatusType={statusMessage.type}
+          nextPath={nextPath}
+        />
         <div className="border border-line bg-white p-5">
           <div className="flex items-start gap-3">
             <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-action" aria-hidden />
