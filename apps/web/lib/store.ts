@@ -917,6 +917,64 @@ export async function addJob(
   return mapJob(data as JobRow);
 }
 
+export async function updateJob(
+  jobId: string,
+  patch: Partial<Pick<GenerationJob, "status" | "progress" | "input" | "output" | "error">>
+) {
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    const now = new Date().toISOString();
+
+    for (const product of state.products) {
+      const job = product.jobs.find((item) => item.id === jobId);
+      if (!job) continue;
+
+      Object.assign(job, patch, { updatedAt: now });
+      product.updatedAt = now;
+      await writeLocalState(state);
+      return job;
+    }
+
+    return null;
+  }
+
+  const userId = await requireCurrentUserId();
+  const supabase = createSupabaseAdminClient();
+  const now = new Date().toISOString();
+  const update: Record<string, unknown> = {
+    updated_at: now
+  };
+
+  if ("status" in patch) update.status = patch.status;
+  if ("progress" in patch) update.progress = patch.progress;
+  if ("input" in patch) update.input = patch.input ?? {};
+  if ("output" in patch) {
+    update.output = patch.output ?? {};
+    update.result = patch.output ?? {};
+  }
+  if ("error" in patch) update.error = patch.error ?? null;
+
+  const { data, error } = await supabase
+    .from("jobs")
+    .update(update)
+    .eq("id", jobId)
+    .eq("user_id", userId)
+    .select("*")
+    .maybeSingle();
+
+  if (error) throw new Error(`Could not update job: ${error.message}`);
+
+  if (data) {
+    await supabase
+      .from("products")
+      .update({ updated_at: now })
+      .eq("id", (data as JobRow).product_id)
+      .eq("user_id", userId);
+  }
+
+  return data ? mapJob(data as JobRow) : null;
+}
+
 export async function getJob(id: string) {
   if (!usingSupabase()) {
     const state = await readLocalState();

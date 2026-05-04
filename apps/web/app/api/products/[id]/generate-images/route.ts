@@ -1,9 +1,10 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import {
   addGeneratedProductImages,
   addJob,
   completeImageGeneration,
-  getProduct
+  getProduct,
+  updateJob
 } from "@/lib/store";
 import {
   OpenAIRequestError,
@@ -17,6 +18,13 @@ import {
   spendCredits
 } from "@/lib/credits";
 import { enforceRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
+
+type ImagePrompt = {
+  style: string;
+  index: number;
+  type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
+  prompt: string;
+};
 
 export async function POST(
   request: Request,
@@ -52,12 +60,7 @@ export async function POST(
     product.language ? `Visible text language, if any: ${product.language}.` : ""
   ].filter(Boolean).join(" ");
 
-  const prompts: Array<{
-    style: string;
-    index: number;
-    type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
-    prompt: string;
-  }> = styles.flatMap((style: string) => {
+  const prompts: ImagePrompt[] = styles.flatMap((style: string) => {
     const type =
       style === "white_background"
         ? ("WHITE_BACKGROUND" as const)
@@ -119,6 +122,88 @@ export async function POST(
     );
   }
 
+  const credits = await getCreditAccount();
+  const job = await addJob(id, {
+    type: "IMAGE_GENERATION",
+    status: "QUEUED",
+    progress: 5,
+    input: { styles, count, creditsRequired },
+    output: {
+      mode: "background",
+      note: "Image generation queued.",
+      credits: credits.balance
+    },
+    error: null
+  });
+
+  if (!job) {
+    await grantCredits({
+      amount: creditsRequired,
+      reason: "image_generation_refund",
+      productId: id
+    }).catch(() => null);
+    return NextResponse.json(
+      { error: "Could not create image generation job." },
+      { status: 500, headers: rateLimitHeaders(rateLimit) }
+    );
+  }
+
+  after(async () => {
+    await processImageGenerationJob({
+      jobId: job.id,
+      productId: id,
+      imageUrl: product.originalImageUrl,
+      styles,
+      count,
+      prompts,
+      creditsRequired
+    });
+  });
+
+  return NextResponse.json(
+    {
+      jobId: job?.id,
+      status: "queued",
+      mode: "background",
+      note: "Image generation started. You can stay on this page while the job updates.",
+      credits: {
+        balance: credits.balance,
+        spent: credits.isUnlimited ? 0 : creditsRequired,
+        isUnlimited: Boolean(credits.isUnlimited)
+      }
+    },
+    { status: 202, headers: rateLimitHeaders(rateLimit) }
+  );
+}
+
+async function processImageGenerationJob({
+  jobId,
+  productId,
+  imageUrl,
+  styles,
+  count,
+  prompts,
+  creditsRequired
+}: {
+  jobId: string;
+  productId: string;
+  imageUrl: string;
+  styles: string[];
+  count: number;
+  prompts: ImagePrompt[];
+  creditsRequired: number;
+}) {
+  await updateJob(jobId, {
+    status: "PROCESSING",
+    progress: 10,
+    output: {
+      mode: "background",
+      note: "Generating product images.",
+      total: prompts.length
+    },
+    error: null
+  });
+
   let generatedImages: Array<{
     type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
     url: string;
@@ -127,30 +212,36 @@ export async function POST(
   }> = [];
 
   try {
-    generatedImages = (
-      await Promise.all(
-        prompts.map(async (item, index) => {
-          const generated = await generateProductImageWithOpenAI({
-            productId: id,
-            imageUrl: product.originalImageUrl,
-            prompt: item.prompt,
-            type: item.type,
-            index
-          });
-          return generated ? { ...item, ...generated } : null;
-        })
-      )
-    ).filter(Boolean) as Array<{
-      type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
-      url: string;
-      storageKey?: string;
-      prompt: string;
-    }>;
+    for (const [index, item] of prompts.entries()) {
+      await updateJob(jobId, {
+        status: "PROCESSING",
+        progress: Math.min(90, 15 + Math.round((index / Math.max(prompts.length, 1)) * 70)),
+        output: {
+          mode: "openai",
+          note: `Generating image ${index + 1} of ${prompts.length}.`,
+          total: prompts.length,
+          completed: index
+        },
+        error: null
+      });
+
+      const generated = await generateProductImageWithOpenAI({
+        productId,
+        imageUrl,
+        prompt: item.prompt,
+        type: item.type,
+        index
+      });
+
+      if (generated) {
+        generatedImages.push({ ...item, ...generated });
+      }
+    }
   } catch (error) {
     await grantCredits({
       amount: creditsRequired,
       reason: "image_generation_refund",
-      productId: id
+      productId
     }).catch(() => null);
     const refundedCredits = await getCreditAccount();
     const message =
@@ -159,11 +250,10 @@ export async function POST(
         : error instanceof Error
           ? error.message
           : "OpenAI image generation failed.";
-    const job = await addJob(id, {
-      type: "IMAGE_GENERATION",
+
+    await updateJob(jobId, {
       status: "FAILED",
-      progress: 0,
-      input: { styles, count, creditsRequired },
+      progress: 100,
       output: {
         mode: "openai",
         note: message,
@@ -172,57 +262,47 @@ export async function POST(
       },
       error: message
     });
-
-    return NextResponse.json(
-      {
-        jobId: job?.id,
-        status: "failed",
-        mode: "openai",
-        error: message,
-        credits: {
-          balance: refundedCredits.balance,
-          refunded: creditsRequired,
-          isUnlimited: Boolean(refundedCredits.isUnlimited)
-        }
-      },
-      { status: 402, headers: rateLimitHeaders(rateLimit) }
-    );
+    return;
   }
 
-  const usedOpenAI = generatedImages.length > 0;
-  const images = usedOpenAI
-    ? await addGeneratedProductImages(id, generatedImages)
-    : await completeImageGeneration(id, styles, count);
+  try {
+    const usedOpenAI = generatedImages.length > 0;
+    const images = usedOpenAI
+      ? await addGeneratedProductImages(productId, generatedImages)
+      : await completeImageGeneration(productId, styles, count);
 
-  const keyStatus = getOpenAIKeyStatus();
-  const note = usedOpenAI ? "Generated with OpenAI image API." : keyStatus.message;
-  const credits = await getCreditAccount();
-  const job = await addJob(id, {
-    type: "IMAGE_GENERATION",
-    status: "COMPLETED",
-    progress: 100,
-    input: { styles, count, creditsRequired },
-    output: {
-      mode: usedOpenAI ? "openai" : "local-simulation",
-      note,
-      credits: credits.balance
-    },
-    error: null
-  });
-
-  return NextResponse.json(
-    {
-      jobId: job?.id,
-      status: "completed",
-      mode: usedOpenAI ? "openai" : "local-simulation",
-      note,
-      credits: {
-        balance: credits.balance,
-        spent: credits.isUnlimited ? 0 : creditsRequired,
-        isUnlimited: Boolean(credits.isUnlimited)
+    const keyStatus = getOpenAIKeyStatus();
+    const note = usedOpenAI ? "Generated with OpenAI image API." : keyStatus.message;
+    const credits = await getCreditAccount();
+    await updateJob(jobId, {
+      status: "COMPLETED",
+      progress: 100,
+      output: {
+        mode: usedOpenAI ? "openai" : "local-simulation",
+        note,
+        credits: credits.balance,
+        generatedImageCount: images?.length ?? 0
       },
-      images
-    },
-    { headers: rateLimitHeaders(rateLimit) }
-  );
+      error: null
+    });
+  } catch (error) {
+    await grantCredits({
+      amount: creditsRequired,
+      reason: "image_generation_refund",
+      productId
+    }).catch(() => null);
+    const refundedCredits = await getCreditAccount();
+    const message = error instanceof Error ? error.message : "Could not save generated images.";
+    await updateJob(jobId, {
+      status: "FAILED",
+      progress: 100,
+      output: {
+        mode: "storage",
+        note: message,
+        credits: refundedCredits.balance,
+        refunded: creditsRequired
+      },
+      error: message
+    });
+  }
 }

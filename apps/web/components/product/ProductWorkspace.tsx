@@ -61,6 +61,7 @@ export function ProductWorkspace({
   const [isDuplicating, setIsDuplicating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [retryingJobId, setRetryingJobId] = useState<string | undefined>();
+  const [pollingImageJobId, setPollingImageJobId] = useState<string | undefined>();
   const [showLivePublishConfirm, setShowLivePublishConfirm] = useState(false);
   const [livePublishAcknowledged, setLivePublishAcknowledged] = useState(false);
   const [message, setMessage] = useState("");
@@ -155,6 +156,48 @@ export function ProductWorkspace({
     setActiveTab(getInitialTab(initialTab));
   }, [initialTab]);
 
+  useEffect(() => {
+    if (!pollingImageJobId) return;
+
+    let cancelled = false;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+
+    async function pollImageJob() {
+      const response = await fetch(`/api/products/${product.id}`);
+      if (!response.ok) {
+        if (!cancelled) timeout = setTimeout(pollImageJob, 3000);
+        return;
+      }
+
+      const nextProduct = (await response.json()) as Product;
+      if (cancelled) return;
+
+      setProduct(nextProduct);
+      const job = nextProduct.jobs.find((item) => item.id === pollingImageJobId);
+      if (!job || ["QUEUED", "PROCESSING"].includes(job.status)) {
+        timeout = setTimeout(pollImageJob, 3000);
+        return;
+      }
+
+      setPollingImageJobId(undefined);
+      setIsGeneratingImages(false);
+      setMessage(
+        job.status === "COMPLETED"
+          ? "Generated image records are ready for review."
+          : job.error || "Image generation failed."
+      );
+      setMessageTone(job.status === "COMPLETED" ? "success" : "error");
+      if (job.status === "COMPLETED") setActiveTab("media");
+    }
+
+    timeout = setTimeout(pollImageJob, 1200);
+
+    return () => {
+      cancelled = true;
+      if (timeout) clearTimeout(timeout);
+    };
+  }, [pollingImageJobId, product.id]);
+
   async function refresh() {
     const response = await fetch(`/api/products/${product.id}`);
     if (response.ok) setProduct(await response.json());
@@ -185,15 +228,19 @@ export function ProductWorkspace({
         isUnlimited: Boolean(payload.credits.isUnlimited ?? current?.isUnlimited)
       }));
     }
-    setMessage(
-      response.ok
-        ? payload.note || "Generated image records are ready for review."
-        : payload.error
-    );
-    setMessageTone(response.ok ? "success" : "error");
+    setMessage(response.ok ? payload.note || "Image generation started." : payload.error);
+    setMessageTone(response.ok ? "neutral" : "error");
     await refresh();
-    if (response.ok) setActiveTab("media");
-    setIsGeneratingImages(false);
+    if (response.ok) {
+      setActiveTab("media");
+      if (payload.jobId) {
+        setPollingImageJobId(payload.jobId);
+      } else {
+        setIsGeneratingImages(false);
+      }
+    } else {
+      setIsGeneratingImages(false);
+    }
   }
 
   async function generateCopy() {
