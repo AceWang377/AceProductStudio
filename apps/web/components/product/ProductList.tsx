@@ -189,6 +189,14 @@ export function ProductList({ products }: { products: Product[] }) {
     });
   }
 
+  function clearFilters() {
+    setQuery("");
+    setFilter("ALL");
+    setQualityFilter("ALL");
+    setSort("updated");
+    setActionMessage("");
+  }
+
   async function duplicateSelectedProducts() {
     if (!selectedIds.size) return;
 
@@ -450,8 +458,18 @@ export function ProductList({ products }: { products: Product[] }) {
           ))}
         </div>
       ) : (
-        <div className="border border-line bg-white p-8 text-sm text-muted">
-          No products match the current search or filter.
+        <div className="border border-line bg-white p-8">
+          <p className="text-base font-semibold">No products match these filters</p>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-muted">
+            Try a broader search, switch quality filters, or return to the full draft list.
+          </p>
+          <button
+            type="button"
+            onClick={clearFilters}
+            className="studio-focus mt-5 inline-flex h-10 items-center rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            Clear filters
+          </button>
         </div>
       )}
     </div>
