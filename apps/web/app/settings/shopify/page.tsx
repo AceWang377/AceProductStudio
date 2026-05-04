@@ -65,6 +65,7 @@ export default async function ShopifySettingsPage({
           active={connectionActive}
           appConfigured={appConfig.configured}
           shopDomain={credentialStatus.shopDomain}
+          webhookStatus={state.shopifyConnection?.webhookStatus}
         />
       </section>
 
@@ -147,12 +148,15 @@ export default async function ShopifySettingsPage({
 function ConnectionSummary({
   active,
   appConfigured,
-  shopDomain
+  shopDomain,
+  webhookStatus
 }: {
   active: boolean;
   appConfigured: boolean;
   shopDomain: string | null;
+  webhookStatus?: ShopifyConnection["webhookStatus"];
 }) {
+  const webhookReady = webhookStatus === "registered" || webhookStatus === "already_registered";
   const items = [
     {
       label: "OAuth app",
@@ -163,6 +167,11 @@ function ConnectionSummary({
       label: "Store",
       value: active ? shopDomain || "Connected" : "Not connected",
       ready: active
+    },
+    {
+      label: "Auto disconnect",
+      value: webhookReady ? "Ready" : active ? "Reconnect once" : "Not connected",
+      ready: webhookReady
     }
   ];
 

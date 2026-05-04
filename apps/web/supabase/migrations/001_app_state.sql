@@ -9,6 +9,11 @@ create table if not exists stores (
   admin_access_token text,
   client_id text,
   client_secret text,
+  webhook_status text not null default 'not_configured',
+  webhook_subscription_id text,
+  webhook_callback_url text,
+  webhook_last_registered_at timestamptz,
+  webhook_last_error text,
   is_active boolean not null default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -111,6 +116,11 @@ create table if not exists rate_limits (
 alter table stores add column if not exists admin_access_token text;
 alter table stores add column if not exists client_id text;
 alter table stores add column if not exists client_secret text;
+alter table stores add column if not exists webhook_status text not null default 'not_configured';
+alter table stores add column if not exists webhook_subscription_id text;
+alter table stores add column if not exists webhook_callback_url text;
+alter table stores add column if not exists webhook_last_registered_at timestamptz;
+alter table stores add column if not exists webhook_last_error text;
 alter table stores add column if not exists is_active boolean not null default false;
 
 alter table products add column if not exists name text;

@@ -9,7 +9,8 @@ import type {
   ProductImageType,
   ProductStatus,
   ShopifyConnection,
-  ShopifyStatus
+  ShopifyStatus,
+  ShopifyWebhookStatus
 } from "./types";
 import {
   createSupabaseAdminClient,
@@ -263,6 +264,11 @@ function mapStore(row: StoreRow): ShopifyConnection {
     accessTokenHint: secretHint(storedAdminAccessToken),
     clientIdHint: clientId ? `••••${clientId.slice(-4)}` : "not saved",
     clientSecretHint: secretHint(storedClientSecret),
+    webhookStatus: asString(row.webhook_status, "not_configured") as ShopifyWebhookStatus,
+    webhookSubscriptionId: asString(row.webhook_subscription_id) || undefined,
+    webhookCallbackUrl: asString(row.webhook_callback_url) || undefined,
+    webhookLastRegisteredAt: asString(row.webhook_last_registered_at) || undefined,
+    webhookLastError: asString(row.webhook_last_error) || undefined,
     isActive: Boolean(row.is_active),
     createdAt: row.created_at ?? new Date().toISOString(),
     updatedAt: row.updated_at ?? row.created_at ?? new Date().toISOString()
@@ -1181,6 +1187,7 @@ export async function saveShopifyConnection(input: {
       accessTokenHint: adminAccessToken ? `••••${adminAccessToken.slice(-4)}` : "not saved",
       clientIdHint: clientId ? `••••${clientId.slice(-4)}` : "not saved",
       clientSecretHint: clientSecret ? `••••${clientSecret.slice(-4)}` : "not saved",
+      webhookStatus: "not_configured",
       isActive: Boolean(shopDomain && (adminAccessToken || (clientId && clientSecret))),
       createdAt: state.shopifyConnection?.createdAt ?? now,
       updatedAt: now
@@ -1209,6 +1216,11 @@ export async function saveShopifyConnection(input: {
       admin_access_token: encryptedAdminAccessToken,
       client_id: clientId || null,
       client_secret: encryptedClientSecret,
+      webhook_status: "not_configured",
+      webhook_subscription_id: null,
+      webhook_callback_url: null,
+      webhook_last_registered_at: null,
+      webhook_last_error: null,
       is_active: isActive,
       updated_at: now
     };
@@ -1236,6 +1248,11 @@ export async function saveShopifyConnection(input: {
     admin_access_token: encryptedAdminAccessToken,
     client_id: clientId || null,
     client_secret: encryptedClientSecret,
+    webhook_status: "not_configured",
+    webhook_subscription_id: null,
+    webhook_callback_url: null,
+    webhook_last_registered_at: null,
+    webhook_last_error: null,
     is_active: isActive,
     created_at: now,
     updated_at: now
@@ -1272,6 +1289,11 @@ export async function disconnectShopifyConnection() {
     admin_access_token: null,
     client_id: null,
     client_secret: null,
+    webhook_status: "not_configured",
+    webhook_subscription_id: null,
+    webhook_callback_url: null,
+    webhook_last_registered_at: null,
+    webhook_last_error: null,
     is_active: false,
     updated_at: new Date().toISOString()
   };
@@ -1308,6 +1330,11 @@ export async function disconnectShopifyConnectionByShopDomain(shopDomain: string
     admin_access_token: null,
     client_id: null,
     client_secret: null,
+    webhook_status: "not_configured",
+    webhook_subscription_id: null,
+    webhook_callback_url: null,
+    webhook_last_registered_at: null,
+    webhook_last_error: null,
     is_active: false,
     updated_at: new Date().toISOString()
   };
@@ -1319,4 +1346,56 @@ export async function disconnectShopifyConnectionByShopDomain(shopDomain: string
 
   if (error) throw new Error(`Could not disconnect Shopify store: ${error.message}`);
   return count ?? 0;
+}
+
+export async function saveShopifyWebhookRegistration(input: {
+  connectionId: string;
+  shopDomain: string;
+  status: ShopifyWebhookStatus;
+  subscriptionId?: string;
+  callbackUrl: string;
+  error?: string;
+}) {
+  const shopDomain = input.shopDomain.trim().toLowerCase();
+  const now = new Date().toISOString();
+
+  if (!usingSupabase()) {
+    const state = await readLocalState();
+    if (state.shopifyConnection?.id === input.connectionId) {
+      state.shopifyConnection = {
+        ...state.shopifyConnection,
+        webhookStatus: input.status,
+        webhookSubscriptionId: input.subscriptionId,
+        webhookCallbackUrl: input.callbackUrl,
+        webhookLastRegisteredAt: now,
+        webhookLastError: input.error,
+        updatedAt: now
+      };
+      await writeLocalState(state);
+    }
+    return;
+  }
+
+  const supabase = createSupabaseAdminClient();
+  const userId = await requireCurrentUserId();
+  const updatePayload = {
+    webhook_status: input.status,
+    webhook_subscription_id: input.subscriptionId ?? null,
+    webhook_callback_url: input.callbackUrl,
+    webhook_last_registered_at: now,
+    webhook_last_error: input.error ?? null,
+    updated_at: now
+  };
+
+  const { error } = await retryStoreMutationWithoutMissingColumns(updatePayload, async (nextPayload) => {
+    const result = await supabase
+      .from("stores")
+      .update(nextPayload)
+      .eq("id", input.connectionId)
+      .eq("user_id", userId)
+      .eq("shop_domain", shopDomain);
+    return { data: null, error: result.error };
+  });
+
+  if (error) throw new Error(`Could not save Shopify webhook status: ${error.message}`);
 }

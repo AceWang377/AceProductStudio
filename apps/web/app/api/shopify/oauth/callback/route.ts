@@ -7,7 +7,7 @@ import {
   verifyShopifyHmac
 } from "@/lib/shopify-oauth";
 import { registerShopifyUninstallWebhook } from "@/lib/shopify-webhook-registration";
-import { saveShopifyConnection } from "@/lib/store";
+import { saveShopifyConnection, saveShopifyWebhookRegistration } from "@/lib/store";
 
 export async function GET(request: Request) {
   try {
@@ -58,7 +58,7 @@ export async function GET(request: Request) {
       return oauthError(request, "token_exchange_failed");
     }
 
-    await saveShopifyConnection({
+    const connection = await saveShopifyConnection({
       shopDomain: shop,
       adminAccessToken: payload.access_token
     });
@@ -67,6 +67,14 @@ export async function GET(request: Request) {
       accessToken: payload.access_token,
       appBaseUrl: getAppBaseUrl(request)
     });
+    await saveShopifyWebhookRegistration({
+      connectionId: connection.id,
+      shopDomain: shop,
+      status: webhookRegistration.ok ? webhookRegistration.status : "warning",
+      subscriptionId: webhookRegistration.ok ? webhookRegistration.subscriptionId : undefined,
+      callbackUrl: webhookRegistration.uri,
+      error: webhookRegistration.ok ? undefined : webhookRegistration.error
+    }).catch(() => undefined);
 
     cookieStore.delete("shopify_oauth_state");
     cookieStore.delete("shopify_oauth_shop");

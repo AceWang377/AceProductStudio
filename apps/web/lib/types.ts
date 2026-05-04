@@ -15,6 +15,7 @@ export type ProductImageType =
   | "REFERENCE_STYLE";
 export type JobType = "IMAGE_GENERATION" | "COPY_GENERATION" | "SHOPIFY_PUBLISH";
 export type JobStatus = "QUEUED" | "PROCESSING" | "COMPLETED" | "FAILED";
+export type ShopifyWebhookStatus = "not_configured" | "registered" | "already_registered" | "warning";
 
 export interface ProductImage {
   id: string;
@@ -82,6 +83,11 @@ export interface ShopifyConnection {
   accessTokenHint: string;
   clientIdHint?: string;
   clientSecretHint?: string;
+  webhookStatus: ShopifyWebhookStatus;
+  webhookSubscriptionId?: string;
+  webhookCallbackUrl?: string;
+  webhookLastRegisteredAt?: string;
+  webhookLastError?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;

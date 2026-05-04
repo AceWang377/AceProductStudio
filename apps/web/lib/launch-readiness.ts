@@ -128,7 +128,10 @@ async function getDatabaseChecks(): Promise<ReadinessCheck[]> {
   }
 
   return Promise.all([
-    checkTable("stores", "id,is_active,shop_domain,admin_access_token"),
+    checkTable(
+      "stores",
+      "id,is_active,shop_domain,admin_access_token,webhook_status,webhook_subscription_id,webhook_callback_url"
+    ),
     checkTable(
       "products",
       "id,target_market,tone,seo_keywords,language,brand_voice,image_style_preset,price,inventory_quantity"

@@ -15,6 +15,32 @@ type CredentialStatus = {
 type SafeShopifyConnection = Omit<ShopifyConnection, "adminAccessToken" | "clientSecret">;
 type StatusTone = "neutral" | "success" | "error";
 
+function getWebhookDisplay(connection?: SafeShopifyConnection) {
+  const status = connection?.webhookStatus;
+  if (status === "registered" || status === "already_registered") {
+    const checkedAt = connection?.webhookLastRegisteredAt;
+    return {
+      label: "Ready",
+      detail: checkedAt
+        ? `Checked ${checkedAt.slice(0, 10)}`
+        : "Shopify uninstall events are linked.",
+      ready: true
+    };
+  }
+  if (status === "warning") {
+    return {
+      label: "Needs reconnect",
+      detail: connection?.webhookLastError || "Reconnect Shopify to register the uninstall webhook.",
+      ready: false
+    };
+  }
+  return {
+    label: "Pending",
+    detail: "Connect or reconnect Shopify once to register automatic uninstall handling.",
+    ready: false
+  };
+}
+
 export function ShopifyConnectionForm({
   initialConnection,
   initialCredentialStatus,
@@ -41,6 +67,7 @@ export function ShopifyConnectionForm({
   const [isSaving, setIsSaving] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
   const [showManual, setShowManual] = useState(false);
+  const webhookDisplay = getWebhookDisplay(initialConnection);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -247,7 +274,14 @@ export function ShopifyConnectionForm({
               <dt className="text-muted">Image publishing</dt>
               <dd>{credentialStatus.imagesCanPublish ? "Public URLs configured" : "Needs deployed public URL"}</dd>
             </div>
+            <div>
+              <dt className="text-muted">Auto disconnect webhook</dt>
+              <dd className={webhookDisplay.ready ? "text-action" : "text-amber-700"}>
+                {webhookDisplay.label}
+              </dd>
+            </div>
           </dl>
+          <p className="mt-3 text-xs leading-5 text-muted">{webhookDisplay.detail}</p>
         </div>
       </div>
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
