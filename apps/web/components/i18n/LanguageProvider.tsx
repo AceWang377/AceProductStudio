@@ -403,6 +403,7 @@ const phrasePairs = [
   ["Image generator", "图片生成"],
   ["SEO copy", "SEO 文案"],
   ["Draft publisher", "草稿发布"],
+  ["Resources", "资源"],
   ["AI product image generator for Shopify", "Shopify AI 商品图片生成器"],
   ["Shopify product image generator for draft-ready listings", "用于 Shopify 草稿商品的商品图片生成器"],
   [
@@ -429,7 +430,22 @@ const phrasePairs = [
   ["Create a Shopify draft", "创建 Shopify 草稿"],
   ["Draft-first by design", "设计上默认草稿优先"],
   ["OAuth store connection", "OAuth 店铺连接"],
-  ["Publish logs merchants can trust", "商家可信的发布日志"]
+  ["Publish logs merchants can trust", "商家可信的发布日志"],
+  ["Shopify AI resources", "Shopify AI 资源"],
+  ["Guides for AI product images, Shopify SEO copy, and draft publishing.", "AI 商品图片、Shopify SEO 文案和草稿发布指南。"],
+  ["Practical tutorials for merchants who want to use AI inside a controlled Shopify product workflow.", "给希望在可控 Shopify 商品流程中使用 AI 的商家准备的实用教程。"],
+  ["Read guide", "阅读指南"],
+  ["How to write Shopify product descriptions with AI", "如何用 AI 编写 Shopify 商品描述"],
+  ["AI product photography for Shopify: a draft-first workflow", "Shopify AI 商品摄影：默认草稿优先的流程"],
+  ["Shopify product draft workflow for AI-generated listings", "AI 生成商品页的 Shopify 草稿流程"],
+  ["See related workflow", "查看相关流程"],
+  ["All resources", "所有资源"],
+  ["Practical checklist", "实用清单"],
+  ["Turn this into a repeatable workflow", "把它变成可重复的流程"],
+  [
+    "Use AceStudio to generate product media, copy, and Shopify drafts from one place.",
+    "使用 AceStudio 在一个地方生成商品图片、文案和 Shopify 草稿。"
+  ]
 ] as const;
 
 const zhPhraseMap = new Map<string, string>(phrasePairs);

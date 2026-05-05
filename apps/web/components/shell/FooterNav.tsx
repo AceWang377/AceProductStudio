@@ -17,6 +17,9 @@ export function FooterNav() {
       <Link className="hover:text-ink" href="/ai-shopify-draft-publisher">
         Draft publisher
       </Link>
+      <Link className="hover:text-ink" href="/resources">
+        Resources
+      </Link>
       <Link className="hover:text-ink" href="/support">
         {t.shell.support}
       </Link>

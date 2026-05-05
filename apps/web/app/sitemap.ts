@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { seoResourceList } from "@/lib/seo-resources";
 import { seoPages } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
@@ -42,16 +43,29 @@ const publicRoutes = [
     path: seoPages.aiShopifyDraftPublisher.path,
     changeFrequency: "monthly",
     priority: 0.8
+  },
+  {
+    path: "/resources",
+    changeFrequency: "monthly",
+    priority: 0.7
   }
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date();
 
-  return publicRoutes.map((route) => ({
-    url: `${siteConfig.url}${route.path}`,
-    lastModified,
-    changeFrequency: route.changeFrequency,
-    priority: route.priority
-  }));
+  return [
+    ...publicRoutes.map((route) => ({
+      url: `${siteConfig.url}${route.path}`,
+      lastModified,
+      changeFrequency: route.changeFrequency,
+      priority: route.priority
+    })),
+    ...seoResourceList.map((article) => ({
+      url: `${siteConfig.url}/resources/${article.slug}`,
+      lastModified,
+      changeFrequency: "monthly" as const,
+      priority: 0.65
+    }))
+  ];
 }
