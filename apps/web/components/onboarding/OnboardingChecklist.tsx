@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import {
   ArrowRight,
@@ -11,6 +13,7 @@ import {
 } from "lucide-react";
 import type { Product, ShopifyConnection } from "@/lib/types";
 import { getProductReadiness } from "@/lib/product-readiness";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 type OnboardingStep = {
   eyebrow: string;
@@ -63,6 +66,7 @@ export function OnboardingChecklist({
   products: Product[];
   shopifyConnection?: ShopifyConnection;
 }) {
+  const { t } = useLanguage();
   const latestProduct = getLatestProduct(products);
   const shopifyConnected = Boolean(shopifyConnection?.isActive);
   const generateHref = latestProduct
@@ -73,47 +77,53 @@ export function OnboardingChecklist({
   const reviewHref = productTabHref(latestProduct, "publish");
   const steps: OnboardingStep[] = [
     {
-      eyebrow: "Step 1",
-      title: "Connect Shopify",
-      description: "Authorize the store that will receive draft products.",
+      eyebrow: `${t.onboarding.step} 1`,
+      title: t.onboarding.connectShopify.title,
+      description: t.onboarding.connectShopify.description,
       href: "/settings/shopify",
-      action: shopifyConnection?.isActive ? "View connection" : "Connect store",
+      action: shopifyConnection?.isActive
+        ? t.onboarding.connectShopify.activeAction
+        : t.onboarding.connectShopify.action,
       complete: shopifyConnected,
       icon: Store
     },
     {
-      eyebrow: "Step 2",
-      title: "Upload product",
-      description: "Create the workspace from one original product photo.",
+      eyebrow: `${t.onboarding.step} 2`,
+      title: t.onboarding.uploadProduct.title,
+      description: t.onboarding.uploadProduct.description,
       href: latestProduct ? productTabHref(latestProduct, "brief") : "/products/new",
-      action: latestProduct ? "View brief" : "Upload photo",
+      action: latestProduct
+        ? t.onboarding.uploadProduct.activeAction
+        : t.onboarding.uploadProduct.action,
       complete: Boolean(latestProduct),
       icon: UploadCloud
     },
     {
-      eyebrow: "Step 3",
-      title: "Generate images/copy",
-      description: "Create the Shopify media set and SEO listing copy.",
+      eyebrow: `${t.onboarding.step} 3`,
+      title: t.onboarding.generate.title,
+      description: t.onboarding.generate.description,
       href: generateHref,
-      action: latestProduct && hasGeneratedImages(latestProduct) ? "Open copy editor" : "Open media workflow",
+      action: latestProduct && hasGeneratedImages(latestProduct)
+        ? t.onboarding.generate.copyAction
+        : t.onboarding.generate.mediaAction,
       complete: products.some((product) => hasGeneratedImages(product) && hasGeneratedCopy(product)),
       icon: Images
     },
     {
-      eyebrow: "Step 4",
-      title: "Review listing",
-      description: "Check media order, title, copy, price, and inventory.",
+      eyebrow: `${t.onboarding.step} 4`,
+      title: t.onboarding.review.title,
+      description: t.onboarding.review.description,
       href: reviewHref,
-      action: "Review product",
+      action: t.onboarding.review.action,
       complete: products.some((product) => hasReviewReadyProduct(product, shopifyConnected) && hasCommerceDetails(product)),
       icon: FileText
     },
     {
-      eyebrow: "Step 5",
-      title: "Publish draft",
-      description: "Create a Shopify draft for final review in Admin.",
+      eyebrow: `${t.onboarding.step} 5`,
+      title: t.onboarding.publish.title,
+      description: t.onboarding.publish.description,
       href: reviewHref,
-      action: "Publish draft",
+      action: t.onboarding.publish.action,
       complete: products.some((product) =>
         ["PUBLISHED_AS_DRAFT", "PUBLISHED_LIVE"].includes(product.shopifyStatus)
       ),
@@ -130,14 +140,14 @@ export function OnboardingChecklist({
         <div className="p-5 sm:p-6">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-action">First-time setup</p>
-              <h2 className="mt-1 text-2xl font-semibold leading-tight">Connect, generate, review, then publish a Shopify draft.</h2>
+              <p className="text-sm font-medium text-action">{t.onboarding.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold leading-tight">{t.onboarding.title}</h2>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted">
-                AceStudio keeps the first run focused on one safe workflow. Live publishing stays behind a separate confirmation.
+                {t.onboarding.description}
               </p>
             </div>
             <span className="inline-flex h-9 items-center rounded border border-line px-3 text-sm font-semibold">
-              {completedCount}/{steps.length} complete
+              {completedCount}/{steps.length} {t.onboarding.progress}
             </span>
           </div>
           <div className="mt-5 h-2 overflow-hidden rounded bg-canvas">
@@ -176,8 +186,10 @@ export function OnboardingChecklist({
           </div>
         </div>
         <aside className="border-t border-line bg-canvas p-5 sm:p-6 xl:border-l xl:border-t-0">
-          <p className="text-sm font-medium text-action">Next best action</p>
-          <h3 className="mt-1 text-xl font-semibold">Next: {nextStep.title}</h3>
+          <p className="text-sm font-medium text-action">{t.onboarding.nextBestAction}</p>
+          <h3 className="mt-1 text-xl font-semibold">
+            {t.onboarding.nextPrefix} {nextStep.title}
+          </h3>
           <p className="mt-2 text-sm text-muted">{nextStep.description}</p>
           <Link
             href={nextStep.href}
@@ -187,9 +199,9 @@ export function OnboardingChecklist({
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
           <div className="mt-6 border-t border-line pt-5 text-sm text-muted">
-            <p className="font-semibold text-ink">Draft-first safety</p>
+            <p className="font-semibold text-ink">{t.onboarding.draftSafetyTitle}</p>
             <p className="mt-1 leading-6">
-              The normal flow creates a Shopify draft, so users can review the product inside Shopify before anything goes live.
+              {t.onboarding.draftSafetyBody}
             </p>
           </div>
         </aside>

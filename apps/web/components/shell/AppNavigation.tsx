@@ -10,13 +10,15 @@ import {
   LogOut,
   UserRound
 } from "lucide-react";
+import { LanguageToggle } from "@/components/i18n/LanguageToggle";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const navItems = [
-  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { href: "/products", label: "Products", icon: Boxes },
-  { href: "/products/new", label: "Upload", icon: Images },
-  { href: "/account", label: "Account", icon: UserRound }
-];
+  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
+  { href: "/products", labelKey: "products", icon: Boxes },
+  { href: "/products/new", labelKey: "upload", icon: Images },
+  { href: "/account", labelKey: "account", icon: UserRound }
+] as const;
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/products") {
@@ -38,6 +40,7 @@ export function AppNavigation({
   userEmail?: string | null;
 }) {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -48,6 +51,7 @@ export function AppNavigation({
         {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActivePath(pathname, item.href);
+          const label = t.shell[item.labelKey];
           return (
             <Link
               key={item.href}
@@ -60,15 +64,16 @@ export function AppNavigation({
               }`}
             >
               <Icon aria-hidden className="h-4 w-4" />
-              <span className="hidden xl:inline">{item.label}</span>
+              <span className="hidden xl:inline">{label}</span>
             </Link>
           );
         })}
       </nav>
+      <LanguageToggle />
       <Link
         href="/billing"
         className="studio-focus hidden h-10 shrink-0 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-ink sm:inline-flex"
-        title="Credits"
+        title={t.shell.credits}
       >
         <Coins aria-hidden className="h-4 w-4 text-action" />
         {creditsLabel}
@@ -77,10 +82,10 @@ export function AppNavigation({
         <button
           type="submit"
           className="studio-focus inline-flex h-10 items-center gap-2 rounded px-3 text-sm text-muted transition hover:bg-white hover:text-ink"
-          title={userEmail ?? "Sign out"}
+          title={userEmail ?? t.shell.signOut}
         >
           <LogOut aria-hidden className="h-4 w-4" />
-          <span className="hidden xl:inline">Sign out</span>
+          <span className="hidden xl:inline">{t.shell.signOut}</span>
         </button>
       </form>
     </div>
