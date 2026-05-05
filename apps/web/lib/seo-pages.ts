@@ -237,6 +237,24 @@ export function getSeoPageStructuredData(key: SeoPageKey) {
     },
     {
       "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: siteConfig.name,
+          item: siteConfig.url
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: page.title,
+          item: `${siteConfig.url}${page.path}`
+        }
+      ]
+    },
+    {
+      "@context": "https://schema.org",
       "@type": "FAQPage",
       mainEntity: page.faq.map((item) => ({
         "@type": "Question",

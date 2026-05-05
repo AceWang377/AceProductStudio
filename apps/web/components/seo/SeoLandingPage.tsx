@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { seoResourceList } from "@/lib/seo-resources";
 
 type SeoLandingPageProps = {
   eyebrow: string;
@@ -71,6 +72,39 @@ export function SeoLandingPage({
             <p className="mt-3 text-sm leading-7 text-muted">{section.body}</p>
           </article>
         ))}
+      </section>
+
+      <section className="border-y border-line py-10">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-semibold text-action">Shopify AI resources</p>
+            <h2 className="mt-2 text-2xl font-semibold">Recommended guides for this workflow</h2>
+          </div>
+          <Link
+            href="/resources"
+            className="studio-focus inline-flex h-11 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            View all resources
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {seoResourceList.slice(0, 3).map((article) => (
+            <Link
+              key={article.slug}
+              href={`/resources/${article.slug}`}
+              className="studio-focus group flex min-h-56 flex-col border border-line bg-white p-5 transition hover:border-action hover:bg-canvas"
+            >
+              <p className="text-sm font-semibold text-action">{article.category}</p>
+              <h3 className="mt-3 text-base font-semibold leading-snug">{article.title}</h3>
+              <p className="mt-3 flex-1 text-sm leading-6 text-muted">{article.excerpt}</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold">
+                Read guide
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </Link>
+          ))}
+        </div>
       </section>
 
       <section className="border-y border-line py-10">

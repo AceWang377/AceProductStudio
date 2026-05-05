@@ -1,10 +1,14 @@
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, ChevronRight } from "lucide-react";
-import type { seoResources } from "@/lib/seo-resources";
+import { seoResourceList, type seoResources } from "@/lib/seo-resources";
 
 type SeoArticle = (typeof seoResources)[keyof typeof seoResources];
 
 export function SeoArticlePage({ article }: { article: SeoArticle }) {
+  const relatedArticles = seoResourceList
+    .filter((item) => item.slug !== article.slug)
+    .slice(0, 3);
+
   return (
     <article className="mx-auto max-w-4xl">
       <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-sm text-muted">
@@ -76,6 +80,27 @@ export function SeoArticlePage({ article }: { article: SeoArticle }) {
               <h3 className="text-base font-semibold">{item.question}</h3>
               <p className="mt-2 text-sm leading-6 text-muted">{item.answer}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-semibold">Related Shopify AI guides</h2>
+        <div className="mt-5 grid gap-4 md:grid-cols-3">
+          {relatedArticles.map((item) => (
+            <Link
+              key={item.slug}
+              href={`/resources/${item.slug}`}
+              className="studio-focus group flex flex-col border border-line bg-white p-5 transition hover:border-action hover:bg-canvas"
+            >
+              <p className="text-sm font-semibold text-action">{item.category}</p>
+              <h3 className="mt-3 text-base font-semibold leading-snug">{item.title}</h3>
+              <p className="mt-3 flex-1 text-sm leading-6 text-muted">{item.excerpt}</p>
+              <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold">
+                Read guide
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+              </span>
+            </Link>
           ))}
         </div>
       </section>
