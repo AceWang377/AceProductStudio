@@ -48,7 +48,7 @@ export async function POST(request: Request) {
             currency: pack.currency,
             unit_amount: pack.unitAmount,
             product_data: {
-              name: `${pack.credits} AI Product Studio credits`,
+              name: `${pack.credits} AceStudio credits`,
               description: pack.description
             }
           }

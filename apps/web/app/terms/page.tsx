@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Terms & Conditions | ${siteConfig.name}`,
-  description: "Terms and conditions for AI Product Studio"
+  description: "Terms and conditions for AceStudio"
 };
 
 export default function TermsPage() {

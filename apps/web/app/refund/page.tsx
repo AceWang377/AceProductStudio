@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Refund Policy | ${siteConfig.name}`,
-  description: "Refund policy for AI Product Studio"
+  description: "Refund policy for AceStudio"
 };
 
 export default function RefundPage() {

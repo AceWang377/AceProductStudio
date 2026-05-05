@@ -1,6 +1,6 @@
-# AI Product Studio
+# AceStudio
 
-AI Product Studio is a Shopify-focused ecommerce content workspace for turning product photos into generated image sets, editable SEO copy, product readiness checks, and Shopify draft publishing.
+AceStudio is a Shopify-focused ecommerce content workspace for turning product photos into generated image sets, editable SEO copy, product readiness checks, and Shopify draft publishing.
 
 ## What is implemented
 

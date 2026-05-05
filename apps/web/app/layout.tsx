@@ -3,12 +3,13 @@ import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
 import { getCreditAccount, isAdminEmail } from "@/lib/credits";
 import { siteConfig } from "@/lib/site";
+import { AceStudioMark } from "@/components/shell/AceStudioMark";
 import { AppNavigation } from "@/components/shell/AppNavigation";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AI Product Studio",
-  description: "AI ecommerce image and copy generation workspace"
+  title: "AceStudio",
+  description: "AI ecommerce image and copy generation workspace for Shopify merchants"
 };
 
 export default async function RootLayout({
@@ -28,9 +29,7 @@ export default async function RootLayout({
           <header className="sticky top-0 z-20 border-b border-line bg-canvas/95 backdrop-blur">
             <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
               <Link href={user ? "/dashboard" : "/"} className="flex items-center gap-3">
-                <span className="grid h-9 w-9 place-items-center rounded bg-ink text-sm font-semibold text-white">
-                  AI
-                </span>
+                <AceStudioMark />
                 <span>
                   <span className="block text-sm font-semibold leading-5">
                     {siteConfig.name}

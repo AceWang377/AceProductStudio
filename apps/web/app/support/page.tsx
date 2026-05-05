@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Support | ${siteConfig.name}`,
-  description: "Support for AI Product Studio"
+  description: "Support for AceStudio"
 };
 
 const helpItems = [
@@ -32,7 +32,7 @@ export default function SupportPage() {
       <section className="grid gap-6 border-b border-line pb-6 lg:grid-cols-[minmax(0,1fr)_320px]">
         <div>
           <p className="text-sm text-muted">Support</p>
-          <h1 className="mt-2 text-3xl font-semibold">Get help with AI Product Studio</h1>
+          <h1 className="mt-2 text-3xl font-semibold">Get help with AceStudio</h1>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
             For account access, Shopify publishing, product generation, storage,
             credits, or billing questions, contact support with the account email

@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Privacy Policy | ${siteConfig.name}`,
-  description: "Privacy policy for AI Product Studio"
+  description: "Privacy policy for AceStudio"
 };
 
 export default function PrivacyPage() {
