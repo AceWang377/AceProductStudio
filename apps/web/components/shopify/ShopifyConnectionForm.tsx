@@ -14,11 +14,15 @@ type CredentialStatus = {
 
 type SafeShopifyConnection = Omit<ShopifyConnection, "adminAccessToken" | "clientSecret">;
 type StatusTone = "neutral" | "success" | "error";
+type WebhookState = Pick<
+  SafeShopifyConnection,
+  "webhookStatus" | "webhookSubscriptionId" | "webhookCallbackUrl" | "webhookLastRegisteredAt" | "webhookLastError"
+>;
 
-function getWebhookDisplay(connection?: SafeShopifyConnection) {
-  const status = connection?.webhookStatus;
+function getWebhookDisplay(webhook?: WebhookState) {
+  const status = webhook?.webhookStatus;
   if (status === "registered" || status === "already_registered") {
-    const checkedAt = connection?.webhookLastRegisteredAt;
+    const checkedAt = webhook?.webhookLastRegisteredAt;
     return {
       label: "Ready",
       detail: checkedAt
@@ -29,8 +33,8 @@ function getWebhookDisplay(connection?: SafeShopifyConnection) {
   }
   if (status === "warning") {
     return {
-      label: "Needs reconnect",
-      detail: connection?.webhookLastError || "Reconnect Shopify to register the uninstall webhook.",
+      label: "Needs repair",
+      detail: webhook?.webhookLastError || "Register the uninstall webhook again, or reconnect Shopify.",
       ready: false
     };
   }
@@ -66,8 +70,16 @@ export function ShopifyConnectionForm({
   const [credentialStatus, setCredentialStatus] = useState(initialCredentialStatus);
   const [isSaving, setIsSaving] = useState(false);
   const [isDisconnecting, setIsDisconnecting] = useState(false);
+  const [isRegisteringWebhook, setIsRegisteringWebhook] = useState(false);
   const [showManual, setShowManual] = useState(false);
-  const webhookDisplay = getWebhookDisplay(initialConnection);
+  const [webhookState, setWebhookState] = useState<WebhookState>({
+    webhookStatus: initialConnection?.webhookStatus ?? "not_configured",
+    webhookSubscriptionId: initialConnection?.webhookSubscriptionId,
+    webhookCallbackUrl: initialConnection?.webhookCallbackUrl,
+    webhookLastRegisteredAt: initialConnection?.webhookLastRegisteredAt,
+    webhookLastError: initialConnection?.webhookLastError
+  });
+  const webhookDisplay = getWebhookDisplay(webhookState);
 
   async function onSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -90,6 +102,7 @@ export function ShopifyConnectionForm({
       if (statusResponse.ok) {
         const nextStatus = await statusResponse.json();
         setCredentialStatus(nextStatus);
+        setWebhookState({ webhookStatus: "not_configured" });
         setStatus(nextStatus.connected ? "Ready to publish drafts" : "Credentials are incomplete.");
         setStatusTone(nextStatus.connected ? "success" : "error");
       } else {
@@ -129,6 +142,7 @@ export function ShopifyConnectionForm({
       setAdminAccessToken("");
       setClientId("");
       setClientSecret("");
+      setWebhookState({ webhookStatus: "not_configured" });
       setCredentialStatus({
         configured: false,
         shopDomain: null,
@@ -143,6 +157,40 @@ export function ShopifyConnectionForm({
     }
 
     setIsDisconnecting(false);
+  }
+
+  async function registerWebhookNow() {
+    setIsRegisteringWebhook(true);
+    setStatus("Registering Shopify uninstall webhook...");
+    setStatusTone("neutral");
+
+    const response = await fetch("/api/settings/shopify/webhook", {
+      method: "POST"
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (response.ok && payload.ok) {
+      setWebhookState({
+        webhookStatus: payload.webhookStatus,
+        webhookSubscriptionId: payload.webhookSubscriptionId,
+        webhookCallbackUrl: payload.webhookCallbackUrl,
+        webhookLastRegisteredAt: payload.webhookLastRegisteredAt,
+        webhookLastError: undefined
+      });
+      setStatus("Shopify uninstall webhook is ready.");
+      setStatusTone("success");
+    } else {
+      setWebhookState({
+        webhookStatus: "warning",
+        webhookCallbackUrl: payload.webhookCallbackUrl,
+        webhookLastRegisteredAt: payload.webhookLastRegisteredAt,
+        webhookLastError: payload.webhookLastError || payload.error || "Could not register Shopify uninstall webhook."
+      });
+      setStatus(payload.webhookLastError || payload.error || "Could not register Shopify uninstall webhook.");
+      setStatusTone("error");
+    }
+
+    setIsRegisteringWebhook(false);
   }
 
   return (
@@ -287,6 +335,23 @@ export function ShopifyConnectionForm({
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <StatusMessage tone={statusTone} text={status} />
         <div className="flex flex-wrap gap-2">
+          {(credentialStatus.connected || credentialStatus.configured) && !webhookDisplay.ready ? (
+            <button
+              type="button"
+              onClick={registerWebhookNow}
+              disabled={isRegisteringWebhook}
+              className="studio-focus inline-flex h-10 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas disabled:opacity-60"
+            >
+              {isRegisteringWebhook ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                  Registering...
+                </>
+              ) : (
+                "Register webhook"
+              )}
+            </button>
+          ) : null}
           {credentialStatus.connected || credentialStatus.configured ? (
             <button
               type="button"
