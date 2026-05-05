@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { redirect } from "next/navigation";
+import type { Metadata } from "next";
 import {
   ArrowRight,
   BadgeCheck,
@@ -25,6 +26,15 @@ type HomeSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export const dynamic = "force-dynamic";
 
+export const metadata: Metadata = {
+  title: "AceStudio | AI Shopify Product Listing Generator",
+  description:
+    "AceStudio turns one product photo into Shopify-ready generated images, SEO product copy, pricing details, inventory fields, and a draft listing ready for review.",
+  alternates: {
+    canonical: "/"
+  }
+};
+
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -44,9 +54,15 @@ export default async function HomePage({
 
   const user = await getCurrentUser();
   if (user) redirect("/dashboard");
+  const jsonLd = getHomeStructuredData();
 
   return (
     <div className="space-y-14">
+      <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <section className="relative left-1/2 right-1/2 -mx-[50vw] -mt-6 w-screen border-b border-line bg-[#eef4ef]">
         <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:min-h-[calc(100svh-66px)] lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1fr)] lg:items-center lg:py-14">
           <div>
@@ -246,6 +262,74 @@ export default async function HomePage({
       </section>
     </div>
   );
+}
+
+function getHomeStructuredData() {
+  return [
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      name: siteConfig.name,
+      applicationCategory: "BusinessApplication",
+      operatingSystem: "Web",
+      url: siteConfig.url,
+      description:
+        "AI product content workspace for Shopify merchants to generate product images, SEO copy, pricing details, inventory fields, and draft listings.",
+      offers: {
+        "@type": "Offer",
+        price: "0",
+        priceCurrency: "USD",
+        description: "Free trial credits available before paid credit packs are enabled."
+      },
+      featureList: [
+        "AI product image generation",
+        "Shopify SEO product copy generation",
+        "Shopify OAuth store connection",
+        "Draft-first Shopify product publishing",
+        "Credit usage history"
+      ],
+      provider: {
+        "@type": "Organization",
+        name: siteConfig.company,
+        url: siteConfig.url,
+        contactPoint: {
+          "@type": "ContactPoint",
+          email: siteConfig.supportEmail,
+          contactType: "customer support"
+        }
+      }
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: [
+        {
+          "@type": "Question",
+          name: "Does AceStudio publish Shopify products live by default?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. AceStudio creates a Shopify draft first, with live publishing behind a separate confirmation."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "Can each user connect their own Shopify store?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Shopify OAuth saves the connected store for that user workspace, so users do not need to paste admin tokens."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "What does AceStudio generate?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "AceStudio generates product media, Shopify SEO copy, tags, FAQ content, and draft-ready listing details from one product photo."
+          }
+        }
+      ]
+    }
+  ];
 }
 
 function ProductStudioPreview() {

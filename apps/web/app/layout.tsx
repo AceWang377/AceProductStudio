@@ -13,8 +13,64 @@ import { SignInLink } from "@/components/auth/SignInLink";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AceStudio",
-  description: "AI ecommerce image and copy generation workspace for Shopify merchants"
+  metadataBase: new URL(siteConfig.url),
+  applicationName: siteConfig.name,
+  title: {
+    default: "AceStudio | AI Shopify Product Listing Generator",
+    template: `%s | ${siteConfig.name}`
+  },
+  description:
+    "Generate Shopify-ready product images, SEO copy, pricing details, inventory fields, and draft product listings from one product photo.",
+  keywords: [
+    "AI Shopify product listing generator",
+    "Shopify product image generator",
+    "AI product description generator",
+    "Shopify SEO copy",
+    "ecommerce product content",
+    "Shopify draft publishing"
+  ],
+  authors: [{ name: siteConfig.company }],
+  creator: siteConfig.company,
+  publisher: siteConfig.company,
+  category: "Software",
+  alternates: {
+    canonical: "/"
+  },
+  openGraph: {
+    title: "AceStudio | AI Shopify Product Listing Generator",
+    description:
+      "Create Shopify-ready product media, SEO copy, pricing details, inventory fields, and draft listings from one product photo.",
+    url: siteConfig.url,
+    siteName: siteConfig.name,
+    type: "website",
+    locale: "en_US",
+    images: [
+      {
+        url: `${siteConfig.url}/opengraph-image`,
+        width: 1200,
+        height: 630,
+        alt: "AceStudio AI Shopify product listing workspace"
+      }
+    ]
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AceStudio | AI Shopify Product Listing Generator",
+    description:
+      "Generate product images, SEO copy, and Shopify draft listings from one product photo.",
+    images: [`${siteConfig.url}/opengraph-image`]
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1
+    }
+  }
 };
 
 export default async function RootLayout({
