@@ -399,7 +399,37 @@ const phrasePairs = [
     "打开 Shopify 后台检查图片顺序、SEO 文案、价格、库存和销售渠道设置，然后继续创建下一个商品。"
   ],
   ["Open Shopify draft", "打开 Shopify 草稿"],
-  ["Create next product", "创建下一个商品"]
+  ["Create next product", "创建下一个商品"],
+  ["Image generator", "图片生成"],
+  ["SEO copy", "SEO 文案"],
+  ["Draft publisher", "草稿发布"],
+  ["AI product image generator for Shopify", "Shopify AI 商品图片生成器"],
+  ["Shopify product image generator for draft-ready listings", "用于 Shopify 草稿商品的商品图片生成器"],
+  [
+    "AceStudio helps Shopify merchants turn one product photo into an ordered product media set with lifestyle, detail, intro, and white-background images ready for draft publishing.",
+    "AceStudio 帮助 Shopify 商家把一张商品图生成有顺序的商品图组，包括场景图、细节图、介绍图和白底图，用于草稿发布。"
+  ],
+  ["Generate Shopify product images", "生成 Shopify 商品图片"],
+  ["What AceStudio helps with", "AceStudio 可以帮你做什么"],
+  ["From one photo to a full media set", "从一张图片到完整商品图组"],
+  ["Built for product review", "为商品审核而设计"],
+  ["Connected to the rest of the listing", "和商品页其他内容联动"],
+  ["Frequently asked questions", "常见问题"],
+  ["Ready to build the first draft?", "准备创建第一个草稿了吗？"],
+  ["Create Shopify-ready product content from one photo.", "用一张图片创建 Shopify 可用的商品内容。"],
+  ["Open AceStudio", "打开 AceStudio"],
+  ["AI Shopify SEO copy generator", "AI Shopify SEO 文案生成器"],
+  ["Shopify SEO product description generator for merchant-ready drafts", "面向商家草稿的 Shopify SEO 商品描述生成器"],
+  ["Generate Shopify SEO copy", "生成 Shopify SEO 文案"],
+  ["Copy that fits Shopify workflows", "适合 Shopify 流程的文案"],
+  ["Quality controls before generation", "生成前的质量控制"],
+  ["Review before publishing", "发布前检查"],
+  ["AI Shopify draft publisher", "AI Shopify 草稿发布工具"],
+  ["AI Shopify draft publisher with media, copy, price, and inventory review", "支持图片、文案、价格和库存检查的 AI Shopify 草稿发布工具"],
+  ["Create a Shopify draft", "创建 Shopify 草稿"],
+  ["Draft-first by design", "设计上默认草稿优先"],
+  ["OAuth store connection", "OAuth 店铺连接"],
+  ["Publish logs merchants can trust", "商家可信的发布日志"]
 ] as const;
 
 const zhPhraseMap = new Map<string, string>(phrasePairs);

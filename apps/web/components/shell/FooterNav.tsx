@@ -8,6 +8,15 @@ export function FooterNav() {
 
   return (
     <nav className="flex flex-wrap gap-4">
+      <Link className="hover:text-ink" href="/shopify-product-image-generator">
+        Image generator
+      </Link>
+      <Link className="hover:text-ink" href="/shopify-seo-product-description-generator">
+        SEO copy
+      </Link>
+      <Link className="hover:text-ink" href="/ai-shopify-draft-publisher">
+        Draft publisher
+      </Link>
       <Link className="hover:text-ink" href="/support">
         {t.shell.support}
       </Link>

@@ -1,4 +1,5 @@
 import type { MetadataRoute } from "next";
+import { seoPages } from "@/lib/seo-pages";
 import { siteConfig } from "@/lib/site";
 
 const publicRoutes = [
@@ -26,6 +27,21 @@ const publicRoutes = [
     path: "/refund",
     changeFrequency: "yearly",
     priority: 0.3
+  },
+  {
+    path: seoPages.shopifyProductImageGenerator.path,
+    changeFrequency: "monthly",
+    priority: 0.8
+  },
+  {
+    path: seoPages.shopifySeoProductDescriptionGenerator.path,
+    changeFrequency: "monthly",
+    priority: 0.8
+  },
+  {
+    path: seoPages.aiShopifyDraftPublisher.path,
+    changeFrequency: "monthly",
+    priority: 0.8
   }
 ] as const;
 
