@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import {
   ArrowRight,
   BadgeCheck,
+  BookOpenText,
   CheckCircle2,
   Coins,
   FileText,
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
+import { seoResourceList } from "@/lib/seo-resources";
 import { siteConfig } from "@/lib/site";
 
 type HomeSearchParams = Promise<Record<string, string | string[] | undefined>>;
@@ -198,6 +200,38 @@ export default async function HomePage({
           title="Designed for production"
           detail="Products, jobs, stores, generated images, credits, and usage history already use persistent Supabase-backed storage."
         />
+      </section>
+
+      <section className="border-y border-line py-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="inline-flex items-center gap-2 text-sm font-medium text-action">
+              <BookOpenText className="h-4 w-4" aria-hidden />
+              Shopify AI guides
+            </p>
+            <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
+              Learn the workflow before connecting a store.
+            </h2>
+          </div>
+          <Link
+            href="/resources"
+            className="studio-focus inline-flex h-11 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            View all resources
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
+        <div className="mt-6 grid gap-4 md:grid-cols-3">
+          {seoResourceList.map((article) => (
+            <ResourceCard
+              key={article.slug}
+              href={`/resources/${article.slug}`}
+              category={article.category}
+              title={article.title}
+              excerpt={article.excerpt}
+            />
+          ))}
+        </div>
       </section>
 
       <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.45fr)]">
@@ -523,6 +557,33 @@ function LandingFeature({
       <h2 className="mt-4 text-lg font-semibold">{title}</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
     </div>
+  );
+}
+
+function ResourceCard({
+  href,
+  category,
+  title,
+  excerpt
+}: {
+  href: string;
+  category: string;
+  title: string;
+  excerpt: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="studio-focus group flex min-h-64 flex-col border border-line bg-white p-5 transition hover:border-action hover:bg-canvas"
+    >
+      <p className="text-sm font-semibold text-action">{category}</p>
+      <h3 className="mt-3 text-xl font-semibold leading-snug">{title}</h3>
+      <p className="mt-3 flex-1 text-sm leading-6 text-muted">{excerpt}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold">
+        Read guide
+        <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+      </span>
+    </Link>
   );
 }
 

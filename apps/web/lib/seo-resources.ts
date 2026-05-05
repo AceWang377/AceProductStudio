@@ -17,6 +17,8 @@ export const seoResources = {
       "Learn a review-first AI workflow for Shopify SEO product copy, from product brief to draft-ready listing content.",
     category: "Shopify SEO copy",
     readingTime: "6 min read",
+    publishedAt: "2026-05-05",
+    updatedAt: "2026-05-05",
     relatedPath: seoPages.shopifySeoProductDescriptionGenerator.path,
     sections: [
       {
@@ -63,6 +65,8 @@ export const seoResources = {
       "A practical guide to using AI-generated product media without losing control of the Shopify review process.",
     category: "AI product images",
     readingTime: "5 min read",
+    publishedAt: "2026-05-05",
+    updatedAt: "2026-05-05",
     relatedPath: seoPages.shopifyProductImageGenerator.path,
     sections: [
       {
@@ -109,6 +113,8 @@ export const seoResources = {
       "Use a draft-first workflow to review AI-generated product media and copy before publishing Shopify listings live.",
     category: "Shopify publishing",
     readingTime: "6 min read",
+    publishedAt: "2026-05-05",
+    updatedAt: "2026-05-05",
     relatedPath: seoPages.aiShopifyDraftPublisher.path,
     sections: [
       {
@@ -155,6 +161,8 @@ export const seoResources = {
     excerpt: string;
     category: string;
     readingTime: string;
+    publishedAt: string;
+    updatedAt: string;
     relatedPath: string;
     sections: Array<{ title: string; body: string }>;
     checklist: string[];
@@ -178,7 +186,10 @@ export function getSeoResourceMetadata(slug: SeoResourceSlug): Metadata {
       title: `${article.title} | ${siteConfig.name}`,
       description: article.description,
       url: `${siteConfig.url}${path}`,
-      type: "article"
+      type: "article",
+      publishedTime: article.publishedAt,
+      modifiedTime: article.updatedAt,
+      images: [`${siteConfig.url}/opengraph-image`]
     },
     twitter: {
       card: "summary_large_image",
@@ -200,6 +211,10 @@ export function getSeoResourceStructuredData(slug: SeoResourceSlug) {
       headline: article.title,
       description: article.description,
       url: `${siteConfig.url}${path}`,
+      image: `${siteConfig.url}/opengraph-image`,
+      datePublished: article.publishedAt,
+      dateModified: article.updatedAt,
+      inLanguage: "en-US",
       author: {
         "@type": "Organization",
         name: siteConfig.company,
@@ -211,6 +226,30 @@ export function getSeoResourceStructuredData(slug: SeoResourceSlug) {
         url: siteConfig.url
       },
       mainEntityOfPage: `${siteConfig.url}${path}`
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: siteConfig.name,
+          item: siteConfig.url
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Resources",
+          item: `${siteConfig.url}/resources`
+        },
+        {
+          "@type": "ListItem",
+          position: 3,
+          name: article.title,
+          item: `${siteConfig.url}${path}`
+        }
+      ]
     },
     {
       "@context": "https://schema.org",

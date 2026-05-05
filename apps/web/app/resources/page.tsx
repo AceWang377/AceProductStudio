@@ -21,19 +21,41 @@ export const metadata: Metadata = {
 };
 
 export default function ResourcesPage() {
-  const structuredData = {
-    "@context": "https://schema.org",
-    "@type": "CollectionPage",
-    name: "Shopify AI Product Content Resources",
-    description: metadata.description,
-    url: `${siteConfig.url}/resources`,
-    mainEntity: seoResourceList.map((article) => ({
-      "@type": "Article",
-      headline: article.title,
-      description: article.description,
-      url: `${siteConfig.url}/resources/${article.slug}`
-    }))
-  };
+  const structuredData = [
+    {
+      "@context": "https://schema.org",
+      "@type": "CollectionPage",
+      name: "Shopify AI Product Content Resources",
+      description: metadata.description,
+      url: `${siteConfig.url}/resources`,
+      mainEntity: seoResourceList.map((article) => ({
+        "@type": "Article",
+        headline: article.title,
+        description: article.description,
+        url: `${siteConfig.url}/resources/${article.slug}`,
+        datePublished: article.publishedAt,
+        dateModified: article.updatedAt
+      }))
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: siteConfig.name,
+          item: siteConfig.url
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: "Resources",
+          item: `${siteConfig.url}/resources`
+        }
+      ]
+    }
+  ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">

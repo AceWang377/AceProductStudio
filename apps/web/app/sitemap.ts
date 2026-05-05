@@ -63,7 +63,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     })),
     ...seoResourceList.map((article) => ({
       url: `${siteConfig.url}/resources/${article.slug}`,
-      lastModified,
+      lastModified: new Date(article.updatedAt),
       changeFrequency: "monthly" as const,
       priority: 0.65
     }))

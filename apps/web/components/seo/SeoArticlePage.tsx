@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ChevronRight } from "lucide-react";
 import type { seoResources } from "@/lib/seo-resources";
 
 type SeoArticle = (typeof seoResources)[keyof typeof seoResources];
@@ -7,11 +7,24 @@ type SeoArticle = (typeof seoResources)[keyof typeof seoResources];
 export function SeoArticlePage({ article }: { article: SeoArticle }) {
   return (
     <article className="mx-auto max-w-4xl">
+      <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-sm text-muted">
+        <Link href="/" className="studio-focus rounded hover:text-ink">
+          AceStudio
+        </Link>
+        <ChevronRight className="h-4 w-4" aria-hidden />
+        <Link href="/resources" className="studio-focus rounded hover:text-ink">
+          Resources
+        </Link>
+        <ChevronRight className="h-4 w-4" aria-hidden />
+        <span className="line-clamp-1 text-ink">{article.title}</span>
+      </nav>
       <header className="border-b border-line pb-8">
         <div className="flex flex-wrap gap-2 text-sm text-muted">
           <span>{article.category}</span>
           <span aria-hidden>·</span>
           <span>{article.readingTime}</span>
+          <span aria-hidden>·</span>
+          <time dateTime={article.updatedAt}>Updated {article.updatedAt}</time>
         </div>
         <h1 className="mt-4 text-4xl font-semibold leading-tight sm:text-5xl">
           {article.title}

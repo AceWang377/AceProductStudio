@@ -404,6 +404,9 @@ const phrasePairs = [
   ["SEO copy", "SEO 文案"],
   ["Draft publisher", "草稿发布"],
   ["Resources", "资源"],
+  ["Shopify AI guides", "Shopify AI 指南"],
+  ["Learn the workflow before connecting a store.", "连接店铺前先了解完整流程。"],
+  ["View all resources", "查看所有资源"],
   ["AI product image generator for Shopify", "Shopify AI 商品图片生成器"],
   ["Shopify product image generator for draft-ready listings", "用于 Shopify 草稿商品的商品图片生成器"],
   [
@@ -440,6 +443,7 @@ const phrasePairs = [
   ["Shopify product draft workflow for AI-generated listings", "AI 生成商品页的 Shopify 草稿流程"],
   ["See related workflow", "查看相关流程"],
   ["All resources", "所有资源"],
+  ["Updated 2026-05-05", "更新于 2026-05-05"],
   ["Practical checklist", "实用清单"],
   ["Turn this into a repeatable workflow", "把它变成可重复的流程"],
   [
