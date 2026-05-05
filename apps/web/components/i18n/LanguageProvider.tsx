@@ -400,6 +400,13 @@ const phrasePairs = [
   ],
   ["Open Shopify draft", "打开 Shopify 草稿"],
   ["Create next product", "创建下一个商品"],
+  ["Product", "产品"],
+  ["Legal", "法律"],
+  ["Shopify AI checklist", "Shopify AI 检查清单"],
+  [
+    "AI product content workspace for Shopify merchants.",
+    "面向 Shopify 商家的 AI 商品内容工作台。"
+  ],
   ["Product listing generator", "商品页生成器"],
   ["Image generator", "图片生成"],
   ["SEO copy", "SEO 文案"],

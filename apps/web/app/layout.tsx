@@ -107,8 +107,13 @@ export default async function RootLayout({
           </header>
           <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
           <footer className="border-t border-line">
-            <div className="mx-auto flex max-w-7xl flex-col gap-3 px-4 py-5 text-sm text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-              <p>{siteConfig.company}</p>
+            <div className="mx-auto grid max-w-7xl gap-8 px-4 py-8 text-sm text-muted sm:px-6 lg:grid-cols-[minmax(220px,0.8fr)_minmax(0,1.6fr)]">
+              <div>
+                <p className="text-base font-semibold text-ink">{siteConfig.company}</p>
+                <p className="mt-2 max-w-xs leading-6">
+                  AI product content workspace for Shopify merchants.
+                </p>
+              </div>
               <FooterNav />
             </div>
           </footer>
