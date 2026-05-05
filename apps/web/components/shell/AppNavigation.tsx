@@ -12,6 +12,7 @@ import {
   LogOut,
   Rocket,
   Settings,
+  ShieldCheck,
   UserRound
 } from "lucide-react";
 
@@ -25,6 +26,8 @@ const navItems = [
   { href: "/account", label: "Account", icon: UserRound },
   { href: "/launch", label: "Launch", icon: Rocket }
 ];
+
+const adminNavItem = { href: "/admin", label: "Admin", icon: ShieldCheck };
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/products") {
@@ -40,12 +43,15 @@ function isActivePath(pathname: string, href: string) {
 
 export function AppNavigation({
   creditsLabel,
-  userEmail
+  userEmail,
+  isAdmin = false
 }: {
   creditsLabel: string;
   userEmail?: string | null;
+  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
+  const visibleNavItems = isAdmin ? [...navItems, adminNavItem] : navItems;
 
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -53,7 +59,7 @@ export function AppNavigation({
         aria-label="Workspace"
         className="-mx-2 flex max-w-[calc(100vw-172px)] items-center gap-1 overflow-x-auto px-2 lg:max-w-none"
       >
-        {navItems.map((item) => {
+        {visibleNavItems.map((item) => {
           const Icon = item.icon;
           const active = isActivePath(pathname, item.href);
           return (
