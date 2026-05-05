@@ -5,6 +5,7 @@ import {
   Circle,
   FileText,
   Images,
+  PackageCheck,
   Send,
   Store,
   UploadCloud
@@ -31,6 +32,15 @@ function hasGeneratedCopy(product: Product) {
       product.tags.length ||
       product.faq.length
   );
+}
+
+function hasCommerceDetails(product: Product) {
+  const price = Number.parseFloat(product.price ?? "");
+  const hasValidPrice = Number.isFinite(price) && price > 0;
+  const hasInventoryDecision = product.trackInventory
+    ? product.inventoryQuantity !== undefined && product.inventoryQuantity >= 0
+    : true;
+  return hasValidPrice && hasInventoryDecision;
 }
 
 function getLatestProduct(products: Product[]) {
@@ -81,6 +91,14 @@ export function OnboardingChecklist({
       action: "Open copy editor",
       complete: products.some(hasGeneratedCopy),
       icon: FileText
+    },
+    {
+      title: "Set commerce details",
+      description: "Add price and decide whether inventory should be tracked.",
+      href: productTabHref(latestProduct, "commerce"),
+      action: "Open commerce",
+      complete: products.some(hasCommerceDetails),
+      icon: PackageCheck
     },
     {
       title: "Publish draft",
