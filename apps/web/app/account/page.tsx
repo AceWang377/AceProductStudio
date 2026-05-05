@@ -4,16 +4,20 @@ import {
   CheckCircle2,
   CircleAlert,
   Coins,
+  CreditCard,
+  Database,
   Download,
   History,
   LogOut,
   Mail,
+  Rocket,
+  Settings,
   ShieldCheck,
   ShoppingBag,
   UserRound
 } from "lucide-react";
 import { requireCurrentUser } from "@/lib/auth";
-import { getCreditAccount } from "@/lib/credits";
+import { getCreditAccount, isAdminEmail } from "@/lib/credits";
 import { readState } from "@/lib/store";
 import { siteConfig } from "@/lib/site";
 
@@ -26,6 +30,7 @@ export default async function AccountPage() {
     readState()
   ]);
   const connectedStore = state.shopifyConnection?.isActive ? state.shopifyConnection.shopDomain : null;
+  const isAdmin = isAdminEmail(user.email);
   const creditLabel = credits.isUnlimited ? "Unlimited" : credits.balance;
   const creditDetail = credits.isUnlimited
     ? "Admin bypass is enabled, so generation does not deduct credits."
@@ -88,16 +93,23 @@ export default async function AccountPage() {
           <div className="border-b border-line p-5">
             <h2 className="text-lg font-semibold">Account controls</h2>
             <p className="mt-1 text-sm text-muted">
-              Common actions for managing this workspace and reviewing account activity.
+              Workspace settings, billing, diagnostics, and support live here so the main nav can stay focused on product creation.
             </p>
           </div>
           <div className="divide-y divide-line">
             <ActionRow
-              icon={ShoppingBag}
+              icon={Settings}
               title="Shopify connection"
               detail="Connect or replace the Shopify store used for product publishing."
               href="/settings/shopify"
               label="Open Shopify"
+            />
+            <ActionRow
+              icon={CreditCard}
+              title="Billing and credits"
+              detail="Review credit balance and manage paid credit packs when billing is enabled."
+              href="/billing"
+              label="Open billing"
             />
             <ActionRow
               icon={History}
@@ -113,6 +125,22 @@ export default async function AccountPage() {
               href="/usage"
               label="Open exports"
             />
+            <ActionRow
+              icon={Rocket}
+              title="Launch readiness"
+              detail="Check environment variables, database schema, storage, Shopify OAuth, and billing readiness."
+              href="/launch"
+              label="Open launch"
+            />
+            {isAdmin ? (
+              <ActionRow
+                icon={Database}
+                title="Admin QA dashboard"
+                detail="Review cross-workspace users, stores, failed jobs, credits, and publish health."
+                href="/admin"
+                label="Open admin"
+              />
+            ) : null}
             <ActionRow
               icon={Mail}
               title="Support"

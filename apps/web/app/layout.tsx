@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/auth";
-import { getCreditAccount, isAdminEmail } from "@/lib/credits";
+import { getCreditAccount } from "@/lib/credits";
 import { siteConfig } from "@/lib/site";
 import { AceStudioMark } from "@/components/shell/AceStudioMark";
 import { AppNavigation } from "@/components/shell/AppNavigation";
@@ -20,7 +20,6 @@ export default async function RootLayout({
   const user = await getCurrentUser();
   const credits = user ? await getCreditAccount() : null;
   const creditsLabel = credits?.isUnlimited ? "Unlimited" : String(credits?.balance ?? 0);
-  const isAdmin = isAdminEmail(user?.email);
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -41,7 +40,7 @@ export default async function RootLayout({
               </Link>
               <div className="flex min-w-0 items-center gap-1">
                 {user ? (
-                  <AppNavigation creditsLabel={creditsLabel} userEmail={user.email} isAdmin={isAdmin} />
+                  <AppNavigation creditsLabel={creditsLabel} userEmail={user.email} />
                 ) : (
                   <Link
                     href="/login"

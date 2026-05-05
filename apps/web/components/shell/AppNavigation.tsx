@@ -5,14 +5,9 @@ import { usePathname } from "next/navigation";
 import {
   Boxes,
   Coins,
-  CreditCard,
-  History,
   Images,
   LayoutDashboard,
   LogOut,
-  Rocket,
-  Settings,
-  ShieldCheck,
   UserRound
 } from "lucide-react";
 
@@ -20,14 +15,8 @@ const navItems = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/products", label: "Products", icon: Boxes },
   { href: "/products/new", label: "Upload", icon: Images },
-  { href: "/usage", label: "Usage", icon: History },
-  { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/settings/shopify", label: "Shopify", icon: Settings },
-  { href: "/account", label: "Account", icon: UserRound },
-  { href: "/launch", label: "Launch", icon: Rocket }
+  { href: "/account", label: "Account", icon: UserRound }
 ];
-
-const adminNavItem = { href: "/admin", label: "Admin", icon: ShieldCheck };
 
 function isActivePath(pathname: string, href: string) {
   if (href === "/products") {
@@ -43,15 +32,12 @@ function isActivePath(pathname: string, href: string) {
 
 export function AppNavigation({
   creditsLabel,
-  userEmail,
-  isAdmin = false
+  userEmail
 }: {
   creditsLabel: string;
   userEmail?: string | null;
-  isAdmin?: boolean;
 }) {
   const pathname = usePathname();
-  const visibleNavItems = isAdmin ? [...navItems, adminNavItem] : navItems;
 
   return (
     <div className="flex min-w-0 items-center gap-2">
@@ -59,7 +45,7 @@ export function AppNavigation({
         aria-label="Workspace"
         className="-mx-2 flex max-w-[calc(100vw-172px)] items-center gap-1 overflow-x-auto px-2 lg:max-w-none"
       >
-        {visibleNavItems.map((item) => {
+        {navItems.map((item) => {
           const Icon = item.icon;
           const active = isActivePath(pathname, item.href);
           return (
