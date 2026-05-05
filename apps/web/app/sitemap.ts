@@ -30,6 +30,11 @@ const publicRoutes = [
     priority: 0.3
   },
   {
+    path: seoPages.shopifyAiProductListingGenerator.path,
+    changeFrequency: "monthly",
+    priority: 0.9
+  },
+  {
     path: seoPages.shopifyProductImageGenerator.path,
     changeFrequency: "monthly",
     priority: 0.8

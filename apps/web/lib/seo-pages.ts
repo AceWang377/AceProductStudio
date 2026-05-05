@@ -2,11 +2,54 @@ import type { Metadata } from "next";
 import { siteConfig } from "@/lib/site";
 
 export type SeoPageKey =
+  | "shopifyAiProductListingGenerator"
   | "shopifyProductImageGenerator"
   | "shopifySeoProductDescriptionGenerator"
   | "aiShopifyDraftPublisher";
 
 export const seoPages = {
+  shopifyAiProductListingGenerator: {
+    path: "/shopify-ai-product-listing-generator",
+    eyebrow: "Shopify AI product listing generator",
+    title: "Shopify AI product listing generator for draft-ready products",
+    description:
+      "AceStudio helps Shopify merchants turn one product photo into generated product images, SEO copy, price and inventory fields, and a reviewable Shopify draft.",
+    primaryCta: "Generate a Shopify product listing",
+    benefits: [
+      "Create listing media, SEO copy, price, SKU, and inventory in one product workflow.",
+      "Generate at least four publish-ready product images from one original photo.",
+      "Review product title, description, tags, FAQ, price, and inventory before Shopify publishing.",
+      "Publish as a Shopify draft by default with job history, retry logs, and Admin links."
+    ],
+    sections: [
+      {
+        title: "One workflow for the full Shopify listing",
+        body: "Many Shopify tools solve only one piece of product creation. AceStudio keeps the generated media, SEO product copy, commerce fields, and draft publishing step together so merchants can review the complete listing before it reaches Shopify."
+      },
+      {
+        title: "Built around merchant review",
+        body: "The app is designed for draft-first publishing. Users can inspect image order, generated copy, pricing, SKU, inventory, and Shopify connection status before creating a draft product."
+      },
+      {
+        title: "Ready for credit-based generation",
+        body: "The product workflow already tracks credit balances, usage history, and generation jobs. This makes the listing generator suitable for a future paid credit model without changing the core user journey."
+      }
+    ],
+    faq: [
+      {
+        question: "What does a Shopify AI product listing generator create?",
+        answer: "It can generate product images, SEO product title, description, bullet points, tags, FAQ content, and draft-ready product details from an uploaded product photo."
+      },
+      {
+        question: "Does AceStudio publish directly to Shopify?",
+        answer: "AceStudio is designed to publish as a Shopify draft by default, so merchants can review the product in Shopify Admin before going live."
+      },
+      {
+        question: "Can different users connect different Shopify stores?",
+        answer: "Yes. The product supports Shopify OAuth so each user workspace can connect its own store and publish drafts to the correct Shopify Admin."
+      }
+    ]
+  },
   shopifyProductImageGenerator: {
     path: "/shopify-product-image-generator",
     eyebrow: "AI product image generator for Shopify",

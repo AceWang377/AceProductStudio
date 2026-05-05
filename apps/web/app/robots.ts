@@ -15,6 +15,7 @@ export default function robots(): MetadataRoute.Robots {
           "/terms",
           "/refund",
           "/opengraph-image",
+          seoPages.shopifyAiProductListingGenerator.path,
           seoPages.shopifyProductImageGenerator.path,
           seoPages.shopifySeoProductDescriptionGenerator.path,
           seoPages.aiShopifyDraftPublisher.path,
