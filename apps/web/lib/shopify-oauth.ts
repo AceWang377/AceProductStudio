@@ -54,8 +54,23 @@ export function isValidShopDomain(shop: string) {
 
 export function getAppBaseUrl(request: Request) {
   const explicit = process.env.APP_PUBLIC_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (explicit) return explicit.replace(/\/$/, "");
-  return new URL(request.url).origin;
+  const requestOrigin = new URL(request.url).origin;
+  if (!explicit) return requestOrigin;
+
+  try {
+    const explicitUrl = new URL(explicit);
+    const requestUrl = new URL(request.url);
+    const requestHost = requestUrl.hostname.replace(/^www\./, "");
+    const explicitHost = explicitUrl.hostname.replace(/^www\./, "");
+
+    if (requestHost === explicitHost && requestUrl.protocol === "https:") {
+      return requestOrigin.replace(/\/$/, "");
+    }
+
+    return explicitUrl.origin.replace(/\/$/, "");
+  } catch {
+    return requestOrigin.replace(/\/$/, "");
+  }
 }
 
 export function verifyShopifyHmac(searchParams: URLSearchParams, clientSecret: string) {
