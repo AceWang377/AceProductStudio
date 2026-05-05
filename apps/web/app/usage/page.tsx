@@ -6,11 +6,14 @@ import {
   CircleAlert,
   Coins,
   Download,
+  ExternalLink,
   History,
-  Loader2
+  Loader2,
+  ShieldCheck
 } from "lucide-react";
 import { getCreditAccount, listCreditLedger } from "@/lib/credits";
 import { requireCurrentUser } from "@/lib/auth";
+import { getLatestShopifyPublish } from "@/lib/shopify-publish-history";
 import { listProducts } from "@/lib/store";
 import type { GenerationJob } from "@/lib/types";
 
@@ -38,6 +41,12 @@ function getJobIcon(status: GenerationJob["status"]) {
   return Loader2;
 }
 
+function getRetryTab(type: GenerationJob["type"]) {
+  if (type === "IMAGE_GENERATION") return "media";
+  if (type === "COPY_GENERATION") return "copy";
+  return "publish";
+}
+
 export default async function UsagePage() {
   await requireCurrentUser();
   const [credits, ledger, products] = await Promise.all([
@@ -58,6 +67,12 @@ export default async function UsagePage() {
   const failedJobs = jobs.filter((job) => job.status === "FAILED");
   const activeJobs = jobs.filter((job) => job.status === "QUEUED" || job.status === "PROCESSING");
   const completedJobs = jobs.filter((job) => job.status === "COMPLETED");
+  const publishedDrafts = products
+    .flatMap((product) => {
+      const publish = getLatestShopifyPublish(product);
+      return publish ? [{ product, publish }] : [];
+    })
+    .sort((left, right) => right.publish.publishedAt.localeCompare(left.publish.publishedAt));
   const spent = ledger
     .filter((entry) => entry.amount < 0)
     .reduce((total, entry) => total + Math.abs(entry.amount), 0);
@@ -97,7 +112,7 @@ export default async function UsagePage() {
         </div>
       </div>
 
-      <section className="grid gap-3 md:grid-cols-4">
+      <section className="grid gap-3 md:grid-cols-5">
         <Metric
           icon={Coins}
           label="Current credits"
@@ -106,6 +121,7 @@ export default async function UsagePage() {
         <Metric icon={Activity} label="Credits used" value={credits.isUnlimited ? "Admin" : spent} />
         <Metric icon={CircleAlert} label="Failed jobs" value={failedJobs.length} />
         <Metric icon={History} label="Completed jobs" value={completedJobs.length} />
+        <Metric icon={ShieldCheck} label="Shopify drafts" value={publishedDrafts.length} />
       </section>
 
       {credits.isUnlimited ? (
@@ -113,6 +129,69 @@ export default async function UsagePage() {
           Admin access is enabled for this account, so image generation does not deduct credits.
         </div>
       ) : null}
+
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="border border-line bg-white p-5">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <h2 className="text-lg font-semibold">Error monitoring summary</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Failed image, copy, and Shopify jobs are saved here with retry links and exportable logs.
+              </p>
+            </div>
+            <span
+              className={`inline-flex h-9 items-center rounded px-3 text-sm font-semibold ${
+                failedJobs.length
+                  ? "bg-amber-50 text-amber-800 ring-1 ring-amber-200"
+                  : "bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200"
+              }`}
+            >
+              {failedJobs.length ? "Needs review" : "Healthy"}
+            </span>
+          </div>
+          <div className="mt-4 grid gap-3 text-sm sm:grid-cols-3">
+            <StatusTile label="Active jobs" value={activeJobs.length} />
+            <StatusTile label="Failed jobs" value={failedJobs.length} />
+            <StatusTile label="Last failure" value={failedJobs[0] ? formatDate(failedJobs[0].updatedAt) : "None"} />
+          </div>
+          <p className="mt-4 text-xs leading-5 text-muted">
+            Sentry or Vercel Observability can be connected later for server exceptions. The product workflow already records user-visible generation and publish failures.
+          </p>
+        </div>
+
+        <div className="border border-line bg-white p-5">
+          <h2 className="text-lg font-semibold">Published Shopify drafts</h2>
+          <p className="mt-1 text-sm leading-6 text-muted">
+            The newest successful Shopify draft links are kept here for quick review.
+          </p>
+          <div className="mt-4 space-y-3">
+            {publishedDrafts.slice(0, 3).map(({ product, publish }) => (
+              <a
+                key={product.id}
+                href={publish.adminUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="studio-focus flex items-center justify-between gap-3 border border-line p-3 text-sm hover:bg-canvas"
+              >
+                <span className="min-w-0">
+                  <span className="block truncate font-semibold">
+                    {product.title || product.name || "Untitled product"}
+                  </span>
+                  <span className="mt-1 block text-xs text-muted">
+                    {formatDate(publish.publishedAt)} · {publish.uploadedImageCount} images
+                  </span>
+                </span>
+                <ExternalLink className="h-4 w-4 shrink-0 text-action" aria-hidden />
+              </a>
+            ))}
+            {publishedDrafts.length === 0 ? (
+              <p className="text-sm text-muted">
+                Successful Shopify drafts will appear after the first publish.
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </section>
 
       <section className="border border-line bg-white">
         <div className="border-b border-line p-5">
@@ -155,10 +234,10 @@ export default async function UsagePage() {
                   </p>
                 </div>
                 <Link
-                  href={`/products/${job.productId}`}
+                  href={`/products/${job.productId}?tab=${getRetryTab(job.type)}`}
                   className="studio-focus inline-flex h-10 items-center justify-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold hover:bg-canvas"
                 >
-                  Open product
+                  Open retry tab
                   <ArrowUpRight className="h-4 w-4" aria-hidden />
                 </Link>
               </div>
@@ -271,6 +350,15 @@ function Metric({
       <Icon className="h-5 w-5 text-action" aria-hidden />
       <p className="mt-4 text-2xl font-semibold">{value}</p>
       <p className="text-sm text-muted">{label}</p>
+    </div>
+  );
+}
+
+function StatusTile({ label, value }: { label: string; value: string | number }) {
+  return (
+    <div className="border border-line bg-canvas p-3">
+      <p className="text-lg font-semibold">{value}</p>
+      <p className="mt-1 text-xs text-muted">{label}</p>
     </div>
   );
 }

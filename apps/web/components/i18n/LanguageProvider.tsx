@@ -335,7 +335,71 @@ const phrasePairs = [
   ["Persistent storage", "持久化存储"],
   ["Upload one product and publish the first draft.", "上传一个商品并发布第一个草稿。"],
   ["Lifestyle first", "场景图优先"],
-  ["White background last", "白底图最后"]
+  ["White background last", "白底图最后"],
+  ["Before and after", "前后对比"],
+  ["Turn a raw product photo into a Shopify draft your team can inspect.", "把一张原始商品图变成团队可检查的 Shopify 草稿。"],
+  [
+    "Merchants do not need another image generator tab. AceStudio keeps the media, copy, pricing, inventory, and publish history together so every listing has a clear review path.",
+    "商家不需要再多开一个图片生成工具。AceStudio 会把图片、文案、价格、库存和发布历史放在一起，让每个商品都有清晰的审核路径。"
+  ],
+  ["Before", "之前"],
+  ["After", "之后"],
+  ["Manual product setup", "手动商品配置"],
+  ["AceStudio workflow", "AceStudio 工作流"],
+  ["Separate image tools", "分散的图片工具"],
+  ["Copy pasted into Shopify", "手动复制文案到 Shopify"],
+  ["No publish retry history", "没有发布重试历史"],
+  ["4+ ordered generated images", "4 张以上有顺序的生成图"],
+  ["SEO copy, price, and inventory in one review", "SEO 文案、价格和库存统一检查"],
+  ["Draft-first Shopify publish with logs", "默认草稿发布并保留日志"],
+  ["Pricing built for credits", "为积分体系准备的价格结构"],
+  [
+    "Payment can be switched on later without redesigning the app. Admin accounts can run freely now, while normal users already see credit balances and usage history.",
+    "后续可以接入支付而不用重新设计应用。管理员账号现在可无限使用，普通用户已经能看到积分余额和使用历史。"
+  ],
+  ["Trial", "试用"],
+  ["Free starter credits for the first product workflow.", "第一个商品流程可赠送初始试用积分。"],
+  ["Pay as you go", "按需购买"],
+  ["Credit packs for image generation when Stripe is enabled.", "启用 Stripe 后可购买图片生成积分包。"],
+  ["Monthly", "月度套餐"],
+  ["Included credits and history for repeat merchants.", "为长期商家提供月度积分和历史记录。"],
+  ["Privacy promise", "隐私承诺"],
+  [
+    "Store access is OAuth-based, publishing defaults to draft, and sensitive Shopify tokens are handled server-side.",
+    "店铺访问基于 OAuth，发布默认创建草稿，敏感 Shopify token 由服务端处理。"
+  ],
+  ["FAQ", "常见问题"],
+  ["Does it publish live by default?", "默认会直接上线发布吗？"],
+  ["No. The safe path creates a Shopify draft first, with live publishing behind a separate confirmation.", "不会。安全流程会先创建 Shopify 草稿，正式上线发布需要单独确认。"],
+  ["Can each user connect their own store?", "每个用户都可以连接自己的店铺吗？"],
+  ["Yes. Shopify OAuth saves the connected store for that user workspace, so they do not need to paste admin tokens.", "可以。Shopify OAuth 会为该用户工作区保存连接的店铺，无需粘贴后台 token。"],
+  ["What happens when generation fails?", "生成失败时会怎样？"],
+  ["The failed job is saved with the error, retry path, product link, and CSV export for support.", "失败任务会保存错误、重试入口、商品链接，并支持导出 CSV 供排查。"],
+  ["Error monitoring summary", "错误监控摘要"],
+  ["Failed image, copy, and Shopify jobs are saved here with retry links and exportable logs.", "失败的图片、文案和 Shopify 任务会保存在这里，并提供重试链接和可导出的日志。"],
+  ["Needs review", "需要检查"],
+  ["Healthy", "状态正常"],
+  ["Active jobs", "进行中任务"],
+  ["Last failure", "最近失败"],
+  ["None", "无"],
+  [
+    "Sentry or Vercel Observability can be connected later for server exceptions. The product workflow already records user-visible generation and publish failures.",
+    "之后可以接入 Sentry 或 Vercel Observability 捕获服务端异常。目前商品流程已经记录用户可见的生成和发布失败。"
+  ],
+  ["Published Shopify drafts", "已发布的 Shopify 草稿"],
+  ["The newest successful Shopify draft links are kept here for quick review.", "最新成功创建的 Shopify 草稿链接会保存在这里，方便快速查看。"],
+  ["Successful Shopify drafts will appear after the first publish.", "首次发布成功后，Shopify 草稿会显示在这里。"],
+  ["Shopify drafts", "Shopify 草稿"],
+  ["Open retry tab", "打开重试页面"],
+  ["Your first Shopify draft is ready.", "你的第一个 Shopify 草稿已准备好。"],
+  ["Your first Shopify draft is ready", "你的第一个 Shopify 草稿已准备好"],
+  ["Your Shopify product is live", "你的 Shopify 商品已上线"],
+  [
+    "Open Shopify Admin to review media order, SEO copy, price, inventory, and sales channel settings before your next product.",
+    "打开 Shopify 后台检查图片顺序、SEO 文案、价格、库存和销售渠道设置，然后继续创建下一个商品。"
+  ],
+  ["Open Shopify draft", "打开 Shopify 草稿"],
+  ["Create next product", "创建下一个商品"]
 ] as const;
 
 const zhPhraseMap = new Map<string, string>(phrasePairs);

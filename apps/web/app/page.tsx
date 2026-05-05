@@ -7,9 +7,11 @@ import {
   CheckCircle2,
   Coins,
   FileText,
+  HelpCircle,
   ImagePlus,
   ListChecks,
   LockKeyhole,
+  MousePointerClick,
   Send,
   ShieldCheck,
   Sparkles,
@@ -131,6 +133,39 @@ export default async function HomePage({
         </div>
       </section>
 
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center">
+        <div>
+          <p className="text-sm font-medium text-action">Before and after</p>
+          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
+            Turn a raw product photo into a Shopify draft your team can inspect.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            Merchants do not need another image generator tab. AceStudio keeps the media, copy, pricing, inventory, and publish history together so every listing has a clear review path.
+          </p>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <BeforeAfterPanel
+            label="Before"
+            title="Manual product setup"
+            points={[
+              "Separate image tools",
+              "Copy pasted into Shopify",
+              "No publish retry history"
+            ]}
+          />
+          <BeforeAfterPanel
+            label="After"
+            title="AceStudio workflow"
+            points={[
+              "4+ ordered generated images",
+              "SEO copy, price, and inventory in one review",
+              "Draft-first Shopify publish with logs"
+            ]}
+            highlighted
+          />
+        </div>
+      </section>
+
       <section className="grid gap-4 md:grid-cols-3">
         <LandingFeature
           icon={Store}
@@ -147,6 +182,51 @@ export default async function HomePage({
           title="Designed for production"
           detail="Products, jobs, stores, generated images, credits, and usage history already use persistent Supabase-backed storage."
         />
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.45fr)]">
+        <div className="border border-line bg-white p-6 sm:p-8">
+          <div className="flex items-center gap-2">
+            <Coins className="h-5 w-5 text-action" aria-hidden />
+            <h2 className="text-2xl font-semibold">Pricing built for credits</h2>
+          </div>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            Payment can be switched on later without redesigning the app. Admin accounts can run freely now, while normal users already see credit balances and usage history.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <PricingPoint title="Trial" detail="Free starter credits for the first product workflow." />
+            <PricingPoint title="Pay as you go" detail="Credit packs for image generation when Stripe is enabled." />
+            <PricingPoint title="Monthly" detail="Included credits and history for repeat merchants." />
+          </div>
+        </div>
+        <div className="border border-line bg-[#f4f7f4] p-6">
+          <ShieldCheck className="h-6 w-6 text-action" aria-hidden />
+          <h2 className="mt-4 text-xl font-semibold">Privacy promise</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Store access is OAuth-based, publishing defaults to draft, and sensitive Shopify tokens are handled server-side.
+          </p>
+        </div>
+      </section>
+
+      <section className="border-y border-line py-10">
+        <div className="mb-6 flex items-center gap-2">
+          <HelpCircle className="h-5 w-5 text-action" aria-hidden />
+          <h2 className="text-2xl font-semibold">FAQ</h2>
+        </div>
+        <div className="grid gap-4 md:grid-cols-3">
+          <FaqItem
+            question="Does it publish live by default?"
+            answer="No. The safe path creates a Shopify draft first, with live publishing behind a separate confirmation."
+          />
+          <FaqItem
+            question="Can each user connect their own store?"
+            answer="Yes. Shopify OAuth saves the connected store for that user workspace, so they do not need to paste admin tokens."
+          />
+          <FaqItem
+            question="What happens when generation fails?"
+            answer="The failed job is saved with the error, retry path, product link, and CSV export for support."
+          />
+        </div>
       </section>
 
       <section className="border border-line bg-white p-6 sm:p-8">
@@ -232,6 +312,33 @@ function ProductStudioPreview() {
           <PreviewPill label="Inventory set" />
         </div>
       </div>
+    </div>
+  );
+}
+
+function BeforeAfterPanel({
+  label,
+  title,
+  points,
+  highlighted = false
+}: {
+  label: string;
+  title: string;
+  points: string[];
+  highlighted?: boolean;
+}) {
+  return (
+    <div className={`border p-5 ${highlighted ? "border-action bg-emerald-50" : "border-line bg-white"}`}>
+      <p className="text-xs font-semibold uppercase text-muted">{label}</p>
+      <h3 className="mt-2 text-lg font-semibold">{title}</h3>
+      <ul className="mt-4 space-y-3 text-sm text-muted">
+        {points.map((point) => (
+          <li key={point} className="flex gap-2">
+            <MousePointerClick className="mt-0.5 h-4 w-4 shrink-0 text-action" aria-hidden />
+            <span>{point}</span>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
@@ -331,6 +438,24 @@ function LandingFeature({
       <Icon className="h-5 w-5 text-action" aria-hidden />
       <h2 className="mt-4 text-lg font-semibold">{title}</h2>
       <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+    </div>
+  );
+}
+
+function PricingPoint({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="border border-line bg-canvas p-4">
+      <h3 className="text-base font-semibold">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+    </div>
+  );
+}
+
+function FaqItem({ question, answer }: { question: string; answer: string }) {
+  return (
+    <div className="border border-line bg-white p-5">
+      <h3 className="text-base font-semibold">{question}</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{answer}</p>
     </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
@@ -80,6 +81,9 @@ export function ProductWorkspace({
   const latestShopifyPublish = useMemo(() => getLatestShopifyPublish(product), [product]);
   const shopifyPublishEvents = useMemo(() => getShopifyPublishEvents(product), [product]);
   const displayedShopifyAdminUrl = shopifyAdminUrl || latestShopifyPublish?.adminUrl || "";
+  const hasShopifySuccess = Boolean(
+    displayedShopifyAdminUrl && ["PUBLISHED_AS_DRAFT", "PUBLISHED_LIVE"].includes(product.shopifyStatus)
+  );
   const readiness = useMemo(
     () =>
       getProductReadiness({
@@ -281,7 +285,7 @@ export function ProductWorkspace({
           ? "Shopify product created. Some images were skipped."
           : publishMode === "ACTIVE"
             ? "Shopify product published live."
-            : "Shopify draft created."
+            : "Your first Shopify draft is ready."
       );
       setMessageTone("success");
     } else {
@@ -419,6 +423,13 @@ export function ProductWorkspace({
             tone={messageTone}
             message={message}
             shopifyAdminUrl={displayedShopifyAdminUrl}
+          />
+        ) : null}
+
+        {hasShopifySuccess ? (
+          <ShopifySuccessCallout
+            adminUrl={displayedShopifyAdminUrl}
+            isLive={product.shopifyStatus === "PUBLISHED_LIVE"}
           />
         ) : null}
 
@@ -863,6 +874,43 @@ function WorkflowFeedback({
           <ExternalLink className="h-4 w-4" aria-hidden />
         </a>
       ) : null}
+    </div>
+  );
+}
+
+function ShopifySuccessCallout({ adminUrl, isLive }: { adminUrl: string; isLive: boolean }) {
+  return (
+    <div className="border border-emerald-200 bg-emerald-50 p-4 sm:p-5">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 gap-3">
+          <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-emerald-700" aria-hidden />
+          <div>
+            <h2 className="text-base font-semibold text-emerald-950">
+              {isLive ? "Your Shopify product is live" : "Your first Shopify draft is ready"}
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-emerald-900">
+              Open Shopify Admin to review media order, SEO copy, price, inventory, and sales channel settings before your next product.
+            </p>
+          </div>
+        </div>
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <a
+            href={adminUrl}
+            target="_blank"
+            rel="noreferrer"
+            className="studio-focus inline-flex h-10 items-center justify-center gap-2 rounded bg-action px-3 text-sm font-semibold text-white"
+          >
+            Open Shopify draft
+            <ExternalLink className="h-4 w-4" aria-hidden />
+          </a>
+          <Link
+            href="/products/new"
+            className="studio-focus inline-flex h-10 items-center justify-center rounded border border-emerald-300 bg-white px-3 text-sm font-semibold text-emerald-950 hover:bg-emerald-100"
+          >
+            Create next product
+          </Link>
+        </div>
+      </div>
     </div>
   );
 }
