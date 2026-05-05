@@ -102,16 +102,16 @@ export default async function DashboardPage() {
         </div>
       </section>
 
+      <OnboardingChecklist
+        products={products}
+        shopifyConnection={state.shopifyConnection}
+      />
+
       <DashboardNextAction
         action={nextAction}
         readyForShopify={readyForShopify}
         published={published}
         total={products.length}
-      />
-
-      <OnboardingChecklist
-        products={products}
-        shopifyConnection={state.shopifyConnection}
       />
 
       <section className="grid gap-7 lg:grid-cols-[minmax(0,1fr)_380px]">
