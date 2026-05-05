@@ -23,6 +23,17 @@ npm run dev
 
 Open `http://localhost:3000`.
 
+Before shipping a change, run:
+
+```bash
+npm run lint
+npm run build
+```
+
+The production health endpoint is available at `/api/health`. It returns `200`
+only when required launch checks are ready; otherwise it returns `503` with a
+summary count of missing settings.
+
 ## Production environment
 
 Set these in Vercel before inviting real users:

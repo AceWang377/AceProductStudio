@@ -6,11 +6,9 @@ import type { ShopifyConnection } from "@/lib/types";
 
 function redactConnection(connection?: ShopifyConnection) {
   if (!connection) return null;
-  const {
-    adminAccessToken: _adminAccessToken,
-    clientSecret: _clientSecret,
-    ...safeConnection
-  } = connection;
+  const safeConnection = { ...connection };
+  delete safeConnection.adminAccessToken;
+  delete safeConnection.clientSecret;
   return safeConnection;
 }
 

@@ -2,6 +2,14 @@ import path from "node:path";
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com"
+      }
+    ]
+  },
   outputFileTracingRoot: path.join(process.cwd(), "../.."),
   transpilePackages: [
     "@ai-product-studio/ai",

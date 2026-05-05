@@ -156,7 +156,8 @@ async function retryStoreMutationWithoutMissingColumns<T extends Record<string, 
     const missingColumn = getMissingStoreColumn(result.error);
     if (!missingColumn || removedColumns.has(missingColumn) || !(missingColumn in nextPayload)) break;
     removedColumns.add(missingColumn);
-    const { [missingColumn]: _removed, ...rest } = nextPayload;
+    const rest = { ...nextPayload };
+    delete rest[missingColumn];
     nextPayload = rest as Partial<T>;
     result = await mutate(nextPayload);
   }
@@ -1016,8 +1017,8 @@ export async function completeImageGeneration(productId: string, styles: string[
     if (style === "product_intro") return "PRODUCT_INTRO" as const;
     return "LIFESTYLE" as const;
   };
-  const generated = styles.flatMap((style, styleIndex) =>
-    Array.from({ length: 1 }).map((_, index) => ({
+  const generated = styles.flatMap((style) =>
+    Array.from({ length: count }, () => ({
       type: typeForStyle(style),
       url: product.originalImageUrl,
       storageKey: undefined,

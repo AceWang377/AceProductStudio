@@ -14,11 +14,9 @@ export const dynamic = "force-dynamic";
 
 function redactConnection(connection?: ShopifyConnection) {
   if (!connection) return undefined;
-  const {
-    adminAccessToken: _adminAccessToken,
-    clientSecret: _clientSecret,
-    ...safeConnection
-  } = connection;
+  const safeConnection = { ...connection };
+  delete safeConnection.adminAccessToken;
+  delete safeConnection.clientSecret;
   return safeConnection;
 }
 

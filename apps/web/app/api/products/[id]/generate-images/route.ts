@@ -22,7 +22,6 @@ import { enforceRateLimit, rateLimitHeaders } from "@/lib/rate-limit";
 
 type ImagePrompt = {
   style: string;
-  index: number;
   type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
   prompt: string;
 };
@@ -82,9 +81,8 @@ export async function POST(
             ? `Create a product introduction image for a Shopify product page hero section for ${product.name || "this product"}. Use the uploaded product as the accurate source. Show the product clearly with a polished ecommerce layout, short intro-style headline space, premium lighting, and room for product-page copy. Keep the product accurate and do not invent specifications. ${imageBrief}`
             : `Create a realistic ecommerce lifestyle product photo using the uploaded product. Keep the product accurate and recognizable. Place it in a ${String(style).replaceAll("_", " ")} environment with natural lighting. Do not change the product design. ${imageBrief}`;
 
-    return Array.from({ length: 1 }).map((_, index) => ({
+    return Array.from({ length: count }, () => ({
       style,
-      index,
       type,
       prompt
     }));
@@ -237,7 +235,7 @@ async function processImageGenerationJob({
     error: null
   });
 
-  let generatedImages: Array<{
+  const generatedImages: Array<{
     type: "WHITE_BACKGROUND" | "LIFESTYLE" | "PRODUCT_DETAIL" | "PRODUCT_INTRO";
     url: string;
     storageKey?: string;

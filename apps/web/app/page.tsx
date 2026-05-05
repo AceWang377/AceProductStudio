@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { redirect } from "next/navigation";
 import {
   ArrowRight,
@@ -238,10 +239,12 @@ function ProductStudioPreview() {
 function ProductImage({ label, src }: { label: string; src: string }) {
   return (
     <div className="relative min-h-32 overflow-hidden border border-line bg-white">
-      <img
+      <Image
         src={src}
         alt=""
-        className="h-full min-h-32 w-full object-cover"
+        fill
+        sizes="(min-width: 1024px) 250px, (min-width: 640px) 45vw, 50vw"
+        className="object-cover"
         loading="lazy"
       />
       <span className="absolute left-2 top-2 rounded bg-white/95 px-2 py-1 text-xs font-semibold">
