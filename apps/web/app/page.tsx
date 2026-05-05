@@ -11,9 +11,10 @@ import {
   FileText,
   HelpCircle,
   ImagePlus,
+  Layers3,
   ListChecks,
   LockKeyhole,
-  MousePointerClick,
+  SearchCheck,
   Send,
   ShieldCheck,
   Sparkles,
@@ -75,6 +76,9 @@ export default async function HomePage({
             <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[1.03] sm:text-6xl">
               {siteConfig.name}
             </h1>
+            <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight text-[#21372f] sm:text-4xl">
+              AI Shopify product listings, reviewed before they publish.
+            </h2>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-[#4f5f58]">
               Generate product media, SEO copy, price-ready listing details, and a reviewable Shopify draft from one product photo.
             </p>
@@ -103,6 +107,24 @@ export default async function HomePage({
 
           <ProductStudioPreview />
         </div>
+      </section>
+
+      <section className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
+        <div>
+          <p className="text-sm font-medium text-action">Product screenshot</p>
+          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
+            See the full listing before Shopify receives it.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            AceStudio turns each generated product into a review surface: media order, SEO copy, commerce fields, publish status, and Shopify draft links stay visible before the merchant takes the next step.
+          </p>
+          <div className="mt-6 grid gap-3 sm:grid-cols-3">
+            <ProofPoint value="4+" label="generated images" />
+            <ProofPoint value="1" label="draft-first publish flow" />
+            <ProofPoint value="0" label="manual token paste for OAuth users" />
+          </div>
+        </div>
+        <ProductReviewSurface />
       </section>
 
       <section className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
@@ -155,33 +177,13 @@ export default async function HomePage({
         <div>
           <p className="text-sm font-medium text-action">Before and after</p>
           <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-            Turn a raw product photo into a Shopify draft your team can inspect.
+            Replace scattered product setup with one reviewable workflow.
           </h2>
           <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
             Merchants do not need another image generator tab. AceStudio keeps the media, copy, pricing, inventory, and publish history together so every listing has a clear review path.
           </p>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <BeforeAfterPanel
-            label="Before"
-            title="Manual product setup"
-            points={[
-              "Separate image tools",
-              "Copy pasted into Shopify",
-              "No publish retry history"
-            ]}
-          />
-          <BeforeAfterPanel
-            label="After"
-            title="AceStudio workflow"
-            points={[
-              "4+ ordered generated images",
-              "SEO copy, price, and inventory in one review",
-              "Draft-first Shopify publish with logs"
-            ]}
-            highlighted
-          />
-        </div>
+        <ComparisonMatrix />
       </section>
 
       <section className="grid gap-4 md:grid-cols-3">
@@ -221,7 +223,7 @@ export default async function HomePage({
             <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
         </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
+        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {seoResourceList.map((article) => (
             <ResourceCard
               key={article.slug}
@@ -276,22 +278,47 @@ export default async function HomePage({
             question="What happens when generation fails?"
             answer="The failed job is saved with the error, retry path, product link, and CSV export for support."
           />
+          <FaqItem
+            question="What does one credit pay for?"
+            answer="Credits are designed around usage events such as image generation and future paid workflows. Stripe can be enabled later without changing the listing workflow."
+          />
+          <FaqItem
+            question="Can merchants edit the generated listing?"
+            answer="Yes. Copy, media review, price, SKU, and inventory fields stay editable before the product is sent to Shopify as a draft."
+          />
+          <FaqItem
+            question="Is this only for one Shopify store?"
+            answer="No. The app is built around per-user Shopify OAuth connections, so different users can connect different stores."
+          />
         </div>
       </section>
 
-      <section className="border border-line bg-white p-6 sm:p-8">
-        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] w-screen border-y border-line bg-[#16251f] text-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm font-medium text-action">Ready to try the flow?</p>
-            <h2 className="mt-2 text-2xl font-semibold">Upload one product and publish the first draft.</h2>
+            <p className="text-sm font-medium text-[#98d7c3]">Ready to try the flow?</p>
+            <h2 className="mt-2 max-w-2xl text-3xl font-semibold leading-tight">
+              Upload one product photo and build the first Shopify draft.
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#c7d7d0]">
+              Start with draft publishing, then add paid credits when Stripe is ready.
+            </p>
           </div>
-          <Link
-            href="/login"
-            className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
-          >
-            Open studio
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+          <div className="flex flex-wrap gap-3">
+            <Link
+              href="/login"
+              className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-white px-4 text-sm font-semibold text-[#16251f]"
+            >
+              Open studio
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <Link
+              href="/shopify-ai-product-listing-generator"
+              className="studio-focus inline-flex h-11 items-center justify-center rounded border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10"
+            >
+              View product workflow
+            </Link>
+          </div>
         </div>
       </section>
     </div>
@@ -360,10 +387,150 @@ function getHomeStructuredData() {
             "@type": "Answer",
             text: "AceStudio generates product media, Shopify SEO copy, tags, FAQ content, and draft-ready listing details from one product photo."
           }
+        },
+        {
+          "@type": "Question",
+          name: "Can merchants edit the generated listing?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "Yes. Copy, media review, price, SKU, and inventory fields stay editable before the product is sent to Shopify as a draft."
+          }
+        },
+        {
+          "@type": "Question",
+          name: "Is AceStudio only for one Shopify store?",
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: "No. The app is built around per-user Shopify OAuth connections, so different users can connect different stores."
+          }
         }
       ]
     }
   ];
+}
+
+function ProductReviewSurface() {
+  const reviewImages = [
+    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=600&q=80",
+    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80"
+  ] as const;
+  const checks = [
+    "Media order approved",
+    "SEO copy reviewed",
+    "Price and inventory set",
+    "Shopify draft link saved"
+  ];
+
+  return (
+    <div className="border border-line bg-white p-3 shadow-soft">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_260px]">
+        <div className="border border-line bg-canvas p-3">
+          <div className="flex items-center justify-between border-b border-line pb-3">
+            <div>
+              <p className="text-xs font-medium uppercase text-muted">Product review</p>
+              <h3 className="mt-1 text-lg font-semibold">Generated product set</h3>
+            </div>
+            <span className="rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800">
+              Draft safe
+            </span>
+          </div>
+          <div className="mt-3 grid gap-2 sm:grid-cols-4">
+            {["Lifestyle", "Detail", "Intro", "White BG"].map((label, index) => (
+              <div key={label} className="border border-line bg-white p-2">
+                <div className="relative aspect-square overflow-hidden bg-[#f2f5f2]">
+                  {index < 3 ? (
+                    <Image
+                      src={reviewImages[index]!}
+                      alt=""
+                      fill
+                      sizes="(min-width: 1024px) 150px, 45vw"
+                      className="object-cover"
+                    />
+                  ) : (
+                    <div className="grid h-full place-items-center">
+                      <div className="h-16 w-16 rounded-full border border-line bg-white shadow-soft" />
+                    </div>
+                  )}
+                </div>
+                <p className="mt-2 text-xs font-semibold">{label}</p>
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ReviewField label="SEO title" value="Premium product listing with Shopify-ready copy" />
+            <ReviewField label="Commerce" value="$49.00 · SKU ready · 25 in stock" />
+          </div>
+        </div>
+
+        <div className="border border-line bg-[#f4f7f4] p-4">
+          <div className="flex items-center gap-2">
+            <SearchCheck className="h-5 w-5 text-action" aria-hidden />
+            <h3 className="text-base font-semibold">Publish checklist</h3>
+          </div>
+          <ul className="mt-4 space-y-3">
+            {checks.map((check) => (
+              <li key={check} className="flex gap-2 text-sm text-muted">
+                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-action" aria-hidden />
+                <span>{check}</span>
+              </li>
+            ))}
+          </ul>
+          <div className="mt-5 border-t border-line pt-4">
+            <p className="text-xs font-medium uppercase text-muted">Next action</p>
+            <p className="mt-1 text-sm font-semibold">Create Shopify draft</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ReviewField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-line bg-white p-3">
+      <p className="text-xs font-medium uppercase text-muted">{label}</p>
+      <p className="mt-1 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function ProofPoint({ value, label }: { value: string; label: string }) {
+  return (
+    <div className="border-l border-line pl-3">
+      <p className="text-2xl font-semibold">{value}</p>
+      <p className="mt-1 text-xs leading-5 text-muted">{label}</p>
+    </div>
+  );
+}
+
+function ComparisonMatrix() {
+  const rows = [
+    ["Image workflow", "Separate tabs and downloads", "Labeled media set in one product"],
+    ["Listing copy", "Manual copy paste", "Editable SEO title, tags, FAQ, and description"],
+    ["Publish safety", "Easy to push live too early", "Draft-first Shopify publishing"],
+    ["Recovery", "Errors handled by screenshots", "Saved jobs, retry paths, and Shopify links"]
+  ];
+
+  return (
+    <div className="border border-line bg-white">
+      <div className="grid border-b border-line bg-canvas text-sm font-semibold sm:grid-cols-[160px_1fr_1fr]">
+        <div className="p-3">Area</div>
+        <div className="border-t border-line p-3 sm:border-l sm:border-t-0">Manual setup</div>
+        <div className="border-t border-line p-3 text-action sm:border-l sm:border-t-0">AceStudio</div>
+      </div>
+      {rows.map(([area, manual, studio]) => (
+        <div key={area} className="grid border-b border-line text-sm last:border-b-0 sm:grid-cols-[160px_1fr_1fr]">
+          <div className="flex items-center gap-2 p-3 font-semibold">
+            <Layers3 className="h-4 w-4 text-action" aria-hidden />
+            {area}
+          </div>
+          <div className="border-t border-line p-3 text-muted sm:border-l sm:border-t-0">{manual}</div>
+          <div className="border-t border-line bg-emerald-50 p-3 font-medium text-[#214238] sm:border-l sm:border-t-0">{studio}</div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 function ProductStudioPreview() {
@@ -430,33 +597,6 @@ function ProductStudioPreview() {
           <PreviewPill label="Inventory set" />
         </div>
       </div>
-    </div>
-  );
-}
-
-function BeforeAfterPanel({
-  label,
-  title,
-  points,
-  highlighted = false
-}: {
-  label: string;
-  title: string;
-  points: string[];
-  highlighted?: boolean;
-}) {
-  return (
-    <div className={`border p-5 ${highlighted ? "border-action bg-emerald-50" : "border-line bg-white"}`}>
-      <p className="text-xs font-semibold uppercase text-muted">{label}</p>
-      <h3 className="mt-2 text-lg font-semibold">{title}</h3>
-      <ul className="mt-4 space-y-3 text-sm text-muted">
-        {points.map((point) => (
-          <li key={point} className="flex gap-2">
-            <MousePointerClick className="mt-0.5 h-4 w-4 shrink-0 text-action" aria-hidden />
-            <span>{point}</span>
-          </li>
-        ))}
-      </ul>
     </div>
   );
 }
