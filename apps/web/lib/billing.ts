@@ -46,5 +46,5 @@ export function formatPackPrice(pack: CreditPack) {
 }
 
 export function isStripeBillingConfigured() {
-  return Boolean(process.env.STRIPE_SECRET_KEY);
+  return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
 }
