@@ -3,30 +3,26 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Boxes,
   Coins,
-  Images,
-  LayoutDashboard,
   LogOut,
-  UserRound
+  SearchCheck,
+  Sparkles
 } from "lucide-react";
 import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const navItems = [
-  { href: "/dashboard", labelKey: "dashboard", icon: LayoutDashboard },
-  { href: "/products", labelKey: "products", icon: Boxes },
-  { href: "/products/new", labelKey: "upload", icon: Images },
-  { href: "/account", labelKey: "account", icon: UserRound }
+  { href: "/dashboard", labelKey: "productStudio", icon: Sparkles },
+  { href: "/growth", labelKey: "growthStudio", icon: SearchCheck }
 ] as const;
 
 function isActivePath(pathname: string, href: string) {
-  if (href === "/products") {
-    return pathname === "/products" || (pathname.startsWith("/products/") && pathname !== "/products/new");
+  if (href === "/dashboard") {
+    return pathname === "/dashboard" || pathname.startsWith("/products");
   }
 
-  if (href === "/settings/shopify") {
-    return pathname.startsWith("/settings/shopify");
+  if (href === "/growth") {
+    return pathname === "/growth" || pathname.startsWith("/shopify-seo-geo-optimizer");
   }
 
   return pathname === href;
