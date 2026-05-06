@@ -10,6 +10,8 @@ export const size = {
 export const contentType = "image/png";
 
 export default function OpenGraphImage() {
+  const logoUrl = `${siteConfig.url}/brand/ace-studio-logo.png`;
+
   return new ImageResponse(
     (
       <div
@@ -27,22 +29,16 @@ export default function OpenGraphImage() {
       >
         <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", width: 610 }}>
           <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
-            <div
+            <img
+              src={logoUrl}
+              alt=""
               style={{
-                alignItems: "center",
-                background: "#11735d",
                 borderRadius: 18,
-                color: "white",
-                display: "flex",
-                fontSize: 36,
-                fontWeight: 700,
                 height: 78,
-                justifyContent: "center",
+                objectFit: "cover",
                 width: 78
               }}
-            >
-              AS
-            </div>
+            />
             <div style={{ display: "flex", flexDirection: "column" }}>
               <span style={{ fontSize: 36, fontWeight: 700 }}>{siteConfig.name}</span>
               <span style={{ color: "#506158", fontSize: 22 }}>AI Shopify product workspace</span>

@@ -33,6 +33,14 @@ export const metadata: Metadata = {
   creator: siteConfig.company,
   publisher: siteConfig.company,
   category: "Software",
+  icons: {
+    icon: [
+      { url: "/icon.png", sizes: "512x512", type: "image/png" }
+    ],
+    apple: [
+      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" }
+    ]
+  },
   alternates: {
     canonical: "/"
   },
