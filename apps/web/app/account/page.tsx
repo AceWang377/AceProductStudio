@@ -156,7 +156,7 @@ export default async function AccountPage() {
             <ShieldCheck className="h-5 w-5 text-action" aria-hidden />
             <h2 className="mt-4 text-lg font-semibold">Security model</h2>
             <p className="mt-2 text-sm leading-6 text-muted">
-              Sign-in is handled by Supabase magic links. Shopify connections use OAuth for customers, and saved store tokens stay server-side.
+              Sign-in supports Google, email/password, and backup magic links. Shopify connections use OAuth for customers, and saved store tokens stay server-side.
             </p>
           </div>
           <div className="border border-line bg-white p-5">

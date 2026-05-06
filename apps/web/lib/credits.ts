@@ -302,3 +302,35 @@ export async function listCreditLedger(limit = 30): Promise<CreditLedgerEntry[]>
     createdAt: typeof row.created_at === "string" ? row.created_at : new Date().toISOString()
   }));
 }
+
+export async function getCreditLedgerEntryByStripePaymentId(stripePaymentId?: string | null) {
+  const paymentId = stripePaymentId?.trim();
+  if (!paymentId || !isSupabaseStorageEnabled()) return null;
+
+  const user = await getCurrentCreditUser();
+  if (!user) return null;
+
+  const supabase = createSupabaseAdminClient();
+  const { data, error } = await supabase
+    .from("credit_ledger")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("stripe_payment_id", paymentId)
+    .maybeSingle();
+
+  if (error) {
+    if (isMissingCreditsTableError(error)) return null;
+    throw new Error(`Could not load credit purchase: ${error.message}`);
+  }
+
+  if (!data) return null;
+
+  return {
+    id: String(data.id),
+    amount: Number(data.amount ?? 0),
+    reason: String(data.reason ?? "credit_event"),
+    productId: typeof data.product_id === "string" ? data.product_id : undefined,
+    stripePaymentId: typeof data.stripe_payment_id === "string" ? data.stripe_payment_id : undefined,
+    createdAt: typeof data.created_at === "string" ? data.created_at : new Date().toISOString()
+  } satisfies CreditLedgerEntry;
+}

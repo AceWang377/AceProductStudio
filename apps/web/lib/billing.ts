@@ -48,3 +48,25 @@ export function formatPackPrice(pack: CreditPack) {
 export function isStripeBillingConfigured() {
   return Boolean(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_WEBHOOK_SECRET);
 }
+
+export function getStripeSecretMode() {
+  const secretKey = process.env.STRIPE_SECRET_KEY?.trim() || "";
+  if (!secretKey) return "missing";
+  if (secretKey.startsWith("sk_live_")) return "live";
+  if (secretKey.startsWith("sk_test_")) return "test";
+  return "unknown";
+}
+
+export function getStripeBillingReadiness() {
+  const mode = getStripeSecretMode();
+  const hasSecret = mode !== "missing";
+  const hasWebhookSecret = Boolean(process.env.STRIPE_WEBHOOK_SECRET?.trim());
+
+  return {
+    mode,
+    hasSecret,
+    hasWebhookSecret,
+    sandboxReady: hasSecret && hasWebhookSecret,
+    liveReady: mode === "live" && hasWebhookSecret
+  };
+}

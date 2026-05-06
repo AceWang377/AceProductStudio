@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowUpRight, CheckCircle2, CircleAlert, Coins, CreditCard } from "lucide-react";
-import { CREDIT_PACKS, formatPackPrice, isStripeBillingConfigured } from "@/lib/billing";
-import { getCreditAccount } from "@/lib/credits";
+import { ArrowUpRight, CheckCircle2, CircleAlert, Coins, CreditCard, ExternalLink } from "lucide-react";
+import { CREDIT_PACKS, formatPackPrice, getStripeBillingReadiness, isStripeBillingConfigured } from "@/lib/billing";
+import { getCreditAccount, getCreditLedgerEntryByStripePaymentId } from "@/lib/credits";
 import { requireCurrentUser } from "@/lib/auth";
+import { siteConfig } from "@/lib/site";
 
 export const dynamic = "force-dynamic";
 
@@ -21,8 +22,11 @@ export default async function BillingPage({
   const credits = await getCreditAccount();
   const params = searchParams ? await searchParams : {};
   const checkoutStatus = firstParam(params.checkout);
+  const sessionId = firstParam(params.session_id);
   const error = firstParam(params.error);
   const stripeReady = isStripeBillingConfigured();
+  const stripeReadiness = getStripeBillingReadiness();
+  const purchase = checkoutStatus === "success" ? await getCreditLedgerEntryByStripePaymentId(sessionId) : null;
 
   return (
     <div className="space-y-6">
@@ -53,12 +57,21 @@ export default async function BillingPage({
       </div>
 
       {checkoutStatus === "success" ? (
-        <Notice
-          icon={CheckCircle2}
-          tone="success"
-          title="Payment received"
-          body="Stripe confirmed the checkout. Your credits will appear after the webhook finishes processing."
-        />
+        purchase ? (
+          <Notice
+            icon={CheckCircle2}
+            tone="success"
+            title={`${purchase.amount} credits added`}
+            body="Stripe confirmed the checkout and the webhook has added the credits to your account."
+          />
+        ) : (
+          <Notice
+            icon={CircleAlert}
+            tone="warning"
+            title="Payment received, waiting for credits"
+            body="Stripe returned a successful checkout. Refresh this page in a moment while the webhook finishes adding credits."
+          />
+        )
       ) : null}
 
       {checkoutStatus === "canceled" ? (
@@ -121,6 +134,71 @@ export default async function BillingPage({
         </div>
       </section>
 
+      <section className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="border border-line bg-white p-5">
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <h2 className="text-lg font-semibold">Stripe live checklist</h2>
+              <p className="mt-1 text-sm leading-6 text-muted">
+                Keep using sandbox until these items are ready. Switch to live mode only when the live key and live webhook secret are both in Vercel.
+              </p>
+            </div>
+            <span
+              className={`inline-flex h-9 items-center rounded px-3 text-sm font-semibold ${
+                stripeReadiness.liveReady
+                  ? "bg-emerald-50 text-emerald-800 ring-1 ring-emerald-200"
+                  : stripeReadiness.sandboxReady
+                    ? "bg-amber-50 text-amber-800 ring-1 ring-amber-200"
+                    : "bg-red-50 text-red-800 ring-1 ring-red-200"
+              }`}
+            >
+              {stripeReadiness.liveReady ? "Live ready" : stripeReadiness.sandboxReady ? "Sandbox ready" : "Not ready"}
+            </span>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <ChecklistItem
+              done={stripeReadiness.mode === "live"}
+              title="Live secret key"
+              detail="Use a Stripe key that starts with sk_live_ in Vercel."
+            />
+            <ChecklistItem
+              done={stripeReadiness.hasWebhookSecret}
+              title="Webhook secret"
+              detail="Use the whsec_ value from the live Stripe webhook endpoint."
+            />
+            <ChecklistItem
+              done={siteConfig.url.startsWith("https://") && !siteConfig.url.includes("localhost")}
+              title="Production domain"
+              detail={`${siteConfig.url}/api/stripe/webhook is the endpoint URL.`}
+            />
+            <ChecklistItem
+              done={stripeReady}
+              title="Checkout enabled"
+              detail="Both Stripe server key and webhook secret are configured."
+            />
+          </div>
+        </div>
+
+        <div className="border border-line bg-[#f4f7f4] p-5">
+          <h2 className="text-lg font-semibold">Live webhook endpoint</h2>
+          <p className="mt-2 break-words text-sm leading-6 text-muted">
+            {siteConfig.url}/api/stripe/webhook
+          </p>
+          <a
+            href="https://dashboard.stripe.com/webhooks"
+            target="_blank"
+            rel="noreferrer"
+            className="studio-focus mt-4 inline-flex h-10 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            Open Stripe webhooks
+            <ExternalLink className="h-4 w-4" aria-hidden />
+          </a>
+          <p className="mt-4 text-xs leading-5 text-muted">
+            Select only <span className="font-semibold text-ink">checkout.session.completed</span> for the current credit flow.
+          </p>
+        </div>
+      </section>
+
       <section className="border border-line bg-white p-5">
         <h2 className="text-lg font-semibold">How credits work</h2>
         <div className="mt-4 grid gap-4 text-sm text-muted md:grid-cols-3">
@@ -130,6 +208,30 @@ export default async function BillingPage({
           <p>Admin emails listed in ADMIN_EMAILS bypass credit charging for internal use.</p>
         </div>
       </section>
+    </div>
+  );
+}
+
+function ChecklistItem({
+  done,
+  title,
+  detail
+}: {
+  done: boolean;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <div className="border border-line bg-canvas p-3">
+      <div className="flex items-center gap-2">
+        {done ? (
+          <CheckCircle2 className="h-4 w-4 text-action" aria-hidden />
+        ) : (
+          <CircleAlert className="h-4 w-4 text-amber-700" aria-hidden />
+        )}
+        <p className="text-sm font-semibold">{title}</p>
+      </div>
+      <p className="mt-2 text-xs leading-5 text-muted">{detail}</p>
     </div>
   );
 }

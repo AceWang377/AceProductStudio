@@ -72,7 +72,7 @@ export default async function LoginPage({
             <div>
               <h2 className="text-sm font-semibold">Account safety</h2>
               <p className="mt-1 text-sm leading-6 text-muted">
-                Sign-in links expire automatically. Use the same email each time to return to your own workspace.
+                Google and password sign-in reduce email delivery pressure. Magic links stay available as a backup for account recovery.
               </p>
             </div>
           </div>

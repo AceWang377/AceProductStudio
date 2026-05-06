@@ -153,6 +153,45 @@ const phrasePairs = [
   ["Refund", "退款"],
   ["Terms", "条款"],
   ["Language", "语言"],
+  ["Secure workspace access", "安全工作区访问"],
+  ["Sign in to AceStudio", "登录 AceStudio"],
+  [
+    "Access your product drafts, connected Shopify store, generated media, job history, and credit balance from one account.",
+    "用一个账户访问商品草稿、已连接的 Shopify 店铺、生成图片、任务历史和积分余额。"
+  ],
+  ["Create product drafts", "创建商品草稿"],
+  ["Connect your Shopify store", "连接你的 Shopify 店铺"],
+  ["Publish as draft", "发布为草稿"],
+  ["Account safety", "账户安全"],
+  [
+    "Google and password sign-in reduce email delivery pressure. Magic links stay available as a backup for account recovery.",
+    "Google 和密码登录可以减少邮件发送压力。魔法链接仍作为账户恢复备用方式。"
+  ],
+  ["Continue with Google, email and password, or a backup magic link.", "可使用 Google、邮箱密码或备用魔法链接登录。"],
+  ["Continue with Google", "使用 Google 继续"],
+  ["Opening Google...", "正在打开 Google..."],
+  ["Email account", "邮箱账户"],
+  ["Create account", "创建账户"],
+  ["Email address", "邮箱地址"],
+  ["Password", "密码"],
+  ["At least 8 characters", "至少 8 个字符"],
+  ["Creating account...", "正在创建账户..."],
+  ["Signing in...", "正在登录..."],
+  ["Sign in with password", "使用密码登录"],
+  ["Backup magic link", "备用魔法链接"],
+  ["Use this if you forgot your password or cannot use Google.", "如果忘记密码或无法使用 Google，可以用这个方式。"],
+  ["Sending link...", "正在发送链接..."],
+  ["Send magic link", "发送魔法链接"],
+  ["Signed in. Redirecting...", "已登录，正在跳转..."],
+  [
+    "Account created. Confirm your email if Supabase asks for verification, then sign in.",
+    "账户已创建。如果 Supabase 要求邮箱验证，请先确认邮件，然后登录。"
+  ],
+  ["Sign-in link sent. Open the email on this device to continue.", "登录链接已发送。请在这台设备上打开邮件继续。"],
+  [
+    "Sign-in supports Google, email/password, and backup magic links. Shopify connections use OAuth for customers, and saved store tokens stay server-side.",
+    "登录支持 Google、邮箱密码和备用魔法链接。客户的 Shopify 连接使用 OAuth，店铺令牌保存在服务端。"
+  ],
   ["Create product draft", "创建商品草稿"],
   ["Review products", "查看商品"],
   ["View all", "查看全部"],
@@ -524,7 +563,35 @@ const phrasePairs = [
   [
     "Use AceStudio to generate product media, copy, and Shopify drafts from one place.",
     "使用 AceStudio 在一个地方生成商品图片、文案和 Shopify 草稿。"
-  ]
+  ],
+  ["Demo screenshots", "演示截图"],
+  ["The product flow feels like a workspace, not a prompt box.", "产品流程像一个工作台，而不是单纯的提示词输入框。"],
+  ["Open the studio", "打开工作台"],
+  ["Generate and review", "生成并检查"],
+  ["Publish with confidence", "放心发布"],
+  ["Brief controls", "商品简介控制"],
+  ["Media ordering", "图片顺序"],
+  ["SEO copy editor", "SEO 文案编辑器"],
+  ["Commerce fields", "价格与库存字段"],
+  ["Draft-first publish", "默认草稿发布"],
+  ["Job retry logs", "任务重试日志"],
+  ["Shopify Admin link", "Shopify 后台链接"],
+  ["Credit history", "积分记录"],
+  ["Continue workflow", "继续流程"],
+  ["Stripe live checklist", "Stripe 正式模式清单"],
+  ["Live ready", "正式模式就绪"],
+  ["Sandbox ready", "沙盒就绪"],
+  ["Not ready", "未就绪"],
+  ["Live secret key", "正式密钥"],
+  ["Webhook secret", "Webhook 密钥"],
+  ["Production domain", "生产域名"],
+  ["Checkout enabled", "支付已启用"],
+  ["Live webhook endpoint", "正式 Webhook 地址"],
+  ["Open Stripe webhooks", "打开 Stripe Webhooks"],
+  ["Payment received, waiting for credits", "付款已收到，等待积分到账"],
+  ["Stripe confirmed the checkout and the webhook has added the credits to your account.", "Stripe 已确认支付，Webhook 已把积分加入你的账户。"],
+  ["Select only", "只选择"],
+  ["for the current credit flow.", "用于当前积分流程。"]
 ] as const;
 
 const zhPhraseMap = new Map<string, string>(phrasePairs);

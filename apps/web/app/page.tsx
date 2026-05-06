@@ -127,6 +127,38 @@ export default async function HomePage({
         <ProductReviewSurface />
       </section>
 
+      <section className="border-y border-line py-10">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="text-sm font-medium text-action">Demo screenshots</p>
+            <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
+              The product flow feels like a workspace, not a prompt box.
+            </h2>
+          </div>
+          <Link
+            href="/login"
+            className="studio-focus inline-flex h-11 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            Open the studio
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </Link>
+        </div>
+        <div className="mt-6 grid gap-4 lg:grid-cols-2">
+          <DemoScreenshot
+            title="Generate and review"
+            label="Workspace"
+            stat="4 images"
+            items={["Brief controls", "Media ordering", "SEO copy editor", "Commerce fields"]}
+          />
+          <DemoScreenshot
+            title="Publish with confidence"
+            label="Shopify draft"
+            stat="Ready"
+            items={["Draft-first publish", "Job retry logs", "Shopify Admin link", "Credit history"]}
+          />
+        </div>
+      </section>
+
       <section className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
         <div>
           <p className="text-sm font-medium text-action">Workflow</p>
@@ -479,6 +511,75 @@ function ProductReviewSurface() {
           <div className="mt-5 border-t border-line pt-4">
             <p className="text-xs font-medium uppercase text-muted">Next action</p>
             <p className="mt-1 text-sm font-semibold">Create Shopify draft</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DemoScreenshot({
+  title,
+  label,
+  stat,
+  items
+}: {
+  title: string;
+  label: string;
+  stat: string;
+  items: string[];
+}) {
+  return (
+    <div className="overflow-hidden border border-line bg-white shadow-soft">
+      <div className="flex items-center justify-between border-b border-line bg-[#f7faf7] px-4 py-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
+          <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
+        </div>
+        <span className="text-xs font-semibold text-muted">{label}</span>
+      </div>
+      <div className="grid min-h-80 gap-4 p-4 sm:grid-cols-[160px_1fr]">
+        <aside className="hidden border-r border-line pr-4 text-sm sm:block">
+          <p className="font-semibold">{siteConfig.name}</p>
+          <div className="mt-5 space-y-2 text-xs text-muted">
+            {["Dashboard", "Products", "Billing", "Usage"].map((item, index) => (
+              <div
+                key={item}
+                className={`rounded px-2 py-2 ${index === 1 ? "bg-emerald-50 font-semibold text-action" : ""}`}
+              >
+                {item}
+              </div>
+            ))}
+          </div>
+        </aside>
+        <div>
+          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
+            <div>
+              <p className="text-xs font-medium uppercase text-muted">{label}</p>
+              <h3 className="mt-1 text-xl font-semibold">{title}</h3>
+            </div>
+            <span className="rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
+              {stat}
+            </span>
+          </div>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+            <div className="aspect-[4/3] border border-line bg-[#eef4ef] p-3">
+              <div className="grid h-full place-items-center border border-dashed border-[#b7c9c0] bg-white/50">
+                <ImagePlus className="h-8 w-8 text-action" aria-hidden />
+              </div>
+            </div>
+            <div className="space-y-3">
+              {items.map((item) => (
+                <div key={item} className="flex items-center gap-2 border border-line bg-canvas p-3 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-action" aria-hidden />
+                  <span>{item}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+          <div className="mt-5 h-10 rounded bg-action px-4 py-2 text-center text-sm font-semibold text-white">
+            Continue workflow
           </div>
         </div>
       </div>

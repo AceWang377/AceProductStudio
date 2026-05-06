@@ -1,8 +1,9 @@
 import "server-only";
-import { isStripeBillingConfigured } from "@/lib/billing";
+import { getStripeBillingReadiness, isStripeBillingConfigured } from "@/lib/billing";
 import { checkMediaStorageBucket, getMediaStorageBucketName } from "@/lib/media-storage";
 import { getShopifyAppConfig } from "@/lib/shopify-oauth";
 import { isSecretEncryptionConfigured } from "@/lib/secret-vault";
+import { siteConfig } from "@/lib/site";
 import { createSupabaseAdminClient, isSupabaseStorageEnabled } from "@/lib/supabase-admin";
 
 export type ReadinessStatus = "ready" | "warning" | "missing";
@@ -30,6 +31,10 @@ const STRIPE_DASHBOARD_URL = "https://dashboard.stripe.com/";
 
 function hasEnv(name: string) {
   return Boolean(process.env[name]?.trim());
+}
+
+function hasAnyEnv(names: string[]) {
+  return names.some((name) => hasEnv(name));
 }
 
 function getSupabaseProjectRef() {
@@ -195,9 +200,12 @@ async function getStorageChecks(): Promise<ReadinessCheck[]> {
 
 export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
   const shopifyConfig = getShopifyAppConfig();
+  const stripeReadiness = getStripeBillingReadiness();
   const appUrlConfigured = hasEnv("APP_PUBLIC_URL") || hasEnv("NEXT_PUBLIC_APP_URL");
   const appUrl = process.env.APP_PUBLIC_URL?.trim() || process.env.NEXT_PUBLIC_APP_URL?.trim();
   const shopifyWebhookUrl = appUrl ? `${appUrl.replace(/\/$/, "")}/api/shopify/webhooks` : "";
+  const stripeWebhookUrl = appUrl ? `${appUrl.replace(/\/$/, "")}/api/stripe/webhook` : `${siteConfig.url}/api/stripe/webhook`;
+  const sentryConfigured = hasAnyEnv(["SENTRY_DSN", "NEXT_PUBLIC_SENTRY_DSN"]);
 
   const coreChecks: ReadinessCheck[] = [
     envCheck({
@@ -242,7 +250,7 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         : "OAuth and email redirects do not have a production base URL.",
       action: appUrlConfigured
         ? "No action needed"
-        : "Set NEXT_PUBLIC_APP_URL to https://ace-product-studio.vercel.app.",
+        : `Set NEXT_PUBLIC_APP_URL to ${siteConfig.url}.`,
       actionHref: appUrlConfigured ? undefined : VERCEL_ENV_URL,
       actionLabel: appUrlConfigured ? undefined : "Open env settings"
     },
@@ -311,13 +319,29 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       label: "Stripe checkout",
       status: isStripeBillingConfigured() ? "ready" : "warning",
       detail: isStripeBillingConfigured()
-        ? "Credit pack checkout can start."
+        ? stripeReadiness.liveReady
+          ? "Credit pack checkout can start in live mode."
+          : "Credit pack checkout can start in sandbox mode."
         : "Credit charging works in trial/admin mode, but paid packs are not enabled.",
       action: isStripeBillingConfigured()
         ? "No action needed"
-        : "Add STRIPE_SECRET_KEY when you are ready to sell credits.",
+        : "Add STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET when you are ready to sell credits.",
       actionHref: isStripeBillingConfigured() ? undefined : STRIPE_DASHBOARD_URL,
       actionLabel: isStripeBillingConfigured() ? undefined : "Open Stripe"
+    },
+    {
+      label: "Stripe live mode",
+      status: stripeReadiness.liveReady ? "ready" : "warning",
+      detail: stripeReadiness.liveReady
+        ? "A live Stripe secret key and webhook secret are configured."
+        : stripeReadiness.sandboxReady
+          ? "Sandbox billing is ready. Switch to sk_live_ and a live whsec_ before taking real payments."
+          : "Live billing needs a Stripe secret key and webhook secret.",
+      action: stripeReadiness.liveReady
+        ? "No action needed"
+        : `Create a live Stripe webhook for ${stripeWebhookUrl}, then add the live STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET in Vercel.`,
+      actionHref: stripeReadiness.liveReady ? undefined : STRIPE_DASHBOARD_URL,
+      actionLabel: stripeReadiness.liveReady ? undefined : "Open Stripe"
     },
     envCheck({
       label: "Stripe webhook secret",
@@ -333,6 +357,33 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       action: "Add ADMIN_EMAILS with your login email for unlimited internal use.",
       optional: true
     })
+  ];
+
+  const monitoringChecks: ReadinessCheck[] = [
+    {
+      label: "Health endpoint",
+      status: "ready",
+      detail: "/api/health reports launch readiness for Vercel uptime checks and manual QA.",
+      action: `Use ${siteConfig.url}/api/health as the production health-check URL.`
+    },
+    {
+      label: "Error monitoring",
+      status: sentryConfigured ? "ready" : "warning",
+      detail: sentryConfigured
+        ? "Sentry environment variables are present for server/client exception reporting."
+        : "Server exceptions are not connected to Sentry yet. Vercel logs still work, but proactive error alerts are not configured.",
+      action: sentryConfigured
+        ? "No action needed"
+        : "Connect Sentry or enable Vercel Observability before sending real traffic.",
+      actionHref: sentryConfigured ? undefined : "https://sentry.io/",
+      actionLabel: sentryConfigured ? undefined : "Open Sentry"
+    },
+    {
+      label: "Operational audit trail",
+      status: "ready",
+      detail: "Image, copy, Shopify publish, credits, and exportable usage events are stored for customer support.",
+      action: "Review /usage after important test runs."
+    }
   ];
 
   return [
@@ -360,6 +411,11 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       title: "Credits and billing",
       description: "Usage limits, admin bypass, and future paid credit packs.",
       checks: billingChecks
+    },
+    {
+      title: "Monitoring and support",
+      description: "Health checks, error monitoring, and support visibility before real users arrive.",
+      checks: monitoringChecks
     }
   ];
 }
