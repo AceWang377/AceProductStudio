@@ -1,24 +1,24 @@
-import Link from "next/link";
 import Image from "next/image";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import type { Metadata } from "next";
 import {
   ArrowRight,
   BadgeCheck,
-  BookOpenText,
+  BarChart3,
   CheckCircle2,
+  ChevronRight,
   Coins,
   FileText,
-  HelpCircle,
   ImagePlus,
-  Layers3,
-  ListChecks,
+  LineChart,
   LockKeyhole,
   SearchCheck,
   Send,
   ShieldCheck,
   Sparkles,
-  Store
+  Store,
+  WandSparkles
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { getCurrentUser } from "@/lib/auth";
@@ -60,239 +60,161 @@ export default async function HomePage({
   const jsonLd = getHomeStructuredData();
 
   return (
-    <div className="space-y-14">
+    <div className="space-y-0">
       <script
         type="application/ld+json"
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
-      <section className="relative left-1/2 right-1/2 -mx-[50vw] -mt-6 w-screen border-b border-line bg-[#eef4ef]">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-10 sm:px-6 lg:min-h-[calc(100svh-66px)] lg:grid-cols-[minmax(0,0.92fr)_minmax(520px,1fr)] lg:items-center lg:py-14">
-          <div>
-            <p className="inline-flex items-center gap-2 text-sm font-semibold text-action">
+
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] -mt-6 min-h-[calc(100svh-66px)] w-screen overflow-hidden border-b border-line bg-[#f4f5f1]">
+        <div className="absolute inset-0 opacity-[0.45] landing-grid" aria-hidden />
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:min-h-[calc(100svh-66px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(520px,1fr)] lg:items-center lg:py-16">
+          <div className="landing-reveal">
+            <p className="inline-flex items-center gap-2 border border-[#c8d6cf] bg-white/70 px-3 py-1.5 text-sm font-semibold text-action">
               <BadgeCheck className="h-4 w-4" aria-hidden />
-              Shopify-ready AI product workspace
+              Shopify AI product and growth workspace
             </p>
-            <h1 className="mt-5 max-w-3xl text-5xl font-semibold leading-[1.03] sm:text-6xl">
-              {siteConfig.name}
+            <h1 className="mt-7 max-w-4xl text-6xl font-semibold leading-[0.96] tracking-tight text-ink sm:text-7xl lg:text-8xl">
+              AceStudio
             </h1>
-            <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight text-[#21372f] sm:text-4xl">
-              AI Shopify product listings, optimized for search and AI answers.
+            <h2 className="mt-6 max-w-3xl text-3xl font-semibold leading-tight text-[#263a33] sm:text-5xl">
+              Generate Shopify product content. Then improve how it ranks.
             </h2>
-            <p className="mt-5 max-w-2xl text-lg leading-8 text-[#4f5f58]">
-              Generate product media, SEO and GEO copy, price-ready listing details, and a reviewable Shopify draft from one product photo.
+            <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
+              From one product photo, create draft-ready media and copy, audit product SEO/GEO quality, and confirm selected improvements before writing back to Shopify.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
                 href="/login"
-                className="studio-focus inline-flex h-12 items-center gap-2 rounded bg-action px-5 text-sm font-semibold text-white"
+                className="studio-focus group inline-flex h-12 items-center gap-2 bg-action px-5 text-sm font-semibold text-white transition hover:-translate-y-0.5 hover:bg-[#0c5d4b]"
               >
-                Start your first product
-                <ArrowRight className="h-4 w-4" aria-hidden />
+                Start with Product Studio
+                <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
               </Link>
               <Link
-                href="/support"
-                className="studio-focus inline-flex h-12 items-center rounded border border-[#c8d6cf] bg-white px-5 text-sm font-semibold"
+                href="/shopify-seo-geo-optimizer"
+                className="studio-focus inline-flex h-12 items-center border border-[#c8d6cf] bg-white/80 px-5 text-sm font-semibold transition hover:-translate-y-0.5 hover:border-action"
               >
-                Talk to support
+                Explore Growth Studio
               </Link>
             </div>
-            <div className="mt-8 grid max-w-xl grid-cols-2 gap-x-6 gap-y-3 border-t border-[#c8d6cf] pt-5 text-sm sm:grid-cols-4">
-              <TrustItem label="Draft-first" />
-              <TrustItem label="OAuth stores" />
-              <TrustItem label="4+ images" />
-              <TrustItem label="Credits ready" />
-            </div>
           </div>
 
-          <ProductStudioPreview />
+          <HeroTerminal />
         </div>
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-[minmax(0,0.85fr)_minmax(0,1.15fr)] lg:items-center">
-        <div>
-          <p className="text-sm font-medium text-action">Product screenshot</p>
-          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-            See the full listing before Shopify receives it.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-            AceStudio turns each generated product into a review surface: media order, SEO copy, commerce fields, publish status, and Shopify draft links stay visible before the merchant takes the next step.
-          </p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <ProofPoint value="4+" label="generated images" />
-            <ProofPoint value="1" label="draft-first publish flow" />
-            <ProofPoint value="0" label="manual token paste for OAuth users" />
-          </div>
+      <section className="border-b border-line bg-white">
+        <div className="mx-auto grid max-w-7xl divide-y divide-line px-4 sm:px-6 md:grid-cols-4 md:divide-x md:divide-y-0 md:px-6">
+          <ProofMetric value="2" label="Core workflows" detail="Product Studio and Growth Studio." />
+          <ProofMetric value="4+" label="Media outputs" detail="Lifestyle, detail, intro, and white background." />
+          <ProofMetric value="OAuth" label="Store connection" detail="Users connect their own Shopify store." />
+          <ProofMetric value="Draft" label="Default publish mode" detail="Review before anything goes live." />
         </div>
-        <ProductReviewSurface />
       </section>
 
-      <section className="border-y border-line py-10">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-action">Demo screenshots</p>
-            <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-              The product flow feels like a workspace, not a prompt box.
+      <SectionShell eyebrow="Platform" title="Two workspaces, one Shopify growth loop.">
+        <div className="grid gap-0 border border-line bg-white lg:grid-cols-2">
+          <WorkspacePanel
+            icon={WandSparkles}
+            title="Product Studio"
+            detail="Upload a product image, generate media and listing copy, review price and inventory, then publish a Shopify draft."
+            href="/shopify-ai-product-listing-generator"
+            action="View product workflow"
+            items={["Image generation", "SEO copy editor", "Media ordering", "Draft publishing"]}
+          />
+          <WorkspacePanel
+            icon={SearchCheck}
+            title="Growth Studio"
+            detail="Audit connected Shopify products, score SEO/GEO quality, preview fixes, and write improvements only after confirmation."
+            href="/shopify-seo-geo-optimizer"
+            action="View growth workflow"
+            items={["SEO scoring", "GEO scoring", "Suggested fixes", "Confirm-to-apply"]}
+          />
+        </div>
+      </SectionShell>
+
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] w-screen overflow-hidden border-y border-line bg-[#14231d] text-white">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:py-20">
+          <div className="landing-reveal">
+            <p className="text-sm font-semibold text-[#98d7c3]">Product control surface</p>
+            <h2 className="mt-4 max-w-3xl text-4xl font-semibold leading-tight sm:text-5xl">
+              A reviewable product record before Shopify receives changes.
             </h2>
+            <p className="mt-5 max-w-2xl text-sm leading-6 text-[#c7d7d0]">
+              The interface keeps generated media, SEO copy, commerce fields, publish history, and quality checks together so users can inspect the full product before committing.
+            </p>
           </div>
-          <Link
-            href="/login"
-            className="studio-focus inline-flex h-11 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
-          >
-            Open the studio
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-        </div>
-        <div className="mt-6 grid gap-4 lg:grid-cols-2">
-          <DemoScreenshot
-            title="Generate and review"
-            label="Workspace"
-            stat="4 images"
-            items={["Brief controls", "Media ordering", "SEO copy editor", "Commerce fields"]}
-          />
-          <DemoScreenshot
-            title="Publish with confidence"
-            label="Shopify draft"
-            stat="Ready"
-            items={["Draft-first publish", "Job retry logs", "Shopify Admin link", "Credit history"]}
-          />
+          <ProductControlSurface />
         </div>
       </section>
 
-      <section className="grid gap-8 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <div>
-          <p className="text-sm font-medium text-action">Workflow</p>
-          <h2 className="mt-2 text-3xl font-semibold leading-tight">
-            A cleaner path from raw photo to Shopify draft.
-          </h2>
-        </div>
-        <div className="grid gap-4 md:grid-cols-4">
+      <SectionShell eyebrow="Workflow" title="From raw photo to optimized Shopify product.">
+        <div className="grid border-y border-line md:grid-cols-4">
           <WorkflowStep
+            number="01"
             icon={ImagePlus}
             title="Upload"
-            detail="Start with the original product photo and keep it separate from generated media."
+            detail="Start with one original product photo and a short product brief."
           />
           <WorkflowStep
+            number="02"
             icon={Sparkles}
             title="Generate"
-            detail="Create lifestyle, detail, intro, and white-background images in one workspace."
+            detail="Create ordered product media and Shopify SEO copy in one workspace."
           />
           <WorkflowStep
+            number="03"
             icon={FileText}
             title="Review"
-            detail="Edit SEO title, description, tags, FAQ, price, and inventory before export."
+            detail="Edit copy, tags, FAQ, price, inventory, and media ordering."
           />
           <WorkflowStep
+            number="04"
             icon={Send}
             title="Publish"
-            detail="Create a Shopify draft with ordered media and retryable job history."
+            detail="Create a Shopify draft or confirm selected Growth Studio updates."
           />
         </div>
-      </section>
+      </SectionShell>
 
-      <section className="grid gap-8 border-y border-line py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
-        <div>
-          <p className="inline-flex items-center gap-2 text-sm font-medium text-action">
-            <SearchCheck className="h-4 w-4" aria-hidden />
-            Shopify SEO and GEO
-          </p>
-          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-            Help Shopify products become clearer for Google and AI search.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-            The next AceStudio layer turns each product draft into search-ready content: keyword-focused titles, structured FAQs, buyer-intent descriptions, image labels, and answer-friendly product summaries for AI discovery.
-          </p>
-          <div className="mt-5 flex flex-wrap gap-3">
-            <Link
-              href="/shopify-seo-geo-optimizer"
-              className="studio-focus inline-flex h-11 items-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
-            >
-              View SEO/GEO workflow
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-            <Link
-              href="/shopify-seo-product-description-generator"
-              className="studio-focus inline-flex h-11 items-center rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
-            >
-              SEO copy generator
-            </Link>
+      <SectionShell
+        eyebrow="SEO and GEO"
+        title="A growth layer for Shopify stores that need more than generated copy."
+        intro="Growth Studio is designed to score product pages, identify missing search and AI-answer signals, and provide confirmable updates instead of silently overwriting store content."
+      >
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <GrowthScorePanel />
+          <div className="grid gap-px overflow-hidden border border-line bg-line sm:grid-cols-2">
+            <GrowthSignal title="Search intent" detail="Titles, meta descriptions, tags, and buyer phrases aligned to product demand." />
+            <GrowthSignal title="AI answer clarity" detail="Facts, use cases, comparisons, and FAQs that make product pages easier to summarize." />
+            <GrowthSignal title="Media context" detail="Image labels and future alt text workflows for richer visual search signals." />
+            <GrowthSignal title="Controlled write-back" detail="Users preview updates first, then explicitly confirm Shopify changes." />
           </div>
         </div>
-        <div className="grid gap-3 sm:grid-cols-2">
-          <SeoGeoPoint title="Search intent" detail="Turn product attributes into titles, tags, FAQs, and descriptions matched to what buyers search." />
-          <SeoGeoPoint title="AI answer clarity" detail="Write concise product facts, use cases, comparisons, and FAQs that are easier for AI search tools to summarize." />
-          <SeoGeoPoint title="Image context" detail="Prepare media labels and alt-text style guidance so generated product images support the listing." />
-          <SeoGeoPoint title="Draft review" detail="Keep all SEO/GEO suggestions editable before they are sent to the Shopify product draft." />
-        </div>
-      </section>
+      </SectionShell>
 
-      <section className="grid gap-6 border-y border-line py-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
-        <div>
-          <p className="text-sm font-medium text-action">Built for merchant trust</p>
-          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-            The product stays controlled, reviewable, and ready for paid credits later.
-          </h2>
-        </div>
-        <div className="space-y-3">
-          <TrustRow icon={ShieldCheck} title="Draft publishing by default" />
-          <TrustRow icon={Store} title="Per-store Shopify OAuth" />
-          <TrustRow icon={Coins} title="Credit balance already surfaced" />
-          <TrustRow icon={LockKeyhole} title="Server-side store token handling" />
-        </div>
-      </section>
-
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-center">
-        <div>
-          <p className="text-sm font-medium text-action">Before and after</p>
-          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-            Replace scattered product setup with one reviewable workflow.
-          </h2>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-            Merchants do not need another image generator tab. AceStudio keeps the media, copy, pricing, inventory, and publish history together so every listing has a clear review path.
-          </p>
-        </div>
-        <ComparisonMatrix />
-      </section>
-
-      <section className="grid gap-4 md:grid-cols-3">
-        <LandingFeature
-          icon={Store}
-          title="Connect each store"
-          detail="Every user connects their own Shopify store. No shared store tokens, no manual credential pasting for normal users."
-        />
-        <LandingFeature
-          icon={ListChecks}
-          title="Know what is ready"
-          detail="Checklist and quality states make it clear when copy, media, pricing, and inventory are ready to publish."
-        />
-        <LandingFeature
-          icon={CheckCircle2}
-          title="Designed for production"
-          detail="Products, jobs, stores, generated images, credits, and usage history already use persistent Supabase-backed storage."
-        />
-      </section>
-
-      <section className="border-y border-line py-10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <p className="inline-flex items-center gap-2 text-sm font-medium text-action">
-              <BookOpenText className="h-4 w-4" aria-hidden />
-              Shopify AI guides
-            </p>
-            <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
-              Learn the workflow before connecting a store.
+      <section className="border-y border-line bg-white">
+        <div className="mx-auto grid max-w-7xl gap-0 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr]">
+          <div className="border-line py-12 lg:border-r lg:pr-10">
+            <p className="text-sm font-semibold text-action">Operating model</p>
+            <h2 className="mt-3 text-4xl font-semibold leading-tight">
+              Built for merchant trust before payments scale.
             </h2>
           </div>
-          <Link
-            href="/resources"
-            className="studio-focus inline-flex h-11 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
-          >
-            View all resources
-            <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
+          <div className="grid divide-y divide-line lg:divide-y">
+            <TrustLine icon={ShieldCheck} title="Draft-first publishing" detail="The normal product flow creates a Shopify draft so users can review in Admin." />
+            <TrustLine icon={Store} title="Per-store OAuth" detail="Every user connects their own Shopify store without sharing manual tokens." />
+            <TrustLine icon={Coins} title="Credits-ready usage model" detail="Balances and usage history are already surfaced before Stripe goes fully live." />
+            <TrustLine icon={LockKeyhole} title="Server-side token handling" detail="Sensitive Shopify credentials stay server-side and can be encrypted before real users scale." />
+          </div>
         </div>
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {seoResourceList.map((article) => (
+      </section>
+
+      <SectionShell eyebrow="Resources" title="Guides that support search trust.">
+        <div className="grid gap-4 md:grid-cols-3">
+          {seoResourceList.slice(0, 3).map((article) => (
             <ResourceCard
               key={article.slug}
               href={`/resources/${article.slug}`}
@@ -302,95 +224,40 @@ export default async function HomePage({
             />
           ))}
         </div>
-      </section>
+      </SectionShell>
 
-      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(320px,0.45fr)]">
-        <div className="border border-line bg-white p-6 sm:p-8">
-          <div className="flex items-center gap-2">
-            <Coins className="h-5 w-5 text-action" aria-hidden />
-            <h2 className="text-2xl font-semibold">Pricing built for credits</h2>
-          </div>
-          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
-            Payment can be switched on later without redesigning the app. Admin accounts can run freely now, while normal users already see credit balances and usage history.
-          </p>
-          <div className="mt-6 grid gap-3 sm:grid-cols-3">
-            <PricingPoint title="Trial" detail="Free starter credits for the first product workflow." />
-            <PricingPoint title="Pay as you go" detail="Credit packs for image generation when Stripe is enabled." />
-            <PricingPoint title="Monthly" detail="Included credits and history for repeat merchants." />
-          </div>
-        </div>
-        <div className="border border-line bg-[#f4f7f4] p-6">
-          <ShieldCheck className="h-6 w-6 text-action" aria-hidden />
-          <h2 className="mt-4 text-xl font-semibold">Privacy promise</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Store access is OAuth-based, publishing defaults to draft, and sensitive Shopify tokens are handled server-side.
-          </p>
-        </div>
-      </section>
-
-      <section className="border-y border-line py-10">
-        <div className="mb-6 flex items-center gap-2">
-          <HelpCircle className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="text-2xl font-semibold">FAQ</h2>
-        </div>
-        <div className="grid gap-4 md:grid-cols-3">
+      <SectionShell eyebrow="FAQ" title="What merchants usually ask first.">
+        <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
           <FaqItem
             question="Does it publish live by default?"
-            answer="No. The safe path creates a Shopify draft first, with live publishing behind a separate confirmation."
+            answer="No. The safe path creates a Shopify draft first. Growth changes also require explicit confirmation."
           />
           <FaqItem
             question="Can each user connect their own store?"
-            answer="Yes. Shopify OAuth saves the connected store for that user workspace, so they do not need to paste admin tokens."
+            answer="Yes. Shopify OAuth is built around per-user store connections."
           />
           <FaqItem
-            question="What happens when generation fails?"
-            answer="The failed job is saved with the error, retry path, product link, and CSV export for support."
-          />
-          <FaqItem
-            question="Can it help with Shopify GEO?"
-            answer="Yes. The product direction now includes answer-friendly descriptions, product facts, FAQs, and structured content that can support discovery in AI search experiences."
-          />
-          <FaqItem
-            question="What does one credit pay for?"
-            answer="Credits are designed around usage events such as image generation and future paid workflows. Stripe can be enabled later without changing the listing workflow."
-          />
-          <FaqItem
-            question="Can merchants edit the generated listing?"
-            answer="Yes. Copy, media review, price, SKU, and inventory fields stay editable before the product is sent to Shopify as a draft."
-          />
-          <FaqItem
-            question="Is this only for one Shopify store?"
-            answer="No. The app is built around per-user Shopify OAuth connections, so different users can connect different stores."
+            question="Is Growth Studio automatic?"
+            answer="No. It audits and suggests first, then writes selected SEO/GEO improvements only after confirmation."
           />
         </div>
-      </section>
+      </SectionShell>
 
-      <section className="relative left-1/2 right-1/2 -mx-[50vw] w-screen border-y border-line bg-[#16251f] text-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-10 sm:px-6 lg:flex-row lg:items-center lg:justify-between">
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] w-screen border-t border-line bg-[#f4f5f1]">
+        <div className="mx-auto flex max-w-7xl flex-col gap-6 px-4 py-12 sm:px-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
-            <p className="text-sm font-medium text-[#98d7c3]">Ready to try the flow?</p>
-            <h2 className="mt-2 max-w-2xl text-3xl font-semibold leading-tight">
-              Upload one product photo and build the first Shopify draft.
+            <p className="text-sm font-semibold text-action">Ready to try the flow?</p>
+            <h2 className="mt-3 max-w-3xl text-4xl font-semibold leading-tight">
+              Build the first Shopify-ready product, then measure what needs to improve.
             </h2>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[#c7d7d0]">
-              Start with draft publishing, then add paid credits when Stripe is ready.
-            </p>
           </div>
-          <div className="flex flex-wrap gap-3">
-            <Link
-              href="/login"
-              className="studio-focus inline-flex h-11 items-center justify-center gap-2 rounded bg-white px-4 text-sm font-semibold text-[#16251f]"
-            >
-              Open studio
-              <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
-            <Link
-              href="/shopify-ai-product-listing-generator"
-              className="studio-focus inline-flex h-11 items-center justify-center rounded border border-white/30 px-4 text-sm font-semibold text-white hover:bg-white/10"
-            >
-              View product workflow
-            </Link>
-          </div>
+          <Link
+            href="/login"
+            className="studio-focus group inline-flex h-12 items-center justify-center gap-2 bg-action px-5 text-sm font-semibold text-white transition hover:-translate-y-0.5"
+          >
+            Open AceStudio
+            <ArrowRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+          </Link>
         </div>
       </section>
     </div>
@@ -447,302 +314,60 @@ function getHomeStructuredData() {
       provider: {
         "@type": "Organization",
         name: siteConfig.company,
-        url: siteConfig.url,
-        contactPoint: {
-          "@type": "ContactPoint",
-          email: siteConfig.supportEmail,
-          contactType: "customer support"
-        }
+        url: siteConfig.url
       }
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: [
-        {
-          "@type": "Question",
-          name: "Does AceStudio publish Shopify products live by default?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. AceStudio creates a Shopify draft first, with live publishing behind a separate confirmation."
-          }
-        },
-        {
-          "@type": "Question",
-          name: "Can each user connect their own Shopify store?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Shopify OAuth saves the connected store for that user workspace, so users do not need to paste admin tokens."
-          }
-        },
-        {
-          "@type": "Question",
-          name: "What does AceStudio generate?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "AceStudio generates product media, Shopify SEO copy, tags, FAQ content, and draft-ready listing details from one product photo."
-          }
-        },
-        {
-          "@type": "Question",
-          name: "Can merchants edit the generated listing?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "Yes. Copy, media review, price, SKU, and inventory fields stay editable before the product is sent to Shopify as a draft."
-          }
-        },
-        {
-          "@type": "Question",
-          name: "Is AceStudio only for one Shopify store?",
-          acceptedAnswer: {
-            "@type": "Answer",
-            text: "No. The app is built around per-user Shopify OAuth connections, so different users can connect different stores."
-          }
-        }
-      ]
     }
   ];
 }
 
-function SeoGeoPoint({
+function SectionShell({
+  eyebrow,
   title,
-  detail
+  intro,
+  children
 }: {
+  eyebrow: string;
   title: string;
-  detail: string;
+  intro?: string;
+  children: React.ReactNode;
 }) {
   return (
-    <div className="border border-line bg-white p-5">
-      <SearchCheck className="h-5 w-5 text-action" aria-hidden />
-      <h3 className="mt-4 text-base font-semibold">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
-    </div>
-  );
-}
-
-function ProductReviewSurface() {
-  const reviewImages = [
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=600&q=80",
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=600&q=80"
-  ] as const;
-  const checks = [
-    "Media order approved",
-    "SEO copy reviewed",
-    "Price and inventory set",
-    "Shopify draft link saved"
-  ];
-
-  return (
-    <div className="border border-line bg-white p-3 shadow-soft">
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.05fr)_260px]">
-        <div className="border border-line bg-canvas p-3">
-          <div className="flex items-center justify-between border-b border-line pb-3">
-            <div>
-              <p className="text-xs font-medium uppercase text-muted">Product review</p>
-              <h3 className="mt-1 text-lg font-semibold">Generated product set</h3>
-            </div>
-            <span className="rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800">
-              Draft safe
-            </span>
-          </div>
-          <div className="mt-3 grid gap-2 sm:grid-cols-4">
-            {["Lifestyle", "Detail", "Intro", "White BG"].map((label, index) => (
-              <div key={label} className="border border-line bg-white p-2">
-                <div className="relative aspect-square overflow-hidden bg-[#f2f5f2]">
-                  {index < 3 ? (
-                    <Image
-                      src={reviewImages[index]!}
-                      alt=""
-                      fill
-                      sizes="(min-width: 1024px) 150px, 45vw"
-                      className="object-cover"
-                    />
-                  ) : (
-                    <div className="grid h-full place-items-center">
-                      <div className="h-16 w-16 rounded-full border border-line bg-white shadow-soft" />
-                    </div>
-                  )}
-                </div>
-                <p className="mt-2 text-xs font-semibold">{label}</p>
-              </div>
-            ))}
-          </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <ReviewField label="SEO title" value="Premium product listing with Shopify-ready copy" />
-            <ReviewField label="Commerce" value="$49.00 · SKU ready · 25 in stock" />
-          </div>
-        </div>
-
-        <div className="border border-line bg-[#f4f7f4] p-4">
-          <div className="flex items-center gap-2">
-            <SearchCheck className="h-5 w-5 text-action" aria-hidden />
-            <h3 className="text-base font-semibold">Publish checklist</h3>
-          </div>
-          <ul className="mt-4 space-y-3">
-            {checks.map((check) => (
-              <li key={check} className="flex gap-2 text-sm text-muted">
-                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-action" aria-hidden />
-                <span>{check}</span>
-              </li>
-            ))}
-          </ul>
-          <div className="mt-5 border-t border-line pt-4">
-            <p className="text-xs font-medium uppercase text-muted">Next action</p>
-            <p className="mt-1 text-sm font-semibold">Create Shopify draft</p>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function DemoScreenshot({
-  title,
-  label,
-  stat,
-  items
-}: {
-  title: string;
-  label: string;
-  stat: string;
-  items: string[];
-}) {
-  return (
-    <div className="overflow-hidden border border-line bg-white shadow-soft">
-      <div className="flex items-center justify-between border-b border-line bg-[#f7faf7] px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-300" />
-          <span className="h-2.5 w-2.5 rounded-full bg-amber-300" />
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-        </div>
-        <span className="text-xs font-semibold text-muted">{label}</span>
-      </div>
-      <div className="grid min-h-80 gap-4 p-4 sm:grid-cols-[160px_1fr]">
-        <aside className="hidden border-r border-line pr-4 text-sm sm:block">
-          <p className="font-semibold">{siteConfig.name}</p>
-          <div className="mt-5 space-y-2 text-xs text-muted">
-            {["Dashboard", "Products", "Billing", "Usage"].map((item, index) => (
-              <div
-                key={item}
-                className={`rounded px-2 py-2 ${index === 1 ? "bg-emerald-50 font-semibold text-action" : ""}`}
-              >
-                {item}
-              </div>
-            ))}
-          </div>
-        </aside>
+    <section className="landing-reveal py-14 sm:py-16">
+      <div className="mb-8 grid gap-4 lg:grid-cols-[360px_minmax(0,1fr)] lg:items-end">
         <div>
-          <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-start">
-            <div>
-              <p className="text-xs font-medium uppercase text-muted">{label}</p>
-              <h3 className="mt-1 text-xl font-semibold">{title}</h3>
-            </div>
-            <span className="rounded bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
-              {stat}
-            </span>
-          </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <div className="aspect-[4/3] border border-line bg-[#eef4ef] p-3">
-              <div className="grid h-full place-items-center border border-dashed border-[#b7c9c0] bg-white/50">
-                <ImagePlus className="h-8 w-8 text-action" aria-hidden />
-              </div>
-            </div>
-            <div className="space-y-3">
-              {items.map((item) => (
-                <div key={item} className="flex items-center gap-2 border border-line bg-canvas p-3 text-sm">
-                  <CheckCircle2 className="h-4 w-4 text-action" aria-hidden />
-                  <span>{item}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="mt-5 h-10 rounded bg-action px-4 py-2 text-center text-sm font-semibold text-white">
-            Continue workflow
-          </div>
+          <p className="text-sm font-semibold text-action">{eyebrow}</p>
+          <h2 className="mt-3 max-w-4xl text-4xl font-semibold leading-tight tracking-tight sm:text-5xl">
+            {title}
+          </h2>
         </div>
+        {intro ? <p className="max-w-2xl text-sm leading-6 text-muted lg:justify-self-end">{intro}</p> : null}
       </div>
-    </div>
+      {children}
+    </section>
   );
 }
 
-function ReviewField({ label, value }: { label: string; value: string }) {
+function HeroTerminal() {
   return (
-    <div className="border border-line bg-white p-3">
-      <p className="text-xs font-medium uppercase text-muted">{label}</p>
-      <p className="mt-1 text-sm font-semibold">{value}</p>
-    </div>
-  );
-}
-
-function ProofPoint({ value, label }: { value: string; label: string }) {
-  return (
-    <div className="border-l border-line pl-3">
-      <p className="text-2xl font-semibold">{value}</p>
-      <p className="mt-1 text-xs leading-5 text-muted">{label}</p>
-    </div>
-  );
-}
-
-function ComparisonMatrix() {
-  const rows = [
-    ["Image workflow", "Separate tabs and downloads", "Labeled media set in one product"],
-    ["Listing copy", "Manual copy paste", "Editable SEO title, tags, FAQ, and description"],
-    ["Publish safety", "Easy to push live too early", "Draft-first Shopify publishing"],
-    ["Recovery", "Errors handled by screenshots", "Saved jobs, retry paths, and Shopify links"]
-  ];
-
-  return (
-    <div className="border border-line bg-white">
-      <div className="grid border-b border-line bg-canvas text-sm font-semibold sm:grid-cols-[160px_1fr_1fr]">
-        <div className="p-3">Area</div>
-        <div className="border-t border-line p-3 sm:border-l sm:border-t-0">Manual setup</div>
-        <div className="border-t border-line p-3 text-action sm:border-l sm:border-t-0">AceStudio</div>
-      </div>
-      {rows.map(([area, manual, studio]) => (
-        <div key={area} className="grid border-b border-line text-sm last:border-b-0 sm:grid-cols-[160px_1fr_1fr]">
-          <div className="flex items-center gap-2 p-3 font-semibold">
-            <Layers3 className="h-4 w-4 text-action" aria-hidden />
-            {area}
-          </div>
-          <div className="border-t border-line p-3 text-muted sm:border-l sm:border-t-0">{manual}</div>
-          <div className="border-t border-line bg-emerald-50 p-3 font-medium text-[#214238] sm:border-l sm:border-t-0">{studio}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function ProductStudioPreview() {
-  return (
-    <div className="relative">
-      <div className="border border-[#bccdc5] bg-white p-3 shadow-soft">
-        <div className="flex items-center justify-between border-b border-line px-2 pb-3">
+    <div className="landing-reveal landing-reveal-delay relative hero-float">
+      <div className="border border-[#c5d1cb] bg-[#101916] p-3 text-white shadow-soft">
+        <div className="flex items-center justify-between border-b border-white/10 px-2 pb-3">
           <div>
-            <p className="text-xs font-medium uppercase text-muted">Live workflow preview</p>
-            <h2 className="mt-1 text-lg font-semibold">Product draft workspace</h2>
+            <p className="text-xs font-medium uppercase text-white/45">AceStudio live workspace</p>
+            <h2 className="mt-1 text-lg font-semibold">Draft product operating system</h2>
           </div>
-          <span className="rounded bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800">
-            Ready
+          <span className="border border-[#98d7c3]/30 bg-[#18352c] px-2 py-1 text-xs font-semibold text-[#98d7c3]">
+            Connected
           </span>
         </div>
 
-        <div className="grid gap-3 pt-3 sm:grid-cols-[1fr_180px]">
+        <div className="grid gap-3 pt-3 sm:grid-cols-[1fr_190px]">
           <div className="grid grid-cols-2 gap-2">
-            <ProductImage
-              label="Lifestyle"
-              src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80"
-            />
-            <ProductImage
-              label="Detail"
-              src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=800&q=80"
-            />
-            <ProductImage
-              label="Intro"
-              src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80"
-            />
-            <div className="relative min-h-32 border border-line bg-[#f9faf8] p-3">
-              <span className="absolute left-2 top-2 rounded bg-white px-2 py-1 text-xs font-semibold">
+            <PreviewImage label="Lifestyle" src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80" />
+            <PreviewImage label="Detail" src="https://images.unsplash.com/photo-1571781926291-c477ebfd024b?auto=format&fit=crop&w=800&q=80" />
+            <PreviewImage label="Intro" src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80" />
+            <div className="relative min-h-36 border border-white/10 bg-white p-3">
+              <span className="absolute left-2 top-2 bg-[#f4f5f1] px-2 py-1 text-xs font-semibold text-ink">
                 White BG
               </span>
               <div className="grid h-full place-items-center">
@@ -751,26 +376,22 @@ function ProductStudioPreview() {
             </div>
           </div>
 
-          <div className="space-y-3 border border-line bg-canvas p-3">
-            <div>
-              <p className="text-xs font-medium uppercase text-muted">Shopify preview</p>
-              <h3 className="mt-1 text-base font-semibold leading-6">
-                Premium Product Listing
-              </h3>
-              <p className="mt-2 text-xs leading-5 text-muted">
-                SEO title, bullets, tags, price, and inventory are ready for review.
-              </p>
-            </div>
-            <PreviewMetric label="Media" value="4 images" />
-            <PreviewMetric label="Status" value="Draft" />
-            <PreviewMetric label="Store" value="OAuth connected" />
-            <div className="h-9 rounded bg-action px-3 py-2 text-center text-xs font-semibold text-white">
-              Publish as draft
+          <div className="border border-white/10 bg-white/[0.04] p-3">
+            <p className="text-xs font-medium uppercase text-white/45">Shopify draft</p>
+            <h3 className="mt-2 text-base font-semibold leading-6">Premium product listing</h3>
+            <p className="mt-2 text-xs leading-5 text-white/55">
+              Media, SEO copy, price, inventory, and publish status are ready for review.
+            </p>
+            <div className="mt-4 space-y-2">
+              <PreviewMetric label="Media" value="4 images" />
+              <PreviewMetric label="SEO" value="86/100" />
+              <PreviewMetric label="GEO" value="78/100" />
+              <PreviewMetric label="Status" value="Draft" />
             </div>
           </div>
         </div>
 
-        <div className="mt-3 grid gap-2 border-t border-line pt-3 text-xs sm:grid-cols-4">
+        <div className="mt-3 grid gap-px overflow-hidden bg-white/10 text-xs sm:grid-cols-4">
           <PreviewPill label="Lifestyle first" />
           <PreviewPill label="Copy checked" />
           <PreviewPill label="Price set" />
@@ -781,18 +402,17 @@ function ProductStudioPreview() {
   );
 }
 
-function ProductImage({ label, src }: { label: string; src: string }) {
+function PreviewImage({ label, src }: { label: string; src: string }) {
   return (
-    <div className="relative min-h-32 overflow-hidden border border-line bg-white">
+    <div className="relative min-h-36 overflow-hidden border border-white/10 bg-white">
       <Image
         src={src}
         alt=""
         fill
         sizes="(min-width: 1024px) 250px, (min-width: 640px) 45vw, 50vw"
-        className="object-cover"
-        loading="lazy"
+        className="object-cover transition duration-700 hover:scale-105"
       />
-      <span className="absolute left-2 top-2 rounded bg-white/95 px-2 py-1 text-xs font-semibold">
+      <span className="absolute left-2 top-2 bg-white/95 px-2 py-1 text-xs font-semibold text-ink">
         {label}
       </span>
     </div>
@@ -801,81 +421,206 @@ function ProductImage({ label, src }: { label: string; src: string }) {
 
 function PreviewMetric({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex items-center justify-between border-t border-line pt-2">
-      <span className="text-xs text-muted">{label}</span>
-      <span className="text-xs font-semibold">{value}</span>
-    </div>
-  );
-}
-
-function TrustItem({ label }: { label: string }) {
-  return (
-    <span className="inline-flex items-center gap-2 text-sm font-medium text-[#284139]">
-      <CheckCircle2 className="h-4 w-4 text-action" aria-hidden />
-      {label}
-    </span>
-  );
-}
-
-function TrustRow({
-  icon: Icon,
-  title
-}: {
-  icon: LucideIcon;
-  title: string;
-}) {
-  return (
-    <div className="flex items-center gap-3 border border-line bg-white p-3">
-      <span className="flex h-9 w-9 items-center justify-center rounded bg-canvas text-action">
-        <Icon className="h-4 w-4" aria-hidden />
-      </span>
-      <span className="text-sm font-semibold">{title}</span>
+    <div className="flex items-center justify-between border-t border-white/10 pt-2">
+      <span className="text-xs text-white/50">{label}</span>
+      <span className="text-xs font-semibold text-white">{value}</span>
     </div>
   );
 }
 
 function PreviewPill({ label }: { label: string }) {
+  return <span className="bg-white/[0.04] px-2 py-2 text-center text-white/70">{label}</span>;
+}
+
+function ProofMetric({ value, label, detail }: { value: string; label: string; detail: string }) {
   return (
-    <span className="border border-line bg-white px-2 py-1 text-center text-xs font-medium">
-      {label}
-    </span>
+    <div className="group p-5 transition hover:bg-[#f4f5f1]">
+      <p className="text-4xl font-semibold tracking-tight text-ink transition group-hover:-translate-y-0.5">{value}</p>
+      <p className="mt-3 text-sm font-semibold">{label}</p>
+      <p className="mt-1 text-xs leading-5 text-muted">{detail}</p>
+    </div>
+  );
+}
+
+function WorkspacePanel({
+  icon: Icon,
+  title,
+  detail,
+  href,
+  action,
+  items
+}: {
+  icon: LucideIcon;
+  title: string;
+  detail: string;
+  href: string;
+  action: string;
+  items: string[];
+}) {
+  return (
+    <div className="group border-b border-line p-6 transition hover:bg-[#f8faf7] lg:border-b-0 lg:border-r lg:last:border-r-0">
+      <Icon className="h-6 w-6 text-action" aria-hidden />
+      <h3 className="mt-8 text-3xl font-semibold">{title}</h3>
+      <p className="mt-4 max-w-xl text-sm leading-6 text-muted">{detail}</p>
+      <div className="mt-8 grid gap-3 sm:grid-cols-2">
+        {items.map((item) => (
+          <div key={item} className="flex items-center gap-2 border-t border-line pt-3 text-sm">
+            <CheckCircle2 className="h-4 w-4 text-action" aria-hidden />
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+      <Link href={href} className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-action">
+        {action}
+        <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+      </Link>
+    </div>
+  );
+}
+
+function ProductControlSurface() {
+  return (
+    <div className="landing-reveal landing-reveal-delay border border-white/10 bg-white/[0.04] p-3">
+      <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_230px]">
+        <aside className="hidden border border-white/10 bg-[#101916] p-4 lg:block">
+          <p className="text-sm font-semibold">AceStudio</p>
+          <div className="mt-6 space-y-2 text-xs text-white/55">
+            {["Product Studio", "Growth Studio", "Account"].map((item, index) => (
+              <div key={item} className={index === 0 ? "bg-white/10 px-3 py-2 text-white" : "px-3 py-2"}>
+                {item}
+              </div>
+            ))}
+          </div>
+        </aside>
+        <div className="border border-white/10 bg-[#f4f5f1] p-4 text-ink">
+          <div className="flex items-center justify-between border-b border-line pb-3">
+            <div>
+              <p className="text-xs font-semibold uppercase text-muted">Product record</p>
+              <h3 className="mt-1 text-xl font-semibold">Generated listing review</h3>
+            </div>
+            <span className="bg-emerald-50 px-2 py-1 text-xs font-semibold text-emerald-800">Ready</span>
+          </div>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <ControlField label="SEO title" value="Minimal Black Running Shoe for Daily Training" />
+            <ControlField label="Commerce" value="$79.00 · SKU ready · 42 in stock" />
+            <ControlField label="Tags" value="running shoe, black trainer, daily wear" />
+            <ControlField label="Publish mode" value="Shopify draft first" />
+          </div>
+        </div>
+        <div className="border border-white/10 bg-[#101916] p-4">
+          <LineChart className="h-5 w-5 text-[#98d7c3]" aria-hidden />
+          <h3 className="mt-4 text-lg font-semibold">Growth audit</h3>
+          <div className="mt-5 space-y-4">
+            <ScoreLine label="SEO score" value="86" />
+            <ScoreLine label="GEO score" value="78" />
+            <ScoreLine label="Readiness" value="92" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function ControlField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border border-line bg-white p-3">
+      <p className="text-xs font-semibold uppercase text-muted">{label}</p>
+      <p className="mt-2 text-sm font-semibold">{value}</p>
+    </div>
+  );
+}
+
+function ScoreLine({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <div className="flex items-center justify-between text-xs">
+        <span className="text-white/50">{label}</span>
+        <span className="font-semibold">{value}/100</span>
+      </div>
+      <div className="mt-2 h-1.5 bg-white/10">
+        <div className="h-full bg-[#98d7c3]" style={{ width: `${value}%` }} />
+      </div>
+    </div>
   );
 }
 
 function WorkflowStep({
+  number,
   icon: Icon,
   title,
   detail
 }: {
+  number: string;
   icon: LucideIcon;
   title: string;
   detail: string;
 }) {
   return (
-    <div className="border border-line bg-white p-4">
-      <span className="flex h-9 w-9 items-center justify-center rounded bg-canvas text-action">
-        <Icon className="h-4 w-4" aria-hidden />
-      </span>
-      <h3 className="mt-4 text-base font-semibold">{title}</h3>
+    <div className="group border-b border-line bg-white p-5 transition hover:bg-[#f8faf7] md:border-b-0 md:border-r md:last:border-r-0">
+      <div className="flex items-center justify-between">
+        <span className="text-xs font-semibold text-muted">{number}</span>
+        <Icon className="h-5 w-5 text-action transition group-hover:-translate-y-0.5" aria-hidden />
+      </div>
+      <h3 className="mt-10 text-xl font-semibold">{title}</h3>
+      <p className="mt-3 text-sm leading-6 text-muted">{detail}</p>
+    </div>
+  );
+}
+
+function GrowthScorePanel() {
+  return (
+    <div className="border border-line bg-white p-6">
+      <div className="flex items-center gap-3">
+        <BarChart3 className="h-6 w-6 text-action" aria-hidden />
+        <div>
+          <p className="text-xs font-semibold uppercase text-muted">Connected store audit</p>
+          <h3 className="mt-1 text-2xl font-semibold">Lowest scoring products first</h3>
+        </div>
+      </div>
+      <div className="mt-6 space-y-4">
+        <AuditRow title="Black Training Shoe" score="62" issue="Missing buyer Q&A and image context" />
+        <AuditRow title="Daily Crossbody Bag" score="74" issue="Meta description needs search intent" />
+        <AuditRow title="Minimal Desk Lamp" score="81" issue="Comparison context can be stronger" />
+      </div>
+    </div>
+  );
+}
+
+function AuditRow({ title, score, issue }: { title: string; score: string; issue: string }) {
+  return (
+    <div className="grid gap-3 border-t border-line pt-4 sm:grid-cols-[1fr_72px] sm:items-center">
+      <div>
+        <h4 className="text-sm font-semibold">{title}</h4>
+        <p className="mt-1 text-xs text-muted">{issue}</p>
+      </div>
+      <div className="text-left sm:text-right">
+        <p className="text-2xl font-semibold text-action">{score}</p>
+        <p className="text-[11px] uppercase text-muted">score</p>
+      </div>
+    </div>
+  );
+}
+
+function GrowthSignal({ title, detail }: { title: string; detail: string }) {
+  return (
+    <div className="bg-white p-5 transition hover:bg-[#f8faf7]">
+      <SearchCheck className="h-5 w-5 text-action" aria-hidden />
+      <h3 className="mt-5 text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
     </div>
   );
 }
 
-function LandingFeature({
-  icon: Icon,
-  title,
-  detail
-}: {
-  icon: LucideIcon;
-  title: string;
-  detail: string;
-}) {
+function TrustLine({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail: string }) {
   return (
-    <div className="border border-line bg-white p-5">
-      <Icon className="h-5 w-5 text-action" aria-hidden />
-      <h2 className="mt-4 text-lg font-semibold">{title}</h2>
-      <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+    <div className="grid gap-4 py-6 lg:grid-cols-[48px_minmax(0,1fr)]">
+      <div className="flex h-10 w-10 items-center justify-center border border-line bg-[#f4f5f1] text-action">
+        <Icon className="h-5 w-5" aria-hidden />
+      </div>
+      <div>
+        <h3 className="text-lg font-semibold">{title}</h3>
+        <p className="mt-1 text-sm leading-6 text-muted">{detail}</p>
+      </div>
     </div>
   );
 }
@@ -894,10 +639,10 @@ function ResourceCard({
   return (
     <Link
       href={href}
-      className="studio-focus group flex min-h-64 flex-col border border-line bg-white p-5 transition hover:border-action hover:bg-canvas"
+      className="studio-focus group flex min-h-64 flex-col border border-line bg-white p-5 transition hover:-translate-y-1 hover:border-action hover:bg-[#f8faf7]"
     >
       <p className="text-sm font-semibold text-action">{category}</p>
-      <h3 className="mt-3 text-xl font-semibold leading-snug">{title}</h3>
+      <h3 className="mt-4 text-xl font-semibold leading-snug">{title}</h3>
       <p className="mt-3 flex-1 text-sm leading-6 text-muted">{excerpt}</p>
       <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold">
         Read guide
@@ -907,18 +652,9 @@ function ResourceCard({
   );
 }
 
-function PricingPoint({ title, detail }: { title: string; detail: string }) {
-  return (
-    <div className="border border-line bg-canvas p-4">
-      <h3 className="text-base font-semibold">{title}</h3>
-      <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
-    </div>
-  );
-}
-
 function FaqItem({ question, answer }: { question: string; answer: string }) {
   return (
-    <div className="border border-line bg-white p-5">
+    <div className="bg-white p-5">
       <h3 className="text-base font-semibold">{question}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{answer}</p>
     </div>

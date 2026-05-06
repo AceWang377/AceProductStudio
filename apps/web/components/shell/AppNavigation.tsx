@@ -6,7 +6,8 @@ import {
   Coins,
   LogOut,
   SearchCheck,
-  Sparkles
+  Sparkles,
+  UserRound
 } from "lucide-react";
 import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
@@ -66,6 +67,19 @@ export function AppNavigation({
         })}
       </nav>
       <LanguageToggle />
+      <Link
+        href="/account"
+        aria-current={pathname === "/account" ? "page" : undefined}
+        className={`studio-focus hidden h-10 shrink-0 items-center gap-2 rounded px-3 text-sm transition sm:inline-flex ${
+          pathname === "/account"
+            ? "bg-white font-semibold text-ink shadow-sm ring-1 ring-line"
+            : "text-muted hover:bg-white hover:text-ink"
+        }`}
+        title={userEmail ?? t.shell.account}
+      >
+        <UserRound aria-hidden className="h-4 w-4" />
+        <span className="hidden xl:inline">{t.shell.account}</span>
+      </Link>
       <Link
         href="/billing"
         className="studio-focus hidden h-10 shrink-0 items-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold text-ink sm:inline-flex"
