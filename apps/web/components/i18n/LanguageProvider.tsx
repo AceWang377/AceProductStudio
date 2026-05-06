@@ -212,6 +212,26 @@ const phrasePairs = [
   ["Generate images/copy", "生成图片/文案"],
   ["Review listing", "检查商品"],
   ["Publish draft", "发布草稿"],
+  ["Shopify SEO and GEO", "Shopify SEO 和 GEO"],
+  ["View SEO/GEO workflow", "查看 SEO/GEO 流程"],
+  ["SEO/GEO optimizer", "SEO/GEO 优化器"],
+  ["Shopify AI product listings, optimized for search and AI answers.", "面向搜索和 AI 答案优化的 Shopify AI 商品页。"],
+  [
+    "Generate product media, SEO and GEO copy, price-ready listing details, and a reviewable Shopify draft from one product photo.",
+    "用一张商品图生成商品图片、SEO/GEO 文案、价格字段和可审核的 Shopify 草稿。"
+  ],
+  [
+    "Help Shopify products become clearer for Google and AI search.",
+    "让 Shopify 商品更容易被 Google 和 AI 搜索理解。"
+  ],
+  [
+    "The next AceStudio layer turns each product draft into search-ready content: keyword-focused titles, structured FAQs, buyer-intent descriptions, image labels, and answer-friendly product summaries for AI discovery.",
+    "AceStudio 的下一层能力会把商品草稿变成搜索友好的内容：关键词标题、结构化 FAQ、买家意图描述、图片标签和适合 AI 引用的商品摘要。"
+  ],
+  ["Search intent", "搜索意图"],
+  ["AI answer clarity", "AI 答案清晰度"],
+  ["Image context", "图片语义信息"],
+  ["Draft review", "草稿审核"],
   ["Connect store", "连接店铺"],
   ["View connection", "查看连接"],
   ["Upload photo", "上传图片"],

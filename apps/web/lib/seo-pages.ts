@@ -5,6 +5,7 @@ export type SeoPageKey =
   | "shopifyAiProductListingGenerator"
   | "shopifyProductImageGenerator"
   | "shopifySeoProductDescriptionGenerator"
+  | "shopifySeoGeoOptimizer"
   | "aiShopifyDraftPublisher";
 
 export const seoPages = {
@@ -134,6 +135,48 @@ export const seoPages = {
       }
     ]
   },
+  shopifySeoGeoOptimizer: {
+    path: "/shopify-seo-geo-optimizer",
+    eyebrow: "Shopify SEO and GEO optimizer",
+    title: "Shopify SEO and GEO optimizer for AI-ready product pages",
+    description:
+      "AceStudio helps Shopify merchants create product descriptions, FAQs, image context, and draft-ready content designed for Google search and AI answer engines.",
+    primaryCta: "Optimize a Shopify product",
+    benefits: [
+      "Generate product titles, descriptions, tags, and FAQs around buyer search intent.",
+      "Create answer-friendly product facts that are easier for AI search tools to summarize.",
+      "Keep SEO/GEO suggestions connected to generated product images and Shopify draft publishing.",
+      "Review every recommendation before it reaches the Shopify product page."
+    ],
+    sections: [
+      {
+        title: "From product listing to discoverable product page",
+        body: "A Shopify product page should explain what the product is, who it is for, why it is useful, and how it compares. AceStudio turns product attributes into clearer titles, descriptions, tags, FAQs, and structured copy."
+      },
+      {
+        title: "Built for Google and AI answer engines",
+        body: "GEO means making content easier for generative search experiences to understand and cite. AceStudio focuses on concise product facts, use cases, buyer questions, and reviewable copy instead of keyword stuffing."
+      },
+      {
+        title: "Connected to Shopify draft publishing",
+        body: "SEO and GEO work best when it is part of the product workflow. The same workspace can generate images, copy, pricing fields, inventory details, and a Shopify draft that merchants can review."
+      }
+    ],
+    faq: [
+      {
+        question: "What is GEO for Shopify?",
+        answer: "GEO stands for generative engine optimization. For Shopify products, it means writing clear product facts, use cases, comparisons, and FAQs that are easier for AI search tools to understand and summarize."
+      },
+      {
+        question: "Is GEO different from SEO?",
+        answer: "Yes, but they overlap. SEO focuses on traditional search visibility, while GEO focuses on clarity and usefulness for AI-generated answers. Good product pages should support both."
+      },
+      {
+        question: "Does AceStudio guarantee Google ranking?",
+        answer: "No tool can guarantee rankings. AceStudio helps merchants create clearer, more complete, reviewable product content that supports search visibility."
+      }
+    ]
+  },
   aiShopifyDraftPublisher: {
     path: "/ai-shopify-draft-publisher",
     eyebrow: "AI Shopify draft publisher",
@@ -231,8 +274,10 @@ export function getSeoPageStructuredData(key: SeoPageKey) {
       },
       publisher: {
         "@type": "Organization",
-        name: siteConfig.company,
-        url: siteConfig.url
+        name: siteConfig.name,
+        legalName: siteConfig.company,
+        url: siteConfig.url,
+        logo: `${siteConfig.url}/brand/ace-studio-logo.png`
       }
     },
     {

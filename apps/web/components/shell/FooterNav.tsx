@@ -23,6 +23,10 @@ export function FooterNav() {
           href: "/shopify-seo-product-description-generator"
         },
         {
+          label: "SEO/GEO optimizer",
+          href: "/shopify-seo-geo-optimizer"
+        },
+        {
           label: "Draft publisher",
           href: "/ai-shopify-draft-publisher"
         }

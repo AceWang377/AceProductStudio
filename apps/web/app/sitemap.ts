@@ -45,6 +45,11 @@ const publicRoutes = [
     priority: 0.8
   },
   {
+    path: seoPages.shopifySeoGeoOptimizer.path,
+    changeFrequency: "monthly",
+    priority: 0.85
+  },
+  {
     path: seoPages.aiShopifyDraftPublisher.path,
     changeFrequency: "monthly",
     priority: 0.8

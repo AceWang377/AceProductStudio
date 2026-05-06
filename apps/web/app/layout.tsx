@@ -16,16 +16,18 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   applicationName: siteConfig.name,
   title: {
-    default: "AceStudio | AI Shopify Product Listing Generator",
+    default: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
     template: `%s | ${siteConfig.name}`
   },
   description:
-    "Generate Shopify-ready product images, SEO copy, pricing details, inventory fields, and draft product listings from one product photo.",
+    "Generate Shopify-ready product images, SEO and GEO product copy, pricing details, inventory fields, and draft product listings from one product photo.",
   keywords: [
     "AI Shopify product listing generator",
     "Shopify product image generator",
     "AI product description generator",
     "Shopify SEO copy",
+    "Shopify GEO optimization",
+    "generative engine optimization for Shopify",
     "ecommerce product content",
     "Shopify draft publishing"
   ],
@@ -45,9 +47,9 @@ export const metadata: Metadata = {
     canonical: "/"
   },
   openGraph: {
-    title: "AceStudio | AI Shopify Product Listing Generator",
+    title: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
     description:
-      "Create Shopify-ready product media, SEO copy, pricing details, inventory fields, and draft listings from one product photo.",
+      "Create Shopify-ready product media, SEO and GEO copy, pricing details, inventory fields, and draft listings from one product photo.",
     url: siteConfig.url,
     siteName: siteConfig.name,
     type: "website",
@@ -63,9 +65,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AceStudio | AI Shopify Product Listing Generator",
+    title: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
     description:
-      "Generate product images, SEO copy, and Shopify draft listings from one product photo.",
+      "Generate product images, SEO and GEO copy, and Shopify draft listings from one product photo.",
     images: [`${siteConfig.url}/opengraph-image`]
   },
   robots: {

@@ -30,9 +30,9 @@ type HomeSearchParams = Promise<Record<string, string | string[] | undefined>>;
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "AceStudio | AI Shopify Product Listing Generator",
+  title: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
   description:
-    "AceStudio turns one product photo into Shopify-ready generated images, SEO product copy, pricing details, inventory fields, and a draft listing ready for review.",
+    "AceStudio turns one product photo into Shopify-ready generated images, SEO and GEO product copy, pricing details, inventory fields, and a draft listing ready for review.",
   alternates: {
     canonical: "/"
   }
@@ -77,10 +77,10 @@ export default async function HomePage({
               {siteConfig.name}
             </h1>
             <h2 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight text-[#21372f] sm:text-4xl">
-              AI Shopify product listings, reviewed before they publish.
+              AI Shopify product listings, optimized for search and AI answers.
             </h2>
             <p className="mt-5 max-w-2xl text-lg leading-8 text-[#4f5f58]">
-              Generate product media, SEO copy, price-ready listing details, and a reviewable Shopify draft from one product photo.
+              Generate product media, SEO and GEO copy, price-ready listing details, and a reviewable Shopify draft from one product photo.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Link
@@ -187,6 +187,42 @@ export default async function HomePage({
             title="Publish"
             detail="Create a Shopify draft with ordered media and retryable job history."
           />
+        </div>
+      </section>
+
+      <section className="grid gap-8 border-y border-line py-10 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start">
+        <div>
+          <p className="inline-flex items-center gap-2 text-sm font-medium text-action">
+            <SearchCheck className="h-4 w-4" aria-hidden />
+            Shopify SEO and GEO
+          </p>
+          <h2 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight">
+            Help Shopify products become clearer for Google and AI search.
+          </h2>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-muted">
+            The next AceStudio layer turns each product draft into search-ready content: keyword-focused titles, structured FAQs, buyer-intent descriptions, image labels, and answer-friendly product summaries for AI discovery.
+          </p>
+          <div className="mt-5 flex flex-wrap gap-3">
+            <Link
+              href="/shopify-seo-geo-optimizer"
+              className="studio-focus inline-flex h-11 items-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
+            >
+              View SEO/GEO workflow
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <Link
+              href="/shopify-seo-product-description-generator"
+              className="studio-focus inline-flex h-11 items-center rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+            >
+              SEO copy generator
+            </Link>
+          </div>
+        </div>
+        <div className="grid gap-3 sm:grid-cols-2">
+          <SeoGeoPoint title="Search intent" detail="Turn product attributes into titles, tags, FAQs, and descriptions matched to what buyers search." />
+          <SeoGeoPoint title="AI answer clarity" detail="Write concise product facts, use cases, comparisons, and FAQs that are easier for AI search tools to summarize." />
+          <SeoGeoPoint title="Image context" detail="Prepare media labels and alt-text style guidance so generated product images support the listing." />
+          <SeoGeoPoint title="Draft review" detail="Keep all SEO/GEO suggestions editable before they are sent to the Shopify product draft." />
         </div>
       </section>
 
@@ -311,6 +347,10 @@ export default async function HomePage({
             answer="The failed job is saved with the error, retry path, product link, and CSV export for support."
           />
           <FaqItem
+            question="Can it help with Shopify GEO?"
+            answer="Yes. The product direction now includes answer-friendly descriptions, product facts, FAQs, and structured content that can support discovery in AI search experiences."
+          />
+          <FaqItem
             question="What does one credit pay for?"
             answer="Credits are designed around usage events such as image generation and future paid workflows. Stripe can be enabled later without changing the listing workflow."
           />
@@ -361,13 +401,35 @@ function getHomeStructuredData() {
   return [
     {
       "@context": "https://schema.org",
+      "@type": "WebSite",
+      name: siteConfig.name,
+      url: siteConfig.url,
+      description:
+        "AceStudio is a Shopify AI product workspace for product images, SEO copy, GEO-ready product content, and draft publishing.",
+      inLanguage: "en"
+    },
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      name: siteConfig.name,
+      legalName: siteConfig.company,
+      url: siteConfig.url,
+      logo: `${siteConfig.url}/brand/ace-studio-logo.png`,
+      contactPoint: {
+        "@type": "ContactPoint",
+        email: siteConfig.supportEmail,
+        contactType: "customer support"
+      }
+    },
+    {
+      "@context": "https://schema.org",
       "@type": "SoftwareApplication",
       name: siteConfig.name,
       applicationCategory: "BusinessApplication",
       operatingSystem: "Web",
       url: siteConfig.url,
       description:
-        "AI product content workspace for Shopify merchants to generate product images, SEO copy, pricing details, inventory fields, and draft listings.",
+        "AI product content workspace for Shopify merchants to generate product images, SEO and GEO copy, pricing details, inventory fields, and draft listings.",
       offers: {
         "@type": "Offer",
         price: "0",
@@ -377,6 +439,7 @@ function getHomeStructuredData() {
       featureList: [
         "AI product image generation",
         "Shopify SEO product copy generation",
+        "Shopify GEO product content guidance",
         "Shopify OAuth store connection",
         "Draft-first Shopify product publishing",
         "Credit usage history"
@@ -439,6 +502,22 @@ function getHomeStructuredData() {
       ]
     }
   ];
+}
+
+function SeoGeoPoint({
+  title,
+  detail
+}: {
+  title: string;
+  detail: string;
+}) {
+  return (
+    <div className="border border-line bg-white p-5">
+      <SearchCheck className="h-5 w-5 text-action" aria-hidden />
+      <h3 className="mt-4 text-base font-semibold">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+    </div>
+  );
 }
 
 function ProductReviewSurface() {
