@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import {
   COPY_GENERATION_CREDIT_COST,
+  GROWTH_APPLY_CREDIT_COST,
+  GROWTH_AUDIT_CREDIT_COST,
   IMAGE_GENERATION_CREDIT_COST,
   getCreditAccount
 } from "@/lib/credits";
@@ -14,7 +16,9 @@ export async function GET() {
     isUnlimited: Boolean(account.isUnlimited),
     costs: {
       image: IMAGE_GENERATION_CREDIT_COST,
-      copy: COPY_GENERATION_CREDIT_COST
+      copy: COPY_GENERATION_CREDIT_COST,
+      growthAudit: GROWTH_AUDIT_CREDIT_COST,
+      growthApply: GROWTH_APPLY_CREDIT_COST
     }
   });
 }

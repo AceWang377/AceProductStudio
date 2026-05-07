@@ -24,10 +24,11 @@ export type ReadinessGroup = {
 };
 
 const VERCEL_ENV_URL = "https://vercel.com/dashboard";
-const MIGRATION_FILE_PATH = "apps/web/supabase/migrations/001_app_state.sql";
+const MIGRATION_FILE_PATH = "apps/web/supabase/migrations/*.sql";
 const MIGRATION_SOURCE_URL =
-  "https://github.com/AceWang377/AceProductStudio/blob/main/apps/web/supabase/migrations/001_app_state.sql";
+  "https://github.com/AceWang377/AceProductStudio/tree/main/apps/web/supabase/migrations";
 const STRIPE_DASHBOARD_URL = "https://dashboard.stripe.com/";
+const GOOGLE_SEARCH_CONSOLE_URL = "https://search.google.com/search-console";
 
 function hasEnv(name: string) {
   return Boolean(process.env[name]?.trim());
@@ -161,7 +162,8 @@ async function getDatabaseChecks(): Promise<ReadinessCheck[]> {
     checkTable("jobs", "id,input,output,result,error,progress"),
     checkTable("credit_accounts", "user_id,balance"),
     checkTable("credit_ledger", "id,amount,reason,stripe_payment_id"),
-    checkTable("rate_limits", "id,action_key,window_start,count")
+    checkTable("rate_limits", "id,action_key,window_start,count"),
+    checkTable("growth_monitor_runs", "id,run_type,status,target_url,input,output,error")
   ]);
 }
 
@@ -386,6 +388,69 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
     }
   ];
 
+  const growthChecks: ReadinessCheck[] = [
+    {
+      label: "Schema and rich snippets",
+      status: "ready",
+      detail: "Growth Studio scores Product schema, FAQ schema, and review schema readiness from product data.",
+      action: "Use /growth after connecting Shopify to review per-product schema readiness."
+    },
+    {
+      label: "Image SEO depth",
+      status: "ready",
+      detail: "Growth Studio checks alt text, image count, filename quality, dimensions, compression readiness, and media order.",
+      action: "Run the Growth Studio audit after product media generation."
+    },
+    {
+      label: "Technical SEO checks",
+      status: "ready",
+      detail: "Growth Monitor can crawl the target site for broken internal links, redirect chains, canonical host consistency, robots.txt, and sitemap.xml.",
+      action: "Run the live monitor in /growth after each important SEO release.",
+      actionHref: "/growth",
+      actionLabel: "Open Growth Studio"
+    },
+    {
+      label: "Google Search Console",
+      status: hasAnyEnv([
+        "GOOGLE_SEARCH_CONSOLE_SITE_URL",
+        "GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL",
+        "GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY"
+      ])
+        ? "warning"
+        : "missing",
+      detail: hasAnyEnv([
+        "GOOGLE_SEARCH_CONSOLE_SITE_URL",
+        "GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL",
+        "GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY"
+      ])
+        ? "Search Console env vars are present or partially present. Growth Monitor reads clicks, impressions, CTR, position, top queries, and submitted sitemaps when all three are valid."
+        : "Search Console is not connected yet, so Growth Monitor cannot read impressions, clicks, CTR, query, or sitemap data.",
+      action: "Add GOOGLE_SEARCH_CONSOLE_SITE_URL, GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL, and GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY in Vercel.",
+      actionHref: GOOGLE_SEARCH_CONSOLE_URL,
+      actionLabel: "Open Search Console"
+    },
+    {
+      label: "AI visibility tracking",
+      status: hasAnyEnv(["GOOGLE_CUSTOM_SEARCH_API_KEY", "GOOGLE_CUSTOM_SEARCH_ENGINE_ID"]) ? "ready" : "warning",
+      detail: hasAnyEnv(["GOOGLE_CUSTOM_SEARCH_API_KEY", "GOOGLE_CUSTOM_SEARCH_ENGINE_ID"])
+        ? "AI visibility proxy monitoring can query Google Programmable Search for brand and product visibility."
+        : "AI visibility is scored from page readiness now. Add Google Programmable Search credentials for scheduled visibility checks.",
+      action: "Use visibility gaps to prioritize FAQ, facts, comparisons, and trust content.",
+      actionHref: "/growth",
+      actionLabel: "Open Growth Studio"
+    },
+    {
+      label: "Growth monitor cron",
+      status: hasEnv("CRON_SECRET") ? "ready" : "warning",
+      detail: hasEnv("CRON_SECRET")
+        ? "The Vercel Cron route is protected and can run the daily Growth Monitor."
+        : "The daily Growth Monitor route exists, but CRON_SECRET is not configured.",
+      action: hasEnv("CRON_SECRET") ? "No action needed" : "Add CRON_SECRET in Vercel Environment Variables.",
+      actionHref: hasEnv("CRON_SECRET") ? undefined : VERCEL_ENV_URL,
+      actionLabel: hasEnv("CRON_SECRET") ? undefined : "Open env settings"
+    }
+  ];
+
   return [
     {
       title: "Core app",
@@ -411,6 +476,11 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       title: "Credits and billing",
       description: "Usage limits, admin bypass, and future paid credit packs.",
       checks: billingChecks
+    },
+    {
+      title: "Growth SEO and GEO",
+      description: "Technical SEO, rich snippets, Search Console, and AI visibility readiness.",
+      checks: growthChecks
     },
     {
       title: "Monitoring and support",

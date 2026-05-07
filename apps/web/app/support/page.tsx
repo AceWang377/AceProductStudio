@@ -5,7 +5,10 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Support | ${siteConfig.name}`,
-  description: "Support for AceStudio"
+  description: "Support for AceStudio",
+  alternates: {
+    canonical: "/support"
+  }
 };
 
 const helpItems = [

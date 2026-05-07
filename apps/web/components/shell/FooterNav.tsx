@@ -8,55 +8,55 @@ export function FooterNav() {
 
   const groups = [
     {
-      title: "Product",
+      title: t.footer.product,
       links: [
         {
-          label: "Product listing generator",
+          label: t.footer.productStudio,
           href: "/shopify-ai-product-listing-generator"
         },
         {
-          label: "Image generator",
-          href: "/shopify-product-image-generator"
-        },
-        {
-          label: "SEO copy",
-          href: "/shopify-seo-product-description-generator"
-        },
-        {
-          label: "SEO/GEO optimizer",
-          href: "/shopify-seo-geo-optimizer"
-        },
-        {
-          label: "Draft publisher",
+          label: t.footer.draftPublisher,
           href: "/ai-shopify-draft-publisher"
         }
       ]
     },
     {
-      title: "Resources",
+      title: t.footer.growth,
       links: [
         {
-          label: "Resources",
+          label: t.footer.seoGeoOptimizer,
+          href: "/shopify-seo-geo-optimizer"
+        },
+        {
+          label: t.footer.seoCopy,
+          href: "/shopify-seo-product-description-generator"
+        },
+        {
+          label: t.footer.imageSeo,
+          href: "/shopify-product-image-generator"
+        }
+      ]
+    },
+    {
+      title: t.footer.resources,
+      links: [
+        {
+          label: t.footer.guides,
           href: "/resources"
         },
         {
-          label: "Shopify AI checklist",
+          label: t.footer.shopifyAiChecklist,
           href: "/resources/shopify-ai-product-listing-checklist"
         }
       ]
     },
     {
-      title: "Support",
+      title: t.footer.company,
       links: [
         {
           label: t.shell.support,
           href: "/support"
-        }
-      ]
-    },
-    {
-      title: "Legal",
-      links: [
+        },
         {
           label: t.shell.privacy,
           href: "/privacy"

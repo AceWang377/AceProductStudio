@@ -2,6 +2,7 @@
 
 import { FormEvent, useState } from "react";
 import { CheckCircle2, CircleAlert, Loader2, LockKeyhole, Mail } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 import type { AuthStatusType } from "@/lib/auth-messages";
 import { createClient } from "@/utils/supabase/client";
 
@@ -22,6 +23,8 @@ export function LoginForm({
   const [isSendingLink, setIsSendingLink] = useState(false);
   const [isSubmittingPassword, setIsSubmittingPassword] = useState(false);
   const [isStartingGoogle, setIsStartingGoogle] = useState(false);
+  const { t } = useLanguage();
+  const copy = t.auth.login.form;
 
   function getAuthRedirectUrl() {
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || window.location.origin).replace(/\/$/, "");
@@ -81,10 +84,10 @@ export function LoginForm({
       window.location.assign(nextPath);
       return;
     } else if (authMode === "signup") {
-      setStatus("Account created. Confirm your email if Supabase asks for verification, then sign in.");
+      setStatus(copy.accountCreated);
       setStatusType("success");
     } else {
-      setStatus("Signed in. Redirecting...");
+      setStatus(copy.signedIn);
       setStatusType("success");
       window.location.assign(nextPath);
       return;
@@ -110,7 +113,7 @@ export function LoginForm({
       setStatus(error.message);
       setStatusType("error");
     } else {
-      setStatus("Sign-in link sent. Open the email on this device to continue.");
+      setStatus(copy.signInLinkSent);
       setStatusType("success");
     }
 
@@ -126,10 +129,8 @@ export function LoginForm({
           <LockKeyhole className="h-5 w-5" aria-hidden />
         </div>
         <div>
-          <h2 className="text-xl font-semibold">Sign in</h2>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            Continue with Google, email and password, or a backup magic link.
-          </p>
+          <h2 className="text-xl font-semibold">{copy.title}</h2>
+          <p className="mt-1 text-sm leading-6 text-muted">{copy.description}</p>
         </div>
       </div>
 
@@ -142,21 +143,21 @@ export function LoginForm({
         {isStartingGoogle ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            Opening Google...
+            {copy.openingGoogle}
           </>
         ) : (
           <>
             <span className="grid h-5 w-5 place-items-center rounded-full border border-line text-xs font-bold">
               G
             </span>
-            Continue with Google
+            {copy.google}
           </>
         )}
       </button>
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted">
         <span className="h-px flex-1 bg-line" />
-        <span>Email account</span>
+        <span>{copy.emailAccount}</span>
         <span className="h-px flex-1 bg-line" />
       </div>
 
@@ -168,7 +169,7 @@ export function LoginForm({
             authMode === "signin" ? "bg-white text-ink shadow-sm" : "text-muted"
           }`}
         >
-          Sign in
+          {copy.signIn}
         </button>
         <button
           type="button"
@@ -177,18 +178,18 @@ export function LoginForm({
             authMode === "signup" ? "bg-white text-ink shadow-sm" : "text-muted"
           }`}
         >
-          Create account
+          {copy.createAccount}
         </button>
       </div>
 
       <form onSubmit={onPasswordSubmit} className="mt-4 space-y-4">
         <label className="block">
-          <span className="text-sm font-medium">Email address</span>
+          <span className="text-sm font-medium">{copy.emailAddress}</span>
           <input
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             className="studio-focus mt-2 h-11 w-full rounded border border-line px-3 disabled:bg-canvas disabled:text-muted"
-            placeholder="you@example.com"
+            placeholder={copy.emailPlaceholder}
             type="email"
             autoComplete="email"
             disabled={busy}
@@ -196,12 +197,12 @@ export function LoginForm({
           />
         </label>
         <label className="block">
-          <span className="text-sm font-medium">Password</span>
+          <span className="text-sm font-medium">{copy.password}</span>
           <input
             value={password}
             onChange={(event) => setPassword(event.target.value)}
             className="studio-focus mt-2 h-11 w-full rounded border border-line px-3 disabled:bg-canvas disabled:text-muted"
-            placeholder="At least 8 characters"
+            placeholder={copy.passwordPlaceholder}
             type="password"
             autoComplete={authMode === "signup" ? "new-password" : "current-password"}
             minLength={8}
@@ -217,12 +218,12 @@ export function LoginForm({
           {isSubmittingPassword ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              {authMode === "signup" ? "Creating account..." : "Signing in..."}
+              {authMode === "signup" ? copy.creatingAccount : copy.signingIn}
             </>
           ) : authMode === "signup" ? (
-            "Create account"
+            copy.createAccount
           ) : (
-            "Sign in with password"
+            copy.signInWithPassword
           )}
         </button>
       </form>
@@ -230,11 +231,9 @@ export function LoginForm({
       <form onSubmit={onMagicLinkSubmit} className="mt-4 border-t border-line pt-4">
         <p className="flex items-center gap-2 text-sm font-semibold">
           <Mail className="h-4 w-4 text-action" aria-hidden />
-          Backup magic link
+          {copy.backupMagicLink}
         </p>
-        <p className="mt-1 text-xs leading-5 text-muted">
-          Use this if you forgot your password or cannot use Google.
-        </p>
+        <p className="mt-1 text-xs leading-5 text-muted">{copy.backupMagicLinkHelp}</p>
         <button
           type="submit"
           disabled={busy || !email}
@@ -243,10 +242,10 @@ export function LoginForm({
           {isSendingLink ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-              Sending link...
+              {copy.sendingLink}
             </>
           ) : (
-            "Send magic link"
+            copy.sendMagicLink
           )}
         </button>
       </form>

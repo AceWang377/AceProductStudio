@@ -140,26 +140,64 @@ export const seoPages = {
     eyebrow: "Shopify SEO and GEO optimizer",
     title: "Shopify SEO and GEO optimizer for AI-ready product pages",
     description:
-      "AceStudio helps Shopify merchants create product descriptions, FAQs, image context, and draft-ready content designed for Google search and AI answer engines.",
+      "AceStudio audits Shopify product pages for search basics, AI-answer clarity, media context, and trust signals, then lets merchants approve selected improvements before writing back.",
     primaryCta: "Optimize a Shopify product",
     benefits: [
-      "Generate product titles, descriptions, tags, and FAQs around buyer search intent.",
-      "Create answer-friendly product facts that are easier for AI search tools to summarize.",
-      "Keep SEO/GEO suggestions connected to generated product images and Shopify draft publishing.",
-      "Review every recommendation before it reaches the Shopify product page."
+      "Score product title, SEO title, meta description, tags, and description depth.",
+      "Find missing buyer Q&A, use cases, product facts, comparison context, and trust signals.",
+      "Review generated fixes for SEO copy, FAQ blocks, tags, and answer-friendly product details.",
+      "Write approved improvements back to Shopify only after merchant confirmation."
     ],
     sections: [
       {
-        title: "From product listing to discoverable product page",
-        body: "A Shopify product page should explain what the product is, who it is for, why it is useful, and how it compares. AceStudio turns product attributes into clearer titles, descriptions, tags, FAQs, and structured copy."
+        title: "From product creation to product optimization",
+        body: "AceStudio starts with the product workflow, then uses Growth Studio to audit the finished product page. This keeps optimization tied to the real listing instead of becoming a separate SEO checklist."
       },
       {
         title: "Built for Google and AI answer engines",
-        body: "GEO means making content easier for generative search experiences to understand and cite. AceStudio focuses on concise product facts, use cases, buyer questions, and reviewable copy instead of keyword stuffing."
+        body: "The audit checks traditional search fields and GEO content: product facts, buyer questions, use cases, comparisons, and clear claims that AI tools can understand without keyword stuffing."
       },
       {
-        title: "Connected to Shopify draft publishing",
-        body: "SEO and GEO work best when it is part of the product workflow. The same workspace can generate images, copy, pricing fields, inventory details, and a Shopify draft that merchants can review."
+        title: "Review before Shopify changes",
+        body: "Similar tools often automate metadata, alt text, schema, and product content. AceStudio keeps the safer workflow: preview suggested changes first, then confirm selected updates before Shopify is touched."
+      }
+    ],
+    optimizationAreas: [
+      {
+        title: "Search snippet quality",
+        body: "Traditional Shopify SEO still starts with fields Google can show in search results.",
+        checks: [
+          "SEO title length and clarity",
+          "Meta description usefulness",
+          "Product tags and buyer keywords"
+        ]
+      },
+      {
+        title: "Product page depth",
+        body: "Thin product pages are hard for shoppers, Google, and AI assistants to understand.",
+        checks: [
+          "Description depth and product facts",
+          "Materials, fit, compatibility, or care details",
+          "Comparison and use-case context"
+        ]
+      },
+      {
+        title: "Answer-ready content",
+        body: "GEO needs direct blocks that answer common shopper questions clearly.",
+        checks: [
+          "Buyer Q&A and FAQ sections",
+          "Audience and purchase intent",
+          "Trust signals such as shipping, returns, and support"
+        ]
+      },
+      {
+        title: "Media and technical signals",
+        body: "Shopify SEO tools commonly improve images, structured data, and crawlability.",
+        checks: [
+          "Image alt text and media labels",
+          "Structured data readiness",
+          "Future checks for broken links and sitemap/indexing health"
+        ]
       }
     ],
     faq: [
@@ -228,6 +266,11 @@ export const seoPages = {
     description: string;
     primaryCta: string;
     benefits: string[];
+    optimizationAreas?: Array<{
+      title: string;
+      body: string;
+      checks: string[];
+    }>;
     sections: Array<{ title: string; body: string }>;
     faq: Array<{ question: string; answer: string }>;
   }

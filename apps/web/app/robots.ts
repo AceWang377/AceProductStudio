@@ -18,6 +18,7 @@ export default function robots(): MetadataRoute.Robots {
           seoPages.shopifyAiProductListingGenerator.path,
           seoPages.shopifyProductImageGenerator.path,
           seoPages.shopifySeoProductDescriptionGenerator.path,
+          seoPages.shopifySeoGeoOptimizer.path,
           seoPages.aiShopifyDraftPublisher.path,
           "/resources",
           ...seoResourceList.map((article) => `/resources/${article.slug}`)

@@ -43,9 +43,6 @@ export const metadata: Metadata = {
       { url: "/apple-icon.png", sizes: "180x180", type: "image/png" }
     ]
   },
-  alternates: {
-    canonical: "/"
-  },
   openGraph: {
     title: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
     description:

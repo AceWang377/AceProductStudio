@@ -5,9 +5,11 @@ import { CheckCircle2, CircleAlert, Loader2, WandSparkles } from "lucide-react";
 
 export function GrowthApplyButton({
   productId,
+  creditCost,
   disabled = false
 }: {
   productId: string;
+  creditCost?: number;
   disabled?: boolean;
 }) {
   const [status, setStatus] = useState<"idle" | "confirm" | "applying" | "applied" | "error">("idle");
@@ -21,7 +23,10 @@ export function GrowthApplyButton({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ productId, confirmed: true })
     });
-    const payload = (await response.json().catch(() => ({}))) as { error?: string };
+    const payload = (await response.json().catch(() => ({}))) as {
+      error?: string;
+      credits?: { spent?: number; balance?: number; isUnlimited?: boolean };
+    };
 
     if (!response.ok) {
       setStatus("error");
@@ -30,7 +35,12 @@ export function GrowthApplyButton({
     }
 
     setStatus("applied");
-    setMessage("SEO/GEO fixes were written to Shopify. Re-run the audit after Shopify refreshes.");
+    const creditNote = payload.credits?.isUnlimited
+      ? "Admin account was not charged."
+      : typeof payload.credits?.spent === "number"
+        ? `Spent ${payload.credits.spent} credits. Balance: ${payload.credits.balance}.`
+        : "";
+    setMessage(`SEO/GEO fixes were written to Shopify. ${creditNote}`.trim());
   }
 
   if (status === "confirm") {
@@ -38,6 +48,7 @@ export function GrowthApplyButton({
       <div className="space-y-2">
         <p className="text-xs leading-5 text-muted">
           This will update SEO title, meta description, tags, and append a buyer Q&A section in Shopify.
+          {typeof creditCost === "number" ? ` This action costs ${creditCost} credits.` : ""}
         </p>
         <div className="grid grid-cols-2 gap-2">
           <button
@@ -80,7 +91,7 @@ export function GrowthApplyButton({
         ) : (
           <>
             <WandSparkles className="h-4 w-4" aria-hidden />
-            Apply SEO/GEO fixes
+            Apply SEO/GEO fixes{typeof creditCost === "number" ? ` (${creditCost})` : ""}
           </>
         )}
       </button>

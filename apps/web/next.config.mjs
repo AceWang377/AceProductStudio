@@ -1,5 +1,20 @@
 import path from "node:path";
 
+const privateNoIndexPaths = [
+  "/account",
+  "/admin",
+  "/api",
+  "/auth",
+  "/billing",
+  "/dashboard",
+  "/growth",
+  "/launch",
+  "/login",
+  "/products",
+  "/settings",
+  "/usage"
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   async redirects() {
@@ -14,8 +29,32 @@ const nextConfig = {
         ],
         destination: "https://acezerotrading.com/:path*",
         permanent: true
+      },
+      {
+        source: "/:path*",
+        has: [
+          {
+            type: "host",
+            value: "ace-product-studio.vercel.app"
+          }
+        ],
+        destination: "https://acezerotrading.com/:path*",
+        permanent: true
       }
     ];
+  },
+  async headers() {
+    return privateNoIndexPaths.flatMap((source) =>
+      [source, `${source}/:path*`].map((pathSource) => ({
+        source: pathSource,
+        headers: [
+          {
+            key: "X-Robots-Tag",
+            value: "noindex, nofollow"
+          }
+        ]
+      }))
+    );
   },
   images: {
     remotePatterns: [

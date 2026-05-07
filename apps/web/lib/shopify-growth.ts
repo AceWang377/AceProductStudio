@@ -1,5 +1,10 @@
 import "server-only";
-import { buildGrowthSuggestedFix, scoreGrowthProduct, type GrowthAuditProduct } from "@/lib/growth-audit";
+import {
+  buildGrowthSuggestedFix,
+  isLiveShopifyProduct,
+  scoreGrowthProduct,
+  type GrowthAuditProduct
+} from "@/lib/growth-audit";
 import type { ShopifyConnection } from "@/lib/types";
 
 const SHOPIFY_API_VERSION = "2026-04";
@@ -23,8 +28,10 @@ type ShopifyProductPayload = {
       description?: string | null;
     } | null;
     images?: {
-      nodes: Array<{ altText?: string | null }>;
+      nodes: Array<{ url?: string; altText?: string | null; width?: number | null; height?: number | null }>;
     };
+    onlineStoreUrl?: string | null;
+    publishedAt?: string | null;
   } | null;
 };
 
@@ -112,6 +119,7 @@ export async function applyGrowthFixToShopify({
           title
           handle
           status
+          publishedAt
           descriptionHtml
           productType
           tags
@@ -121,9 +129,13 @@ export async function applyGrowthFixToShopify({
           }
           images(first: 8) {
             nodes {
+              url
               altText
+              width
+              height
             }
           }
+          onlineStoreUrl
         }
       }
     `,
@@ -132,6 +144,15 @@ export async function applyGrowthFixToShopify({
 
   const product = data?.product;
   if (!product) throw new Error("Shopify product was not found.");
+  if (
+    !isLiveShopifyProduct({
+      status: product.status,
+      onlineStoreUrl: product.onlineStoreUrl || undefined,
+      publishedAt: product.publishedAt
+    })
+  ) {
+    throw new Error("Growth Studio only applies SEO/GEO fixes to live, listed Shopify products.");
+  }
 
   const auditProduct: GrowthAuditProduct = {
     id: product.id,
@@ -144,8 +165,16 @@ export async function applyGrowthFixToShopify({
     descriptionText: stripHtml(product.descriptionHtml),
     seoTitle: product.seo?.title || product.title,
     seoDescription: product.seo?.description || "",
+    onlineStoreUrl: product.onlineStoreUrl || undefined,
+    publishedAt: product.publishedAt ?? null,
     imageCount: product.images?.nodes.length ?? 0,
     imagesWithAlt: product.images?.nodes.filter((image) => Boolean(image.altText?.trim())).length ?? 0,
+    images: product.images?.nodes.map((image) => ({
+      url: image.url,
+      altText: image.altText,
+      width: image.width,
+      height: image.height
+    })) ?? [],
     faqCount: countFaq(product.descriptionHtml)
   };
   const beforeScore = scoreGrowthProduct(auditProduct);

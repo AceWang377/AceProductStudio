@@ -5,7 +5,10 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Refund Policy | ${siteConfig.name}`,
-  description: "Refund policy for AceStudio"
+  description: "Refund policy for AceStudio",
+  alternates: {
+    canonical: "/refund"
+  }
 };
 
 export default function RefundPage() {

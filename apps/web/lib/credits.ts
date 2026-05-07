@@ -9,6 +9,8 @@ import {
 export const TRIAL_CREDITS = 20;
 export const IMAGE_GENERATION_CREDIT_COST = 1;
 export const COPY_GENERATION_CREDIT_COST = 0;
+export const GROWTH_AUDIT_CREDIT_COST = 1;
+export const GROWTH_APPLY_CREDIT_COST = 3;
 
 export type CreditAccount = {
   balance: number;

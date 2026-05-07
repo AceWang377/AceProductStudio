@@ -18,7 +18,7 @@ export default function ShopifySeoGeoOptimizerPage() {
         suppressHydrationWarning
         dangerouslySetInnerHTML={{ __html: JSON.stringify(getSeoPageStructuredData(pageKey)) }}
       />
-      <SeoLandingPage {...page} />
+      <SeoLandingPage {...page} translationKey="shopifySeoGeoOptimizer" />
     </>
   );
 }

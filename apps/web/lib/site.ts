@@ -13,7 +13,20 @@ function getPublicSiteUrl() {
     !configuredUrl.includes("localhost") &&
     !configuredUrl.includes("127.0.0.1")
   ) {
-    return configuredUrl.replace(/\/$/, "");
+    try {
+      const url = new URL(configuredUrl);
+      const hostname = url.hostname.replace(/^www\./, "");
+      if (hostname === "acezerotrading.com") return "https://acezerotrading.com";
+      if (hostname.endsWith(".vercel.app")) return "https://acezerotrading.com";
+      url.protocol = "https:";
+      url.hostname = hostname;
+      url.pathname = "";
+      url.search = "";
+      url.hash = "";
+      return url.toString().replace(/\/$/, "");
+    } catch {
+      return "https://acezerotrading.com";
+    }
   }
 
   return "https://acezerotrading.com";
