@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:smoke": "node scripts/smoke-test.mjs",
+    "test:qa-suite": "node scripts/qa-suite-check.mjs"
   },
   "dependencies": {
     "@ai-product-studio/ai": "*",

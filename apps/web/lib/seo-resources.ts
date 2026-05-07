@@ -8,7 +8,11 @@ export type SeoResourceSlug =
   | "shopify-product-draft-workflow"
   | "shopify-ai-product-listing-checklist"
   | "best-ai-product-photo-workflow-for-shopify"
-  | "shopify-ai-publishing-mistakes-to-avoid";
+  | "shopify-ai-publishing-mistakes-to-avoid"
+  | "getting-started-with-acestudio"
+  | "connect-shopify-store-to-acestudio"
+  | "acestudio-credit-pricing-faq"
+  | "shopify-seo-geo-scoring-explained";
 
 export const seoResources = {
   "how-to-write-shopify-product-descriptions-with-ai": {
@@ -296,6 +300,198 @@ export const seoResources = {
       {
         question: "How can stores avoid publishing to the wrong Shopify shop?",
         answer: "Show the connected store clearly and save each Shopify OAuth connection per user or workspace."
+      }
+    ]
+  },
+  "getting-started-with-acestudio": {
+    slug: "getting-started-with-acestudio",
+    title: "Getting started with AceStudio",
+    description:
+      "A first-run guide for creating a Shopify product draft with AceStudio: connect Shopify, upload a product photo, generate media and copy, review, then publish a draft.",
+    excerpt:
+      "Follow the core AceStudio onboarding workflow from first login to first Shopify draft.",
+    category: "Getting started",
+    readingTime: "5 min read",
+    publishedAt: "2026-05-07",
+    updatedAt: "2026-05-07",
+    relatedPath: "/dashboard",
+    sections: [
+      {
+        title: "Connect Shopify first",
+        body: "Start in the Shopify settings page and connect the store you want to publish into. OAuth saves the store connection to your account so you do not need to paste private tokens into the browser."
+      },
+      {
+        title: "Create one focused product draft",
+        body: "Upload one clear product image, confirm the detected product category, then generate the four-image media set and SEO copy. Keep the original photo as source material and review generated images before publishing."
+      },
+      {
+        title: "Review before sending to Shopify",
+        body: "Check the publish checklist, price, SKU, inventory quantity, product title, description, tags, FAQ, and image order before creating the Shopify draft."
+      }
+    ],
+    checklist: [
+      "Sign in with Google or email.",
+      "Connect the correct Shopify store.",
+      "Upload a clear product image.",
+      "Generate images and SEO copy.",
+      "Review the checklist and publish as a Shopify draft."
+    ],
+    faq: [
+      {
+        question: "Does AceStudio publish products live automatically?",
+        answer: "The recommended workflow creates Shopify drafts by default so merchants can review products in Shopify Admin before making them live."
+      },
+      {
+        question: "Can one account connect multiple stores?",
+        answer: "The app stores the current connected Shopify store per account. Multi-store workspace management can be expanded as the product grows."
+      },
+      {
+        question: "What should I do after my first draft is created?",
+        answer: "Open the Shopify Admin link, inspect the product page, confirm sales channels, then decide whether to publish it live."
+      }
+    ]
+  },
+  "connect-shopify-store-to-acestudio": {
+    slug: "connect-shopify-store-to-acestudio",
+    title: "How to connect a Shopify store to AceStudio",
+    description:
+      "A practical Shopify OAuth setup guide for connecting a merchant store to AceStudio without manually sharing Admin API tokens.",
+    excerpt:
+      "Connect Shopify through OAuth, verify the store domain, and understand the permissions used for draft publishing.",
+    category: "Shopify connection",
+    readingTime: "6 min read",
+    publishedAt: "2026-05-07",
+    updatedAt: "2026-05-07",
+    relatedPath: "/settings/shopify",
+    sections: [
+      {
+        title: "Use the original myshopify.com domain",
+        body: "When connecting a store, merchants should enter the shop domain in the standard myshopify.com format. Custom storefront domains are for customers; the Admin API connection is tied to the Shopify shop domain."
+      },
+      {
+        title: "Approve the requested permissions",
+        body: "AceStudio asks for product, file, location, inventory, and publication permissions so it can create product drafts, upload generated media, set commerce fields, and optionally publish when the merchant confirms."
+      },
+      {
+        title: "Reconnect after app setting changes",
+        body: "If Shopify OAuth scopes, app URL, redirect URL, or uninstall webhook behavior changes, reconnect the store once so the saved connection reflects the newest app configuration."
+      }
+    ],
+    checklist: [
+      "Use the store's myshopify.com domain.",
+      "Confirm the Shopify app URL and redirect URL are production URLs.",
+      "Approve the OAuth permissions in Shopify.",
+      "Return to AceStudio and look for the connected-store success message.",
+      "Create one test draft before inviting a real user."
+    ],
+    faq: [
+      {
+        question: "Do users need to paste Admin API tokens?",
+        answer: "No. OAuth is the intended production flow because it stores the connection automatically and avoids asking users to copy private Shopify credentials."
+      },
+      {
+        question: "Why does AceStudio need write_products?",
+        answer: "It needs write_products to create and update Shopify product drafts with generated copy, media, price, SKU, and inventory fields."
+      },
+      {
+        question: "Can a user disconnect Shopify?",
+        answer: "They can uninstall the Shopify app or reconnect a different store. The uninstall webhook marks the saved connection inactive when Shopify sends the event."
+      }
+    ]
+  },
+  "acestudio-credit-pricing-faq": {
+    slug: "acestudio-credit-pricing-faq",
+    title: "AceStudio credit pricing FAQ",
+    description:
+      "How AceStudio credits work for AI image generation, free copy generation, admin accounts, Stripe checkout, refunds, and failed payments.",
+    excerpt:
+      "Understand what spends credits, what stays free, and how Stripe payment confirmation adds credits to an account.",
+    category: "Credits and billing",
+    readingTime: "5 min read",
+    publishedAt: "2026-05-07",
+    updatedAt: "2026-05-07",
+    relatedPath: "/billing",
+    sections: [
+      {
+        title: "Credits are tied to expensive generation work",
+        body: "The current product charges credits for generated images because image generation is the main variable AI cost. Copy generation stays free in the MVP so users can polish listings before spending more."
+      },
+      {
+        title: "Stripe is the source of truth for purchases",
+        body: "The app starts a Stripe Checkout Session, then adds credits only after receiving a verified checkout.session.completed webhook. This avoids adding credits from canceled or spoofed checkout returns."
+      },
+      {
+        title: "Support rules should be explicit",
+        body: "Before public launch, document refund boundaries, credit expiration, failed payment behavior, receipts, tax treatment, and admin/test account rules so users know what to expect."
+      }
+    ],
+    checklist: [
+      "Use live Stripe keys only after sandbox testing.",
+      "Create one live webhook endpoint for /api/stripe/webhook.",
+      "Listen only to checkout.session.completed for the current MVP credit flow.",
+      "Document refund and expiration rules before public launch.",
+      "Keep usage and credit ledger exports available for support."
+    ],
+    faq: [
+      {
+        question: "What costs credits?",
+        answer: "Image generation costs 1 credit per generated image in the current MVP. Failed image jobs refund reserved credits automatically."
+      },
+      {
+        question: "Do credits expire?",
+        answer: "Credits do not expire in the current MVP. If subscriptions or promotional credits are added later, expiration rules should be clearly shown before purchase."
+      },
+      {
+        question: "Are credit purchases refundable?",
+        answer: "Credit purchases should normally be final once delivered, except where required by law or an explicit support policy."
+      }
+    ]
+  },
+  "shopify-seo-geo-scoring-explained": {
+    slug: "shopify-seo-geo-scoring-explained",
+    title: "Shopify SEO and GEO scoring explained",
+    description:
+      "How AceStudio evaluates Shopify product and collection pages for search ranking readiness, rich snippets, image SEO, internal links, technical SEO, and AI visibility.",
+    excerpt:
+      "Understand the SEO and GEO scoring model behind Growth Studio and how merchants can use it to improve Shopify pages.",
+    category: "SEO and GEO",
+    readingTime: "7 min read",
+    publishedAt: "2026-05-07",
+    updatedAt: "2026-05-07",
+    relatedPath: "/growth",
+    sections: [
+      {
+        title: "SEO scoring starts with page fundamentals",
+        body: "A useful Shopify score should inspect titles, descriptions, headings, body copy, image alt text, internal links, schema readiness, collection context, and crawlability instead of only counting keywords."
+      },
+      {
+        title: "GEO focuses on answerability and trust",
+        body: "Generative search systems need clear product facts, FAQs, comparison language, review readiness, brand trust signals, and structured data. A GEO score highlights whether a page can be cited or summarized confidently."
+      },
+      {
+        title: "Recommendations should be review-first",
+        body: "SEO and GEO improvements should be proposed as drafts. Merchants need to approve changes before writing back to Shopify because rankings, claims, and conversion copy all affect the business."
+      }
+    ],
+    checklist: [
+      "Audit only live listed products and active collections.",
+      "Score title, meta description, headings, body content, schema, image SEO, and internal links.",
+      "Flag missing Product, FAQ, and review schema readiness.",
+      "Suggest collection and product cross-links.",
+      "Require merchant confirmation before writing optimized content back to Shopify."
+    ],
+    faq: [
+      {
+        question: "Can a score guarantee Google ranking improvement?",
+        answer: "No SEO tool can guarantee rankings. A score helps merchants fix known quality, crawlability, and content gaps that can improve the chance of stronger performance."
+      },
+      {
+        question: "What is GEO for Shopify?",
+        answer: "GEO means optimizing pages so AI answer engines can understand, trust, and cite product information more easily."
+      },
+      {
+        question: "Should the app write changes back automatically?",
+        answer: "No. The safest commercial workflow is to show proposed changes first, then let the merchant explicitly approve any Shopify write-back."
       }
     ]
   }

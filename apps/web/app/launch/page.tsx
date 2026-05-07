@@ -64,6 +64,13 @@ export default async function LaunchPage() {
               Connect Shopify
               <ArrowUpRight className="h-4 w-4" aria-hidden />
             </Link>
+            <Link
+              href="/qa"
+              className="studio-focus inline-flex h-10 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+            >
+              Run release QA
+              <ArrowUpRight className="h-4 w-4" aria-hidden />
+            </Link>
           </div>
         </div>
         <div className="border border-line bg-white p-5">

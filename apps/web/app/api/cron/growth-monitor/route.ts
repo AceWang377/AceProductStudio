@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { runGrowthMonitor } from "@/lib/growth-monitoring";
+import { markStaleJobsFailed } from "@/lib/job-maintenance";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,12 @@ export async function GET(request: Request) {
   }
 
   try {
+    const maintenance = await markStaleJobsFailed();
     const output = await runGrowthMonitor({});
     return NextResponse.json({
       ok: true,
       checkedAt: new Date().toISOString(),
+      maintenance,
       output
     });
   } catch (error) {

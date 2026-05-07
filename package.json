@@ -11,6 +11,8 @@
     "build": "npm run build -w apps/web",
     "vercel-build": "npm run build -w apps/web",
     "lint": "npm run lint -w apps/web",
+    "test:smoke": "npm run test:smoke -w apps/web",
+    "test:qa-suite": "npm run test:qa-suite -w apps/web",
     "prisma:generate": "npm run prisma:generate -w packages/database",
     "prisma:migrate": "npm run prisma:migrate -w packages/database"
   },

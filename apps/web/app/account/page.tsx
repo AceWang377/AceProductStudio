@@ -20,6 +20,7 @@ import { requireCurrentUser } from "@/lib/auth";
 import { getCreditAccount, isAdminEmail } from "@/lib/credits";
 import { readState } from "@/lib/store";
 import { siteConfig } from "@/lib/site";
+import { AccountDataControls } from "@/components/account/AccountDataControls";
 
 export const dynamic = "force-dynamic";
 
@@ -120,10 +121,10 @@ export default async function AccountPage() {
             />
             <ActionRow
               icon={Download}
-              title="Data exports"
-              detail="Download job and credit history as CSV files for support or accounting."
+              title="Usage exports"
+              detail="Download job and credit CSV files for support or accounting."
               href="/usage"
-              label="Open exports"
+              label="Open usage"
             />
             <ActionRow
               icon={Rocket}
@@ -174,6 +175,17 @@ export default async function AccountPage() {
             </div>
           </div>
         </aside>
+      </section>
+
+      <section className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+        <AccountDataControls />
+        <div className="border border-line bg-white p-5">
+          <h2 className="text-lg font-semibold">Privacy operations</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            Account export and deletion make the app easier to support for real users. They also give you a practical
+            path for privacy requests without manually editing Supabase rows.
+          </p>
+        </div>
       </section>
     </div>
   );

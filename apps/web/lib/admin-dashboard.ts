@@ -88,7 +88,9 @@ async function listUsers(): Promise<UserSummary[]> {
 
 export type AdminDashboard = Awaited<ReturnType<typeof getAdminDashboard>>;
 
-export async function getAdminDashboard() {
+export async function getAdminDashboard(input?: { search?: string }) {
+  const search = input?.search?.trim().toLowerCase() ?? "";
+
   if (!isSupabaseStorageEnabled()) {
     return {
       configured: false,
@@ -149,8 +151,44 @@ export async function getAdminDashboard() {
   const jobs = (jobsResult.data ?? []) as JobRow[];
   const creditAccounts = (creditAccountsResult.data ?? []) as CreditAccountRow[];
   const creditLedger = (creditLedgerResult.data ?? []) as CreditLedgerRow[];
+  const userEmail = (userId?: string | null) => (userId ? userById.get(userId)?.email ?? "" : "");
+  const includesSearch = (...values: Array<string | null | undefined>) =>
+    !search || values.some((value) => value?.toLowerCase().includes(search));
+  const visibleProducts = products.filter((product) =>
+    includesSearch(
+      product.id,
+      product.title,
+      product.name,
+      product.status,
+      product.shopify_status,
+      product.shopify_product_id,
+      userEmail(product.user_id)
+    )
+  );
+  const visibleStores = stores.filter((store) =>
+    includesSearch(
+      store.id,
+      store.shop_domain,
+      store.webhook_status,
+      store.webhook_last_error,
+      userEmail(store.user_id)
+    )
+  );
+  const visibleJobs = jobs.filter((job) => {
+    const product = job.product_id ? productById.get(job.product_id) : undefined;
+    return includesSearch(
+      job.id,
+      job.type,
+      job.status,
+      job.error,
+      job.product_id,
+      titleForProduct(product),
+      userEmail(job.user_id)
+    );
+  });
+  const visibleUsers = users.filter((user) => includesSearch(user.id, user.email));
 
-  const failedJobs = jobs
+  const failedJobs = visibleJobs
     .filter((job) => job.status === "FAILED")
     .slice(0, 12)
     .map((job) => {
@@ -167,7 +205,7 @@ export async function getAdminDashboard() {
       };
     });
 
-  const recentJobs = jobs.slice(0, 12).map((job) => {
+  const recentJobs = visibleJobs.slice(0, 12).map((job) => {
     const product = job.product_id ? productById.get(job.product_id) : undefined;
     const user = job.user_id ? userById.get(job.user_id) : undefined;
     return {
@@ -181,7 +219,7 @@ export async function getAdminDashboard() {
     };
   });
 
-  const recentProducts = products.slice(0, 12).map((product) => {
+  const recentProducts = visibleProducts.slice(0, 12).map((product) => {
     const user = product.user_id ? userById.get(product.user_id) : undefined;
     return {
       id: product.id,
@@ -194,7 +232,7 @@ export async function getAdminDashboard() {
     };
   });
 
-  const storeSummaries = stores.slice(0, 12).map((store) => {
+  const storeSummaries = visibleStores.slice(0, 12).map((store) => {
     const user = store.user_id ? userById.get(store.user_id) : undefined;
     return {
       id: store.id,
@@ -217,20 +255,21 @@ export async function getAdminDashboard() {
 
   return {
     configured: true,
+    search,
     users,
     metrics: {
-      users: users.length,
-      products: products.length,
-      connectedStores: stores.filter((store) => store.is_active).length,
-      failedJobs: jobs.filter((job) => job.status === "FAILED").length,
-      activeJobs: jobs.filter((job) => job.status === "QUEUED" || job.status === "PROCESSING").length,
+      users: visibleUsers.length,
+      products: visibleProducts.length,
+      connectedStores: visibleStores.filter((store) => store.is_active).length,
+      failedJobs: visibleJobs.filter((job) => job.status === "FAILED").length,
+      activeJobs: visibleJobs.filter((job) => job.status === "QUEUED" || job.status === "PROCESSING").length,
       generatedCreditsUsed,
       totalCreditBalance,
-      publishedDrafts: products.filter((product) =>
+      publishedDrafts: visibleProducts.filter((product) =>
         ["PUBLISHED_AS_DRAFT", "PUBLISHED_LIVE"].includes(product.shopify_status ?? "")
       ).length
     },
-    recentUsers: users
+    recentUsers: visibleUsers
       .slice()
       .sort((left, right) => right.createdAt.localeCompare(left.createdAt))
       .slice(0, 8),

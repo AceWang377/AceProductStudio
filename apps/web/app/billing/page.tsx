@@ -201,13 +201,26 @@ export default async function BillingPage({
 
       <section className="border border-line bg-white p-5">
         <h2 className="text-lg font-semibold">How credits work</h2>
-        <div className="mt-4 grid gap-4 text-sm text-muted md:grid-cols-3">
-          <p>Image generation costs 1 credit per generated image.</p>
-          <p>Copy generation stays free for the MVP so users can polish before spending more.</p>
-          <p>Credits are added only after Stripe sends a verified payment webhook.</p>
-          <p>Admin emails listed in ADMIN_EMAILS bypass credit charging for internal use.</p>
+        <div className="mt-4 grid gap-4 text-sm text-muted md:grid-cols-2 xl:grid-cols-4">
+          <BillingRule title="Image generation" body="Costs 1 credit per generated image. Failed image jobs refund the reserved credits automatically." />
+          <BillingRule title="Copy generation" body="Stays free for the MVP so users can polish product copy before spending more credits." />
+          <BillingRule title="Credit delivery" body="Credits are added only after Stripe sends a verified checkout.session.completed webhook." />
+          <BillingRule title="Admin bypass" body="Admin emails listed in ADMIN_EMAILS can use the app without spending credits for internal testing." />
+          <BillingRule title="Invoices" body="Stripe sends receipts and stores payment records. Add Stripe invoicing or tax automation before selling to larger teams." />
+          <BillingRule title="Refund boundary" body="Credit pack purchases should normally be final once credits are delivered, unless required by law or support policy." />
+          <BillingRule title="Expiration" body="Credits do not expire in the current MVP. Add an explicit expiration rule before introducing subscriptions." />
+          <BillingRule title="Failed payments" body="Failed or canceled payments do not add credits. Users can retry checkout from this page." />
         </div>
       </section>
+    </div>
+  );
+}
+
+function BillingRule({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="border border-line bg-canvas p-4">
+      <p className="font-semibold text-ink">{title}</p>
+      <p className="mt-2 leading-6">{body}</p>
     </div>
   );
 }

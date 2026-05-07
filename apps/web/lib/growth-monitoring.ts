@@ -38,6 +38,14 @@ export type SearchConsoleSummary = {
   error?: string;
 };
 
+export type PageSpeedSummary = {
+  checkedUrls: number;
+  averageResponseMs: number;
+  slowUrls: Array<{ url: string; responseMs: number }>;
+  coreWebVitalsConfigured: boolean;
+  recommendations: string[];
+};
+
 export type TechnicalSeoSummary = {
   targetUrl: string;
   checkedUrls: number;
@@ -47,6 +55,7 @@ export type TechnicalSeoSummary = {
   robotsFound: boolean;
   sitemapFound: boolean;
   canonicalHostConsistent: boolean;
+  pageSpeed: PageSpeedSummary;
   error?: string;
 };
 
@@ -77,6 +86,15 @@ export type GrowthKeywordOpportunity = {
   recommendedAction: string;
 };
 
+export type GrowthCompetitorKeywordGap = {
+  query: string;
+  page?: string;
+  competitorDomains: string[];
+  priority: "high" | "medium" | "low";
+  reason: string;
+  recommendedAction: string;
+};
+
 export type GrowthActionPlanItem = {
   key: string;
   priority: "high" | "medium" | "low";
@@ -88,7 +106,9 @@ export type GrowthActionPlanItem = {
     | "add_faq_schema"
     | "fix_technical_seo"
     | "improve_ai_visibility"
-    | "submit_sitemap";
+    | "submit_sitemap"
+    | "close_competitor_gap"
+    | "improve_page_speed";
   targetUrl?: string;
   query?: string;
   estimatedImpact: string;
@@ -99,6 +119,7 @@ export type GrowthMonitorOutput = {
   technicalSeo: TechnicalSeoSummary;
   aiVisibility: AiVisibilitySummary;
   keywordOpportunities: GrowthKeywordOpportunity[];
+  competitorKeywordGaps: GrowthCompetitorKeywordGap[];
   actionPlan: GrowthActionPlanItem[];
   commercialReadinessScore: number;
   recommendations: string[];
@@ -305,10 +326,21 @@ function safeUrl(value: string) {
   }
 }
 
+function defaultPageSpeedSummary(): PageSpeedSummary {
+  return {
+    checkedUrls: 0,
+    averageResponseMs: 0,
+    slowUrls: [],
+    coreWebVitalsConfigured: Boolean(env("PAGESPEED_INSIGHTS_API_KEY") || env("GOOGLE_PAGESPEED_API_KEY")),
+    recommendations: ["Run the live crawler against public Shopify URLs before making Core Web Vitals decisions."]
+  };
+}
+
 async function fetchWithRedirectInfo(url: string, maxHops = 5) {
   let currentUrl = url;
   let hops = 0;
   let status = 0;
+  const startedAt = Date.now();
 
   while (hops <= maxHops) {
     const response = await fetch(currentUrl, {
@@ -322,13 +354,13 @@ async function fetchWithRedirectInfo(url: string, maxHops = 5) {
       const text = contentType.includes("text") || contentType.includes("xml") || contentType.includes("html")
         ? await response.text().catch(() => "")
         : "";
-      return { status, finalUrl: currentUrl, hops, text, contentType };
+      return { status, finalUrl: currentUrl, hops, text, contentType, durationMs: Date.now() - startedAt };
     }
     currentUrl = new URL(location, currentUrl).toString();
     hops += 1;
   }
 
-  return { status, finalUrl: currentUrl, hops, text: "", contentType: "" };
+  return { status, finalUrl: currentUrl, hops, text: "", contentType: "", durationMs: Date.now() - startedAt };
 }
 
 function extractSitemapUrls(xml: string) {
@@ -353,7 +385,7 @@ function extractLinks(html: string, baseUrl: string) {
     .filter((url) => new URL(url).origin === base.origin);
 }
 
-async function fetchTechnicalSeoSummary(targetUrl: string): Promise<TechnicalSeoSummary> {
+async function fetchTechnicalSeoSummary(targetUrl: string, productUrls: string[] = []): Promise<TechnicalSeoSummary> {
   const target = safeUrl(targetUrl);
   if (!target) {
     return {
@@ -365,6 +397,7 @@ async function fetchTechnicalSeoSummary(targetUrl: string): Promise<TechnicalSeo
       robotsFound: false,
       sitemapFound: false,
       canonicalHostConsistent: false,
+      pageSpeed: defaultPageSpeedSummary(),
       error: "Target URL is not a public HTTP/HTTPS URL."
     };
   }
@@ -379,13 +412,23 @@ async function fetchTechnicalSeoSummary(targetUrl: string): Promise<TechnicalSeo
     ]);
     const sitemapUrls = sitemap?.status === 200 ? extractSitemapUrls(sitemap.text).slice(0, MAX_CRAWL_URLS) : [];
     const homepageLinks = home.text ? extractLinks(home.text, target.toString()).slice(0, MAX_CRAWL_URLS) : [];
-    const urlsToCheck = Array.from(new Set([target.toString(), ...sitemapUrls, ...homepageLinks])).slice(0, MAX_CRAWL_URLS);
+    const publicProductUrls = productUrls
+      .map((url) => safeUrl(url))
+      .filter((url): url is URL => Boolean(url && url.hostname.replace(/^www\./, "") === target.hostname.replace(/^www\./, "")))
+      .map((url) => url.toString())
+      .slice(0, 12);
+    const urlsToCheck = Array.from(new Set([
+      target.toString(),
+      ...publicProductUrls,
+      ...sitemapUrls,
+      ...homepageLinks
+    ])).slice(0, MAX_CRAWL_URLS);
     const checks = await Promise.all(urlsToCheck.map(async (url) => {
       try {
         const result = await fetchWithRedirectInfo(url);
         return { url, ...result };
       } catch (error) {
-        return { url, status: 0, finalUrl: url, hops: 0, text: "", contentType: "", error };
+        return { url, status: 0, finalUrl: url, hops: 0, text: "", contentType: "", durationMs: 0, error };
       }
     }));
 
@@ -404,6 +447,29 @@ async function fetchTechnicalSeoSummary(targetUrl: string): Promise<TechnicalSeo
         status: check.status,
         hops: check.hops
       }));
+    const responseTimes = checks
+      .filter((check) => check.status > 0 && check.status < 500 && check.durationMs > 0)
+      .map((check) => ({ url: check.url, responseMs: check.durationMs }));
+    const averageResponseMs = responseTimes.length
+      ? Math.round(responseTimes.reduce((sum, item) => sum + item.responseMs, 0) / responseTimes.length)
+      : 0;
+    const slowUrls = responseTimes
+      .filter((item) => item.responseMs > 1800)
+      .sort((a, b) => b.responseMs - a.responseMs)
+      .slice(0, 8);
+    const pageSpeed: PageSpeedSummary = {
+      checkedUrls: responseTimes.length,
+      averageResponseMs,
+      slowUrls,
+      coreWebVitalsConfigured: Boolean(env("PAGESPEED_INSIGHTS_API_KEY") || env("GOOGLE_PAGESPEED_API_KEY")),
+      recommendations: [
+        slowUrls.length
+          ? "Review slow Shopify templates, oversized media, third-party scripts, and app embeds on the listed URLs."
+          : "Initial server response checks look acceptable. Use PageSpeed Insights later for full lab and field data.",
+        "Compress product media, lazy-load below-the-fold images, and keep theme app embeds lean.",
+        "Connect PageSpeed Insights only when you want richer Core Web Vitals data; the basic crawler remains free."
+      ]
+    };
 
     return {
       targetUrl: target.toString(),
@@ -413,7 +479,8 @@ async function fetchTechnicalSeoSummary(targetUrl: string): Promise<TechnicalSeo
       sitemapUrls,
       robotsFound: robots?.status === 200,
       sitemapFound: sitemap?.status === 200 && sitemapUrls.length > 0,
-      canonicalHostConsistent: checks.every((check) => safeUrl(check.finalUrl)?.hostname.replace(/^www\./, "") === target.hostname.replace(/^www\./, ""))
+      canonicalHostConsistent: checks.every((check) => safeUrl(check.finalUrl)?.hostname.replace(/^www\./, "") === target.hostname.replace(/^www\./, "")),
+      pageSpeed
     };
   } catch (error) {
     return {
@@ -425,6 +492,7 @@ async function fetchTechnicalSeoSummary(targetUrl: string): Promise<TechnicalSeo
       robotsFound: false,
       sitemapFound: false,
       canonicalHostConsistent: false,
+      pageSpeed: defaultPageSpeedSummary(),
       error: error instanceof Error ? error.message : "Technical SEO crawler failed."
     };
   }
@@ -436,7 +504,7 @@ function buildVisibilityQueries({
   connection
 }: {
   targetUrl: string;
-  products: Array<{ title?: string; product?: { title?: string } }>;
+  products: Array<{ title?: string; onlineStoreUrl?: string; product?: { title?: string; onlineStoreUrl?: string } }>;
   connection?: ShopifyConnection;
 }) {
   const hostname = safeUrl(targetUrl)?.hostname.replace(/^www\./, "") || "acezerotrading.com";
@@ -458,7 +526,7 @@ async function fetchAiVisibilitySummary({
   connection
 }: {
   targetUrl: string;
-  products: Array<{ title?: string; product?: { title?: string } }>;
+  products: Array<{ title?: string; onlineStoreUrl?: string; product?: { title?: string; onlineStoreUrl?: string } }>;
   connection?: ShopifyConnection;
 }): Promise<AiVisibilitySummary> {
   const apiKey = env("GOOGLE_CUSTOM_SEARCH_API_KEY");
@@ -524,6 +592,16 @@ function buildRecommendations(output: Omit<GrowthMonitorOutput, "recommendations
   }
   if (output.technicalSeo.redirects.some((redirect) => redirect.hops > 1)) {
     recommendations.push("Reduce redirect chains so product URLs resolve in one hop.");
+  }
+  if (output.technicalSeo.pageSpeed.slowUrls.length) {
+    recommendations.push("Improve slow Shopify product pages before scaling SEO content; prioritize media compression and theme/app script cleanup.");
+  } else if (!output.technicalSeo.pageSpeed.coreWebVitalsConfigured) {
+    recommendations.push("Use the built-in crawler now, then connect PageSpeed Insights later if you need full Core Web Vitals lab and field data.");
+  }
+  if (output.competitorKeywordGaps.length) {
+    recommendations.push("Use competitor keyword gaps to decide which collection copy, FAQs, image terms, and internal links to add next.");
+  } else if (!configuredCompetitorDomains().length) {
+    recommendations.push("Add competitor domains with GROWTH_COMPETITOR_DOMAINS to unlock gap briefs without a paid keyword API.");
   }
   if (!output.aiVisibility.configured) {
     recommendations.push("Add Google Programmable Search credentials to start AI visibility proxy monitoring.");
@@ -620,16 +698,69 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
     .slice(0, 10);
 }
 
+function configuredCompetitorDomains() {
+  return (env("GROWTH_COMPETITOR_DOMAINS") || "")
+    .split(",")
+    .map((domain) => domain.trim().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/.*$/, ""))
+    .filter(Boolean)
+    .slice(0, 5);
+}
+
+function buildCompetitorKeywordGaps({
+  searchConsole,
+  keywordOpportunities
+}: {
+  searchConsole: SearchConsoleSummary;
+  keywordOpportunities: GrowthKeywordOpportunity[];
+}): GrowthCompetitorKeywordGap[] {
+  const competitorDomains = configuredCompetitorDomains();
+  if (!competitorDomains.length) return [];
+
+  const gaps = new Map<string, GrowthCompetitorKeywordGap>();
+  const opportunityQueries = keywordOpportunities.filter((opportunity) =>
+    opportunity.opportunityType === "low_ctr" ||
+    opportunity.opportunityType === "striking_distance" ||
+    opportunity.opportunityType === "zero_click"
+  );
+
+  for (const opportunity of opportunityQueries) {
+    gaps.set(opportunity.query, {
+      query: opportunity.query,
+      page: opportunity.page,
+      competitorDomains,
+      priority: opportunity.priority,
+      reason: "Your store already has some visibility for this query, so competitor pages should be compared before rewriting content.",
+      recommendedAction: "Compare competitor title, page type, collection depth, FAQs, product facts, and internal links; then add the missing intent coverage to your Shopify page."
+    });
+  }
+
+  for (const query of searchConsole.topQueries.filter((row) => row.impressions >= 20 && row.position > 10).slice(0, 5)) {
+    if (gaps.has(query.query)) continue;
+    gaps.set(query.query, {
+      query: query.query,
+      page: query.page,
+      competitorDomains,
+      priority: keywordPriority(query),
+      reason: "This query has ranking visibility but is still behind stronger pages.",
+      recommendedAction: "Build a keyword gap brief: target page type, missing collection copy, image alt terms, buyer FAQ, and product comparison language."
+    });
+  }
+
+  return Array.from(gaps.values()).slice(0, 8);
+}
+
 function buildActionPlan({
   searchConsole,
   technicalSeo,
   aiVisibility,
-  keywordOpportunities
+  keywordOpportunities,
+  competitorKeywordGaps
 }: {
   searchConsole: SearchConsoleSummary;
   technicalSeo: TechnicalSeoSummary;
   aiVisibility: AiVisibilitySummary;
   keywordOpportunities: GrowthKeywordOpportunity[];
+  competitorKeywordGaps: GrowthCompetitorKeywordGap[];
 }) {
   const items: GrowthActionPlanItem[] = [];
   const topKeyword = keywordOpportunities[0];
@@ -698,6 +829,41 @@ function buildActionPlan({
     });
   }
 
+  if (technicalSeo.pageSpeed.slowUrls.length) {
+    items.push({
+      key: "improve-page-speed",
+      priority: "medium",
+      title: "Improve slow Shopify pages",
+      detail: `${technicalSeo.pageSpeed.slowUrls.length} checked URLs took more than 1.8s to respond in the lightweight crawler.`,
+      actionType: "improve_page_speed",
+      targetUrl: technicalSeo.pageSpeed.slowUrls[0]?.url,
+      estimatedImpact: "Improves crawl efficiency, user experience, and Core Web Vitals readiness before adding more SEO content."
+    });
+  }
+
+  if (!configuredCompetitorDomains().length) {
+    items.push({
+      key: "configure-competitor-domains",
+      priority: "medium",
+      title: "Add competitor domains",
+      detail: "Competitor keyword gap scoring needs a short list of competing Shopify stores or category competitors.",
+      actionType: "close_competitor_gap",
+      estimatedImpact: "Turns Search Console queries into competitor comparison briefs without requiring a paid keyword API yet."
+    });
+  } else if (competitorKeywordGaps.length) {
+    const topGap = competitorKeywordGaps[0];
+    items.push({
+      key: `competitor-gap-${topGap.query}`,
+      priority: topGap.priority,
+      title: `Close competitor gap for "${topGap.query}"`,
+      detail: topGap.reason,
+      actionType: "close_competitor_gap",
+      targetUrl: topGap.page,
+      query: topGap.query,
+      estimatedImpact: "Creates a query-specific brief for content, collection copy, FAQs, image SEO, and internal links."
+    });
+  }
+
   if (aiVisibility.configured && aiVisibility.score < 60) {
     items.push({
       key: "ai-visibility-content",
@@ -729,6 +895,8 @@ function buildCommercialReadinessScore({
   if (technicalSeo.sitemapFound) score += 15;
   if (!technicalSeo.brokenLinks.length) score += 15;
   if (technicalSeo.canonicalHostConsistent) score += 10;
+  if (!technicalSeo.pageSpeed.slowUrls.length && technicalSeo.pageSpeed.checkedUrls) score += 8;
+  if (technicalSeo.pageSpeed.coreWebVitalsConfigured) score += 4;
   if (aiVisibility.configured) score += 10;
   if (actionPlan.some((item) => item.priority === "high")) score += 5;
   return Math.max(0, Math.min(100, score));
@@ -793,23 +961,32 @@ export async function runGrowthMonitor({
   storeId?: string | null;
   connection?: ShopifyConnection;
   targetUrl?: string;
-  products?: Array<{ title?: string; product?: { title?: string } }>;
+  products?: Array<{ title?: string; onlineStoreUrl?: string; product?: { title?: string; onlineStoreUrl?: string } }>;
 }) {
   const finalTargetUrl = targetUrl || env("GROWTH_MONITOR_SITE_URL") || siteConfig.url;
+  const productUrls = products
+    .map((product) => product.onlineStoreUrl || product.product?.onlineStoreUrl)
+    .filter((url): url is string => Boolean(url));
   const [searchConsole, technicalSeo, aiVisibility] = await Promise.all([
     fetchSearchConsoleSummary(finalTargetUrl),
-    fetchTechnicalSeoSummary(finalTargetUrl),
+    fetchTechnicalSeoSummary(finalTargetUrl, productUrls),
     fetchAiVisibilitySummary({ targetUrl: finalTargetUrl, products, connection })
   ]);
   const outputWithoutRecommendations = { searchConsole, technicalSeo, aiVisibility };
   const keywordOpportunities = buildKeywordOpportunities(searchConsole, aiVisibility);
+  const competitorKeywordGaps = buildCompetitorKeywordGaps({
+    searchConsole,
+    keywordOpportunities
+  });
   const actionPlan = buildActionPlan({
     ...outputWithoutRecommendations,
-    keywordOpportunities
+    keywordOpportunities,
+    competitorKeywordGaps
   });
   const output: GrowthMonitorOutput = {
     ...outputWithoutRecommendations,
     keywordOpportunities,
+    competitorKeywordGaps,
     actionPlan,
     commercialReadinessScore: buildCommercialReadinessScore({
       ...outputWithoutRecommendations,
@@ -818,6 +995,7 @@ export async function runGrowthMonitor({
     recommendations: buildRecommendations({
       ...outputWithoutRecommendations,
       keywordOpportunities,
+      competitorKeywordGaps,
       actionPlan,
       commercialReadinessScore: 0
     })

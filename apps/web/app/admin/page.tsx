@@ -17,6 +17,8 @@ import { isAdminEmail } from "@/lib/credits";
 
 export const dynamic = "force-dynamic";
 
+type AdminSearchParams = Promise<Record<string, string | string[] | undefined>>;
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("en", {
     month: "short",
@@ -30,11 +32,21 @@ function formatType(value: string) {
   return value.toLowerCase().replaceAll("_", " ");
 }
 
-export default async function AdminPage() {
+function firstParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+export default async function AdminPage({
+  searchParams
+}: {
+  searchParams?: AdminSearchParams;
+}) {
   const user = await requireCurrentUser();
   if (!isAdminEmail(user.email)) redirect("/dashboard");
 
-  const dashboard = await getAdminDashboard();
+  const params = searchParams ? await searchParams : {};
+  const search = firstParam(params.q)?.trim() ?? "";
+  const dashboard = await getAdminDashboard({ search });
 
   if (!dashboard.configured) {
     return (
@@ -56,6 +68,28 @@ export default async function AdminPage() {
           <p className="mt-3 max-w-3xl text-sm leading-6 text-muted">
             Cross-workspace view for support, failed job triage, Shopify connection health, and credit usage.
           </p>
+          <form className="mt-5 flex max-w-xl gap-2" action="/admin">
+            <input
+              name="q"
+              defaultValue={search}
+              className="studio-focus h-10 min-w-0 flex-1 rounded border border-line bg-white px-3 text-sm"
+              placeholder="Search email, store domain, product, job, or error"
+            />
+            <button
+              type="submit"
+              className="studio-focus h-10 rounded bg-action px-4 text-sm font-semibold text-white"
+            >
+              Search
+            </button>
+          </form>
+          {search ? (
+            <p className="mt-3 text-sm text-muted">
+              Showing support results for <span className="font-semibold text-ink">{search}</span>.{" "}
+              <a className="text-action underline-offset-4 hover:underline" href="/admin">
+                Clear search
+              </a>
+            </p>
+          ) : null}
         </div>
         <div className="border border-line bg-white p-5">
           <ShieldCheck className="h-5 w-5 text-action" aria-hidden />
@@ -63,6 +97,12 @@ export default async function AdminPage() {
           <p className="mt-2 text-sm leading-6 text-muted">
             This page is visible only to emails configured in <code>ADMIN_EMAILS</code>.
           </p>
+          <a
+            href="/qa"
+            className="studio-focus mt-4 inline-flex h-10 items-center rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+          >
+            Open release QA
+          </a>
         </div>
       </section>
 

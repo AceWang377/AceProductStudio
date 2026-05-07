@@ -385,6 +385,32 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
       status: "ready",
       detail: "Image, copy, Shopify publish, credits, and exportable usage events are stored for customer support.",
       action: "Review /usage after important test runs."
+    },
+    {
+      label: "Stale job cleanup",
+      status: hasEnv("CRON_SECRET") ? "ready" : "warning",
+      detail: hasEnv("CRON_SECRET")
+        ? "The protected cron route marks stuck queued or processing jobs as failed before running Growth Monitor."
+        : "The maintenance function exists, but the cron route should be protected with CRON_SECRET before production use.",
+      action: hasEnv("CRON_SECRET")
+        ? "No action needed"
+        : "Add CRON_SECRET in Vercel, then configure the existing cron route as the low-cost MVP queue maintenance path.",
+      actionHref: hasEnv("CRON_SECRET") ? undefined : VERCEL_ENV_URL,
+      actionLabel: hasEnv("CRON_SECRET") ? undefined : "Open env settings"
+    },
+    {
+      label: "Smoke test script",
+      status: "ready",
+      detail: "npm run test:smoke checks the public app shell, sitemap, robots.txt, and health endpoint against a local or deployed URL.",
+      action: "Run SMOKE_TEST_BASE_URL=https://acezerotrading.com npm run test:smoke before important releases."
+    },
+    {
+      label: "Real user QA suite",
+      status: "ready",
+      detail: "The admin-only /qa checklist covers registration, Google login, Shopify OAuth, upload, image generation, copy generation, draft publish, credit purchase, Growth scan, and Growth write-back.",
+      action: "Run /qa before inviting merchants or changing billing, Shopify, auth, or Growth Studio.",
+      actionHref: "/qa",
+      actionLabel: "Open QA suite"
     }
   ];
 

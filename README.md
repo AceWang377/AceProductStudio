@@ -30,6 +30,13 @@ npm run lint
 npm run build
 ```
 
+For a lightweight public-route smoke test, run the app locally or point the
+test at production:
+
+```bash
+SMOKE_TEST_BASE_URL=https://acezerotrading.com npm run test:smoke
+```
+
 The production health endpoint is available at `/api/health`. It returns `200`
 only when required launch checks are ready; otherwise it returns `503` with a
 summary count of missing settings.
@@ -47,9 +54,12 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=xxxxxxxxx
 SUPABASE_SERVICE_ROLE_KEY=xxxxxxxxx
 NEXT_PUBLIC_SUPPORT_EMAIL=support@example.com
 ADMIN_EMAILS=you@example.com
+CRON_SECRET=generate-a-long-random-secret
 SHOPIFY_TOKEN_ENCRYPTION_KEY=generate-a-long-random-secret
 SHOPIFY_CLIENT_ID=xxxxxxxxx
 SHOPIFY_CLIENT_SECRET=xxxxxxxxx
+STRIPE_SECRET_KEY=sk_live_or_sk_test_xxxxx
+STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 ```
 
 Run `apps/web/supabase/migrations/001_app_state.sql` in the Supabase SQL editor, then open `/launch` to confirm the production checks.
@@ -87,3 +97,32 @@ APP_PUBLIC_URL=https://your-deployed-app.example.com
 ```
 
 Without a public app URL, the product draft still publishes with title, description, bullets, FAQ, tags, and product type, but local `/uploads/...` images are skipped.
+
+## Operations and support
+
+AceStudio includes a few production-support foundations that do not require a
+paid queue provider yet:
+
+- `/admin` is admin-only and supports searching by user email, store domain,
+  product, job id, or error text for customer support.
+- `/account` includes JSON account export and account deletion controls for
+  privacy requests.
+- `/usage` includes CSV exports for job history and credit ledger entries.
+- `/api/cron/growth-monitor` runs Growth Monitor and also marks stale queued or
+  processing jobs as failed so users can retry instead of being stuck forever.
+- `npm run test:smoke` checks the public shell, login page, resources, robots,
+  sitemap, and health endpoint.
+- `/qa` is an admin-only real-user release checklist covering registration,
+  Google login, Shopify OAuth, upload, image generation, copy generation,
+  Shopify draft publishing, Stripe credits, Growth scan, and Growth write-back.
+
+For higher-volume usage, replace the `after()`-style generation flow with a
+durable queue such as Inngest, Trigger.dev, BullMQ + Redis, or Supabase Queues.
+
+## Product documentation
+
+Public docs live under `/resources` and are generated from
+`apps/web/lib/seo-resources.ts`. Current guides cover getting started, Shopify
+connection, credit pricing, AI image generation, draft publishing, and SEO/GEO
+scoring. Add new guides there so sitemap, structured data, and resource cards
+stay consistent.
