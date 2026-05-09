@@ -35,6 +35,10 @@ a {
   text-decoration: none;
 }
 
+summary::-webkit-details-marker {
+  display: none;
+}
+
 ::selection {
   background: #cbe7dc;
 }

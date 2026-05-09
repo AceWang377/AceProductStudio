@@ -12,7 +12,7 @@ export async function GET(request: Request) {
 
   try {
     const maintenance = await markStaleJobsFailed();
-    const output = await runGrowthMonitor({});
+    const output = await runGrowthMonitor({ allowDefaultTarget: true });
     return NextResponse.json({
       ok: true,
       checkedAt: new Date().toISOString(),

@@ -7,6 +7,7 @@ import {
   Coins,
   Database,
   History,
+  LineChart,
   ShieldCheck,
   Store,
   Users
@@ -14,6 +15,7 @@ import {
 import { requireCurrentUser } from "@/lib/auth";
 import { getAdminDashboard } from "@/lib/admin-dashboard";
 import { isAdminEmail } from "@/lib/credits";
+import { listLatestGrowthMonitorRuns } from "@/lib/growth-monitoring";
 
 export const dynamic = "force-dynamic";
 
@@ -32,6 +34,10 @@ function formatType(value: string) {
   return value.toLowerCase().replaceAll("_", " ");
 }
 
+function formatPercent(value?: number) {
+  return typeof value === "number" && Number.isFinite(value) ? `${(value * 100).toFixed(1)}%` : "--";
+}
+
 function firstParam(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
@@ -46,7 +52,10 @@ export default async function AdminPage({
 
   const params = searchParams ? await searchParams : {};
   const search = firstParam(params.q)?.trim() ?? "";
-  const dashboard = await getAdminDashboard({ search });
+  const [dashboard, appMonitorRuns] = await Promise.all([
+    getAdminDashboard({ search }),
+    listLatestGrowthMonitorRuns(user.id, 3, { includeGlobal: true, onlyAppSite: true })
+  ]);
 
   if (!dashboard.configured) {
     return (
@@ -116,6 +125,53 @@ export default async function AdminPage({
         <Metric icon={Coins} label="Credit balance" value={dashboard.metrics.totalCreditBalance} />
         <Metric icon={CheckCircle2} label="Published drafts" value={dashboard.metrics.publishedDrafts} />
       </section>
+
+      <Panel
+        icon={LineChart}
+        title="AceStudio site search monitor"
+        detail="Admin-only Search Console and technical SEO snapshots for acezerotrading.com. Merchant accounts never see these CTR, query, or impression numbers."
+        badge={appMonitorRuns.length ? `${appMonitorRuns.length} runs` : "No runs"}
+        tone={appMonitorRuns.length ? "ready" : "neutral"}
+      >
+        {appMonitorRuns.length ? (
+          <div className="grid gap-3 p-4 lg:grid-cols-3">
+            {appMonitorRuns.map((run) => {
+              const searchConsole = run.output?.searchConsole;
+              return (
+                <div key={run.id} className="border border-line bg-canvas p-4 text-sm">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="truncate font-semibold">{run.targetUrl || "AceStudio"}</p>
+                      <p className="mt-1 text-xs text-muted">{formatDate(run.createdAt)}</p>
+                    </div>
+                    <StatusPill value={run.status} />
+                  </div>
+                  <dl className="mt-4 grid grid-cols-2 gap-3">
+                    <div>
+                      <dt className="text-xs text-muted">Clicks</dt>
+                      <dd className="mt-1 font-semibold">{searchConsole?.clicks ?? "--"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Impressions</dt>
+                      <dd className="mt-1 font-semibold">{searchConsole?.impressions ?? "--"}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">CTR</dt>
+                      <dd className="mt-1 font-semibold">{formatPercent(searchConsole?.ctr)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-xs text-muted">Position</dt>
+                      <dd className="mt-1 font-semibold">{searchConsole?.position ?? "--"}</dd>
+                    </div>
+                  </dl>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <EmptyLine text="No AceStudio monitor runs yet. The cron monitor can save app-site snapshots here without exposing them to merchant workspaces." />
+        )}
+      </Panel>
 
       <section className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.8fr)]">
         <Panel

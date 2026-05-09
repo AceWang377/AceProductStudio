@@ -24,6 +24,12 @@ type GrowthAuditImage = {
   height?: number | null;
 };
 
+type GrowthAuditPriceRange = {
+  minPrice?: string;
+  maxPrice?: string;
+  currencyCode?: string;
+};
+
 export type GrowthAuditIssue = {
   key: string;
   category: GrowthAuditIssueCategory;
@@ -40,6 +46,7 @@ export type GrowthAuditProduct = {
   status?: string;
   source: AuditSource;
   adminUrl?: string;
+  vendor?: string;
   productType?: string;
   tags: string[];
   descriptionText: string;
@@ -47,6 +54,9 @@ export type GrowthAuditProduct = {
   seoDescription?: string;
   onlineStoreUrl?: string;
   publishedAt?: string | null;
+  availableForSale?: boolean | null;
+  totalInventory?: number | null;
+  priceRange?: GrowthAuditPriceRange;
   imageCount: number;
   imagesWithAlt: number;
   images: GrowthAuditImage[];
@@ -226,6 +236,7 @@ type ShopifyProductsPayload = {
   shop: {
     name?: string;
     myshopifyDomain?: string;
+    currencyCode?: string;
     primaryDomain?: {
       url?: string;
       host?: string;
@@ -238,6 +249,7 @@ type ShopifyProductsPayload = {
       handle?: string;
       status?: string;
       descriptionHtml?: string;
+      vendor?: string;
       productType?: string;
       tags?: string[];
       updatedAt?: string;
@@ -255,6 +267,14 @@ type ShopifyProductsPayload = {
       };
       onlineStoreUrl?: string | null;
       publishedAt?: string | null;
+      totalInventory?: number | null;
+      variants?: {
+        nodes: Array<{
+          price?: string | number | { amount?: string | number; currencyCode?: string } | null;
+          inventoryQuantity?: number | null;
+          availableForSale?: boolean | null;
+        }>;
+      };
     }>;
   };
 };
@@ -320,6 +340,85 @@ function estimateFaqCountFromHtml(value?: string) {
   return Math.max(headingMatches, Math.min(questionMatches, 6));
 }
 
+function normalizeStorefrontUrl(value?: string | null) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    url.hash = "";
+    url.search = "";
+    url.hostname = url.hostname.toLowerCase().replace(/^www\./, "");
+    url.pathname = url.pathname.replace(/\/+$/, "");
+    return url.toString().replace(/\/$/, "");
+  } catch {
+    return "";
+  }
+}
+
+function decodeXmlText(value: string) {
+  return value
+    .replaceAll("&amp;", "&")
+    .replaceAll("&lt;", "<")
+    .replaceAll("&gt;", ">")
+    .replaceAll("&quot;", "\"")
+    .replaceAll("&apos;", "'");
+}
+
+function extractSitemapLocs(xml: string) {
+  return Array.from(xml.matchAll(/<loc>\s*([^<]+?)\s*<\/loc>/gi))
+    .map((match) => decodeXmlText(match[1] ?? "").trim())
+    .filter(Boolean);
+}
+
+async function fetchTextWithTimeout(url: string, timeoutMs = 4000) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), timeoutMs);
+  try {
+    const response = await fetch(url, {
+      headers: { Accept: "application/xml,text/xml,*/*" },
+      signal: controller.signal
+    });
+    if (!response.ok) return "";
+    return await response.text();
+  } catch {
+    return "";
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+async function fetchShopifyProductSitemapUrls(primaryDomain?: string) {
+  if (!primaryDomain) return null;
+  let origin: string;
+  try {
+    const url = new URL(primaryDomain);
+    origin = `${url.protocol}//${url.hostname}`;
+  } catch {
+    return null;
+  }
+
+  const productUrls = new Set<string>();
+  const directProductSitemap = `${origin}/sitemap_products_1.xml`;
+  const directXml = await fetchTextWithTimeout(directProductSitemap);
+  extractSitemapLocs(directXml).forEach((loc) => {
+    if (loc.includes("/products/")) productUrls.add(normalizeStorefrontUrl(loc));
+  });
+
+  if (productUrls.size) return productUrls;
+
+  const indexXml = await fetchTextWithTimeout(`${origin}/sitemap.xml`);
+  const productSitemaps = extractSitemapLocs(indexXml)
+    .filter((loc) => /sitemap_products/i.test(loc))
+    .slice(0, 5);
+  await Promise.all(productSitemaps.map(async (sitemapUrl) => {
+    const xml = await fetchTextWithTimeout(sitemapUrl);
+    extractSitemapLocs(xml).forEach((loc) => {
+      if (loc.includes("/products/")) productUrls.add(normalizeStorefrontUrl(loc));
+    });
+  }));
+
+  return productUrls.size ? productUrls : null;
+}
+
 function issue(
   key: string,
   category: GrowthAuditIssueCategory,
@@ -351,6 +450,49 @@ function keywordFromTitle(title: string) {
     .split(/\s+/)
     .filter((word) => word.length > 2)
     .slice(0, 5);
+}
+
+function parseMoneyValue(value?: string | number | { amount?: string | number } | null) {
+  if (typeof value === "number") return Number.isFinite(value) ? value : null;
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+  if (value && typeof value === "object") return parseMoneyValue(value.amount);
+  return null;
+}
+
+function buildPriceRangeFromVariants(
+  variants: Array<{
+    price?: string | number | { amount?: string | number; currencyCode?: string } | null;
+    inventoryQuantity?: number | null;
+    availableForSale?: boolean | null;
+  }>,
+  currencyCode?: string
+): GrowthAuditPriceRange | undefined {
+  const prices = variants
+    .map((variant) => parseMoneyValue(variant.price))
+    .filter((price): price is number => typeof price === "number");
+  if (!prices.length) return undefined;
+  const variantCurrency = variants
+    .map((variant) => typeof variant.price === "object" && variant.price ? variant.price.currencyCode : undefined)
+    .find(Boolean);
+  const minPrice = Math.min(...prices).toFixed(2);
+  const maxPrice = Math.max(...prices).toFixed(2);
+  return {
+    minPrice,
+    maxPrice,
+    currencyCode: currencyCode || variantCurrency
+  };
+}
+
+function hasOfferReadiness(product: GrowthAuditProduct) {
+  return Boolean(
+    product.priceRange?.minPrice &&
+      product.priceRange.currencyCode &&
+      typeof product.availableForSale === "boolean" &&
+      product.onlineStoreUrl
+  );
 }
 
 function buildSuggestedFix(product: GrowthAuditProduct): GrowthSuggestedFix {
@@ -583,9 +725,13 @@ function scoreSchemaReadiness(product: GrowthAuditProduct) {
   if (product.descriptionText.trim().length >= 120) score += 18;
   if (product.imageCount > 0) score += 14;
   if (product.seoDescription && product.seoDescription.trim().length >= 80) score += 12;
+  if (product.vendor || product.productType) score += 8;
+  if (product.priceRange?.minPrice && product.priceRange.currencyCode) score += 10;
+  if (typeof product.availableForSale === "boolean") score += 6;
   if (product.tags.length >= 3) score += 10;
   if (product.faqCount >= 2) score += 16;
-  if (/review|rating|testimonial|stars?/i.test(product.descriptionText)) score += 12;
+  if (/shipping|return|warranty|support|guarantee/i.test(product.descriptionText)) score += 4;
+  if (/review|rating|testimonial|stars?/i.test(product.descriptionText)) score += 8;
   return clampScore(score);
 }
 
@@ -692,12 +838,20 @@ function buildJsonLdPreview(value: Record<string, unknown>) {
 function buildSchemaSuggestions(product: GrowthAuditProduct): GrowthSchemaSuggestion[] {
   const imageUrls = product.images.map((image) => image.url).filter((url): url is string => Boolean(url)).slice(0, 4);
   const hasDescription = product.descriptionText.trim().length >= 80;
+  const offerReady = hasOfferReadiness(product);
+  const offerMissing = [
+    product.priceRange?.minPrice ? "" : "price",
+    product.priceRange?.currencyCode ? "" : "priceCurrency",
+    typeof product.availableForSale === "boolean" ? "" : "availability",
+    product.onlineStoreUrl ? "" : "url"
+  ].filter(Boolean);
   const reviewAppConfigured = Boolean(process.env.JUDGEME_API_TOKEN || process.env.LOOX_API_KEY || process.env.SHOPIFY_REVIEWS_APP_ENABLED === "true");
   const productSchemaMissing = [
     product.title ? "" : "name",
     hasDescription ? "" : "description",
     imageUrls.length ? "" : "image",
-    product.onlineStoreUrl ? "" : "url"
+    product.onlineStoreUrl ? "" : "url",
+    product.vendor || product.productType ? "" : "brand or category"
   ].filter(Boolean);
 
   return [
@@ -715,21 +869,23 @@ function buildSchemaSuggestions(product: GrowthAuditProduct): GrowthSchemaSugges
         image: imageUrls,
         url: product.onlineStoreUrl,
         category: product.productType,
-        brand: product.tags[0] || undefined
+        brand: product.vendor || product.tags[0] || undefined
       })
     },
     {
       type: "Offer",
-      status: "partial",
+      status: offerReady ? "ready" : "partial",
       fields: ["price", "priceCurrency", "availability", "url", "shipping/returns context"],
-      missing: ["variant price", "currency", "availability"],
-      note: "Offer schema becomes useful after the audit reads Shopify variant price, currency, and inventory availability.",
+      missing: offerMissing,
+      note: offerMissing.length
+        ? "Offer schema becomes useful after the audit reads real Shopify price, currency, availability, and product URL."
+        : "Offer schema has the core price, currency, availability, and URL fields from Shopify.",
       jsonLdPreview: buildJsonLdPreview({
         "@type": "Offer",
         url: product.onlineStoreUrl,
-        availability: "https://schema.org/InStock",
-        price: "Connect Shopify variant price",
-        priceCurrency: "Connect store currency"
+        availability: product.availableForSale === false ? "https://schema.org/OutOfStock" : "https://schema.org/InStock",
+        price: product.priceRange?.minPrice,
+        priceCurrency: product.priceRange?.currencyCode
       })
     },
     {
@@ -772,9 +928,9 @@ function buildSchemaSuggestions(product: GrowthAuditProduct): GrowthSchemaSugges
     {
       type: "Review",
       status: reviewAppConfigured ? "partial" : "blocked",
-      fields: ["real rating value", "real review count", "review source"],
+      fields: ["real rating value", "real review count", "review source", "visible customer proof"],
       missing: reviewAppConfigured ? ["validated review feed"] : ["Judge.me, Loox, Shopify reviews, or another real review source"],
-      note: "Review schema must never use generated or fake ratings. It should only be enabled with real customer review data."
+      note: "Review or aggregateRating schema must never use generated or fake ratings. It should only be enabled with real customer review data."
     }
   ];
 }
@@ -1489,8 +1645,14 @@ async function fetchShopifyProducts(connection: ShopifyConnection): Promise<{
   const data = await fetchShopifyProductsPayload(connection);
 
   const shopDomain = data?.shop.myshopifyDomain || connection.shopDomain;
+  const primaryDomain = data?.shop.primaryDomain?.url || (data?.shop.primaryDomain?.host ? `https://${data.shop.primaryDomain.host}` : undefined);
+  const currencyCode = data?.shop.currencyCode;
   const allProducts = (data?.products.nodes ?? []).map((product) => {
     const images = product.images?.nodes ?? [];
+    const variants = product.variants?.nodes ?? [];
+    const variantAvailability = variants.length
+      ? variants.some((variant) => variant.availableForSale || Number(variant.inventoryQuantity ?? 0) > 0)
+      : null;
     return {
       id: product.id,
       title: product.title || "Untitled Shopify product",
@@ -1498,6 +1660,7 @@ async function fetchShopifyProducts(connection: ShopifyConnection): Promise<{
       status: product.status,
       source: "shopify" as const,
       adminUrl: shopifyAdminProductUrl(shopDomain, product.id),
+      vendor: product.vendor,
       productType: product.productType,
       tags: product.tags ?? [],
       descriptionText: stripHtml(product.descriptionHtml),
@@ -1505,6 +1668,9 @@ async function fetchShopifyProducts(connection: ShopifyConnection): Promise<{
       seoDescription: product.seo?.description || "",
       onlineStoreUrl: product.onlineStoreUrl || undefined,
       publishedAt: product.publishedAt ?? null,
+      availableForSale: variantAvailability,
+      totalInventory: product.totalInventory ?? null,
+      priceRange: buildPriceRangeFromVariants(variants, currencyCode),
       imageCount: images.length,
       imagesWithAlt: images.filter((image) => Boolean(image.altText?.trim())).length,
       images: images.map((image) => ({
@@ -1517,12 +1683,13 @@ async function fetchShopifyProducts(connection: ShopifyConnection): Promise<{
       updatedAt: product.updatedAt
     };
   });
-  const liveProducts = allProducts.filter((product) => isLiveShopifyProduct(product));
+  const indexedProductUrls = await fetchShopifyProductSitemapUrls(primaryDomain);
+  const liveProducts = allProducts.filter((product) => isLiveShopifyProduct(product, indexedProductUrls));
 
   return {
     storeName: data?.shop.name,
     shopDomain,
-    primaryDomain: data?.shop.primaryDomain?.url || (data?.shop.primaryDomain?.host ? `https://${data.shop.primaryDomain.host}` : undefined),
+    primaryDomain,
     excludedProductCount: allProducts.length - liveProducts.length,
     products: liveProducts
   };
@@ -1550,6 +1717,7 @@ async function runShopifyProductsQuery(connection: ShopifyConnection, productQue
         shop {
           name
           myshopifyDomain
+          currencyCode
           primaryDomain {
             url
             host
@@ -1563,6 +1731,7 @@ async function runShopifyProductsQuery(connection: ShopifyConnection, productQue
             status
             publishedAt
             descriptionHtml
+            vendor
             productType
             tags
             updatedAt
@@ -1579,6 +1748,14 @@ async function runShopifyProductsQuery(connection: ShopifyConnection, productQue
               }
             }
             onlineStoreUrl
+            totalInventory
+            variants(first: 10) {
+              nodes {
+                price
+                inventoryQuantity
+                availableForSale
+              }
+            }
           }
         }
       }
@@ -1675,9 +1852,18 @@ function hasPublicOnlineStoreUrl(value?: string) {
   }
 }
 
-export function isLiveShopifyProduct(product: Pick<GrowthAuditProduct, "status" | "onlineStoreUrl" | "publishedAt">) {
+export function isLiveShopifyProduct(
+  product: Pick<GrowthAuditProduct, "status" | "onlineStoreUrl" | "publishedAt">,
+  indexedProductUrls?: Set<string> | null
+) {
   // Unlisted products can still render by direct URL, but Shopify noindexes them and keeps them out of sitemap/search.
-  return product.status === "ACTIVE" && hasPastPublishedAt(product.publishedAt) && hasPublicOnlineStoreUrl(product.onlineStoreUrl);
+  if (product.status !== "ACTIVE" || !hasPastPublishedAt(product.publishedAt) || !hasPublicOnlineStoreUrl(product.onlineStoreUrl)) {
+    return false;
+  }
+  if (indexedProductUrls?.size) {
+    return indexedProductUrls.has(normalizeStorefrontUrl(product.onlineStoreUrl));
+  }
+  return true;
 }
 
 function liveWorkspaceProducts(products: Product[]) {

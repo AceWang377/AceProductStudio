@@ -184,6 +184,34 @@ function env(name: string) {
   return process.env[name]?.trim();
 }
 
+function normalizedHost(value?: string | null) {
+  if (!value) return "";
+  if (value.startsWith("sc-domain:")) {
+    return value.replace("sc-domain:", "").replace(/^www\./i, "").toLowerCase();
+  }
+  try {
+    return new URL(value).hostname.replace(/^www\./i, "").toLowerCase();
+  } catch {
+    return value.replace(/^https?:\/\//i, "").replace(/^www\./i, "").split("/")[0]?.toLowerCase() ?? "";
+  }
+}
+
+function searchConsoleSiteMatchesTarget(targetUrl: string, siteUrl: string) {
+  const targetHost = normalizedHost(targetUrl);
+  const siteHost = normalizedHost(siteUrl);
+  if (!targetHost || !siteHost) return false;
+  return targetHost === siteHost || targetHost.endsWith(`.${siteHost}`);
+}
+
+export function isAppSiteMonitorTarget(targetUrl?: string | null) {
+  const targetHost = normalizedHost(targetUrl);
+  if (!targetHost) return false;
+  return [siteConfig.url, env("GROWTH_MONITOR_SITE_URL")]
+    .map((value) => normalizedHost(value))
+    .filter(Boolean)
+    .some((host) => targetHost === host || targetHost.endsWith(`.${host}`));
+}
+
 function normalizePrivateKey(value?: string) {
   return value?.replace(/\\n/g, "\n");
 }
@@ -242,11 +270,27 @@ function daysAgo(days: number) {
 }
 
 function configuredSearchConsoleSiteUrl(targetUrl: string) {
-  return env("GOOGLE_SEARCH_CONSOLE_SITE_URL") || targetUrl;
+  const configuredSite = env("GOOGLE_SEARCH_CONSOLE_SITE_URL");
+  if (!configuredSite) return targetUrl;
+  return searchConsoleSiteMatchesTarget(targetUrl, configuredSite) ? configuredSite : undefined;
 }
 
 async function fetchSearchConsoleSummary(targetUrl: string): Promise<SearchConsoleSummary> {
   const siteUrl = configuredSearchConsoleSiteUrl(targetUrl);
+  if (!siteUrl) {
+    return {
+      configured: false,
+      siteUrl: targetUrl,
+      clicks: 0,
+      impressions: 0,
+      ctr: 0,
+      position: 0,
+      topQueries: [],
+      sitemaps: [],
+      error: "Search Console is connected for a different domain. Connect this storefront domain before importing clicks, impressions, CTR, and queries."
+    };
+  }
+
   if (!env("GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL") || !env("GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY")) {
     return {
       configured: false,
@@ -1148,17 +1192,33 @@ function mapRun(row: Record<string, unknown>): GrowthMonitorRun {
   };
 }
 
-export async function listLatestGrowthMonitorRuns(userId: string, limit = 3) {
+export async function listLatestGrowthMonitorRuns(
+  userId: string,
+  limit = 3,
+  options?: {
+    includeGlobal?: boolean;
+    excludeAppSite?: boolean;
+    onlyAppSite?: boolean;
+  }
+) {
   if (!isSupabaseStorageEnabled()) return [];
   const supabase = createSupabaseAdminClient();
-  const { data, error } = await supabase
+  const query = supabase
     .from("growth_monitor_runs")
     .select("*")
-    .or(`user_id.eq.${userId},user_id.is.null`)
-    .order("created_at", { ascending: false })
-    .limit(limit);
+    .order("created_at", { ascending: false });
+  const scopedQuery = options?.includeGlobal ? query.or(`user_id.eq.${userId},user_id.is.null`) : query.eq("user_id", userId);
+  const queryLimit = options?.excludeAppSite || options?.onlyAppSite ? Math.max(limit * 5, 10) : limit;
+  const { data, error } = await scopedQuery.limit(queryLimit);
   if (error) return [];
-  return (data ?? []).map((row) => mapRun(row as Record<string, unknown>));
+  let runs = (data ?? []).map((row) => mapRun(row as Record<string, unknown>));
+  if (options?.excludeAppSite) {
+    runs = runs.filter((run) => !isAppSiteMonitorTarget(run.targetUrl));
+  }
+  if (options?.onlyAppSite) {
+    runs = runs.filter((run) => isAppSiteMonitorTarget(run.targetUrl));
+  }
+  return runs.slice(0, limit);
 }
 
 export async function runGrowthMonitor({
@@ -1166,15 +1226,20 @@ export async function runGrowthMonitor({
   storeId,
   connection,
   targetUrl,
-  products = []
+  products = [],
+  allowDefaultTarget = false
 }: {
   userId?: string | null;
   storeId?: string | null;
   connection?: ShopifyConnection;
   targetUrl?: string;
   products?: Array<{ title?: string; onlineStoreUrl?: string; product?: { title?: string; onlineStoreUrl?: string } }>;
+  allowDefaultTarget?: boolean;
 }) {
-  const finalTargetUrl = targetUrl || env("GROWTH_MONITOR_SITE_URL") || siteConfig.url;
+  const finalTargetUrl = targetUrl || (allowDefaultTarget ? env("GROWTH_MONITOR_SITE_URL") || siteConfig.url : undefined);
+  if (!finalTargetUrl) {
+    throw new Error("Connect a Shopify store with live Online Store products before running Growth monitoring.");
+  }
   const productUrls = products
     .map((product) => product.onlineStoreUrl || product.product?.onlineStoreUrl)
     .filter((url): url is string => Boolean(url));

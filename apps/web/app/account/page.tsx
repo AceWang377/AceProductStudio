@@ -6,7 +6,6 @@ import {
   Coins,
   CreditCard,
   Database,
-  Download,
   History,
   LogOut,
   Mail,
@@ -115,16 +114,9 @@ export default async function AccountPage() {
             <ActionRow
               icon={History}
               title="Usage history"
-              detail="Review generation jobs, failed publish attempts, and credit ledger activity."
+              detail="Review generation jobs, failed publish attempts, credit ledger activity, and CSV exports."
               href="/usage"
               label="View usage"
-            />
-            <ActionRow
-              icon={Download}
-              title="Usage exports"
-              detail="Download job and credit CSV files for support or accounting."
-              href="/usage"
-              label="Open usage"
             />
             <ActionRow
               icon={Rocket}

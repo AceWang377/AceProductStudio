@@ -54,7 +54,7 @@ export default async function GrowthPage() {
     getServerDictionary(),
     listProducts(),
     readState(),
-    listLatestGrowthMonitorRuns(user.id, 3)
+    listLatestGrowthMonitorRuns(user.id, 3, { excludeAppSite: true })
   ]);
   const copy = t.growthPage;
   const audit = await getGrowthAudit({
@@ -371,8 +371,62 @@ export default async function GrowthPage() {
         </aside>
       </section>
 
-      <section className="border border-line bg-white p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div>
+          <div className="mb-3 flex items-end justify-between gap-4">
+            <div>
+              <p className="text-sm text-muted">{copy.productScores.eyebrow}</p>
+              <h2 className="text-xl font-semibold">{copy.productScores.title}</h2>
+            </div>
+            <Link href="/products" className="text-sm font-semibold text-action">
+              {copy.productScores.openProducts}
+            </Link>
+          </div>
+          {audit.products.length ? (
+            <div className="border-y border-line">
+              {audit.products.slice(0, 12).map((product) => (
+                <ProductAuditRow
+                  key={`${product.product.source}-${product.product.id}`}
+                  product={product}
+                  applyCreditCost={GROWTH_APPLY_CREDIT_COST}
+                  copy={copy}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="border border-line bg-white p-8 text-sm text-muted">
+              {copy.productScores.empty}
+            </div>
+          )}
+        </div>
+
+        <aside>
+          <div className="border border-line bg-white p-5">
+            <div className="flex items-center gap-2">
+              <CircleAlert className="h-5 w-5 text-action" aria-hidden />
+              <h2 className="text-lg font-semibold">{copy.recommendations.title}</h2>
+            </div>
+            <div className="mt-4 space-y-3">
+              {topIssues.length ? (
+                topIssues.map((issue) => (
+                  <IssueBlock key={`${issue.productId}-${issue.key}`} issue={issue} productTitle={issue.productTitle} />
+                ))
+              ) : topCollectionIssues.length ? (
+                topCollectionIssues.map((issue) => (
+                  <IssueBlock key={`${issue.collectionId}-${issue.key}`} issue={issue} productTitle={`${issue.collectionTitle} collection`} />
+                ))
+              ) : (
+                <p className="text-sm leading-6 text-muted">
+                  {copy.recommendations.strongEnough}
+                </p>
+              )}
+            </div>
+          </div>
+        </aside>
+      </section>
+
+      <details className="group border border-line bg-white p-5">
+        <summary className="flex cursor-pointer list-none flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-medium text-action">{copy.skillCoverage.eyebrow}</p>
             <h2 className="mt-1 text-2xl font-semibold">{copy.skillCoverage.title}</h2>
@@ -383,13 +437,13 @@ export default async function GrowthPage() {
           <span className="inline-flex h-9 items-center rounded border border-line px-3 text-sm font-semibold">
             {skillCoverage.length} {copy.skillCoverage.pillars}
           </span>
-        </div>
+        </summary>
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
           {skillCoverage.map((item) => (
             <SkillCoverageBlock key={item.title} item={item} copy={copy} />
           ))}
         </div>
-      </section>
+      </details>
 
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="border border-line bg-white p-5">
@@ -565,42 +619,42 @@ export default async function GrowthPage() {
         </aside>
       </section>
 
-      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
-        <div className="border border-line bg-white p-5">
-          <div className="flex items-start gap-3">
-            <Database className="mt-1 h-5 w-5 text-action" aria-hidden />
-            <div>
-              <p className="text-sm font-medium text-action">{copy.dataSources.eyebrow}</p>
-              <h2 className="mt-1 text-2xl font-semibold">{copy.dataSources.title}</h2>
-              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                {copy.dataSources.body}
-              </p>
-            </div>
+      <details className="group border border-line bg-white p-5">
+        <summary className="flex cursor-pointer list-none items-start gap-3">
+          <Database className="mt-1 h-5 w-5 shrink-0 text-action" aria-hidden />
+          <div>
+            <p className="text-sm font-medium text-action">{copy.dataSources.eyebrow}</p>
+            <h2 className="mt-1 text-2xl font-semibold">{copy.dataSources.title}</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+              {copy.dataSources.body}
+            </p>
           </div>
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+        </summary>
+        <div className="mt-5 grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {dataSources.map((source) => (
               <DataSourceCard key={source.label} source={source} copy={copy} />
             ))}
           </div>
-        </div>
 
-        <aside className="border border-line bg-white p-5">
-          <Clock3 className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">{copy.noApiQueue.title}</h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            {copy.noApiQueue.body}
-          </p>
-          <div className="mt-4 space-y-3">
-            {noApiWins.length ? (
-              noApiWins.map((win) => <NoApiWinBlock key={win.key} win={win} />)
-            ) : (
-              <p className="border border-line bg-canvas p-3 text-sm leading-6 text-muted">
-                {copy.noApiQueue.empty}
-              </p>
-            )}
-          </div>
-        </aside>
-      </section>
+          <aside className="border border-line bg-canvas p-5">
+            <Clock3 className="h-5 w-5 text-action" aria-hidden />
+            <h2 className="mt-4 text-lg font-semibold">{copy.noApiQueue.title}</h2>
+            <p className="mt-2 text-sm leading-6 text-muted">
+              {copy.noApiQueue.body}
+            </p>
+            <div className="mt-4 space-y-3">
+              {noApiWins.length ? (
+                noApiWins.map((win) => <NoApiWinBlock key={win.key} win={win} />)
+              ) : (
+                <p className="border border-line bg-white p-3 text-sm leading-6 text-muted">
+                  {copy.noApiQueue.empty}
+                </p>
+              )}
+            </div>
+          </aside>
+        </div>
+      </details>
 
       <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
         <div className="border border-line bg-white p-5">
@@ -638,59 +692,6 @@ export default async function GrowthPage() {
         </aside>
       </section>
 
-      <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-        <div>
-          <div className="mb-3 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm text-muted">{copy.productScores.eyebrow}</p>
-              <h2 className="text-xl font-semibold">{copy.productScores.title}</h2>
-            </div>
-            <Link href="/products" className="text-sm font-semibold text-action">
-              {copy.productScores.openProducts}
-            </Link>
-          </div>
-          {audit.products.length ? (
-            <div className="border-y border-line">
-              {audit.products.slice(0, 12).map((product) => (
-                <ProductAuditRow
-                  key={`${product.product.source}-${product.product.id}`}
-                  product={product}
-                  applyCreditCost={GROWTH_APPLY_CREDIT_COST}
-                  copy={copy}
-                />
-              ))}
-            </div>
-          ) : (
-            <div className="border border-line bg-white p-8 text-sm text-muted">
-              {copy.productScores.empty}
-            </div>
-          )}
-        </div>
-
-        <aside>
-          <div className="border border-line bg-white p-5">
-            <div className="flex items-center gap-2">
-              <CircleAlert className="h-5 w-5 text-action" aria-hidden />
-              <h2 className="text-lg font-semibold">{copy.recommendations.title}</h2>
-            </div>
-            <div className="mt-4 space-y-3">
-              {topIssues.length ? (
-                topIssues.map((issue) => (
-                  <IssueBlock key={`${issue.productId}-${issue.key}`} issue={issue} productTitle={issue.productTitle} />
-                ))
-              ) : topCollectionIssues.length ? (
-                topCollectionIssues.map((issue) => (
-                  <IssueBlock key={`${issue.collectionId}-${issue.key}`} issue={issue} productTitle={`${issue.collectionTitle} collection`} />
-                ))
-              ) : (
-                <p className="text-sm leading-6 text-muted">
-                  {copy.recommendations.strongEnough}
-                </p>
-              )}
-            </div>
-          </div>
-        </aside>
-      </section>
     </div>
   );
 }
@@ -1107,7 +1108,7 @@ function ProductAuditRow({
           <div className="border border-line bg-canvas p-3">
             <p className="text-xs font-semibold uppercase text-muted">{copy.productScores.schemaWriter}</p>
             <ul className="mt-3 space-y-2 text-xs leading-5 text-muted">
-              {product.schemaSuggestions.slice(0, 4).map((schema) => (
+              {product.schemaSuggestions.slice(0, 5).map((schema) => (
                 <li key={schema.type} className="flex items-start justify-between gap-3 border-b border-line/70 pb-2 last:border-b-0 last:pb-0">
                   <span>
                     <span className="font-semibold text-ink">{schema.type}</span>

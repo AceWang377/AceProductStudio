@@ -38,11 +38,15 @@ export async function POST() {
       connection: state.shopifyConnection,
       workspaceProducts: products
     });
+    const targetUrl = audit.primaryDomain || storefrontRootFromProductUrl(audit.products[0]?.product.onlineStoreUrl);
+    if (!targetUrl) {
+      throw new Error("Connect Shopify and make at least one Online Store product live/listed before running Growth monitoring.");
+    }
     const output = await runGrowthMonitor({
       userId: user.id,
       storeId: state.shopifyConnection?.id,
       connection: state.shopifyConnection,
-      targetUrl: audit.primaryDomain,
+      targetUrl,
       products: audit.products.map((product) => product.product)
     });
 
@@ -65,5 +69,15 @@ export async function POST() {
       { error: error instanceof Error ? error.message : "Growth monitoring failed." },
       { status: 502 }
     );
+  }
+}
+
+function storefrontRootFromProductUrl(value?: string) {
+  if (!value) return undefined;
+  try {
+    const url = new URL(value);
+    return `${url.protocol}//${url.hostname}`;
+  } catch {
+    return undefined;
   }
 }

@@ -124,7 +124,7 @@ export default async function RootLayout({
                   </div>
                 </div>
                 <p className="mt-5 max-w-xs leading-6">
-                  Create Shopify product drafts, review SEO/GEO quality, and approve selected store updates from one account.
+                  Shopify product creation and SEO/GEO optimization in one review-first workspace.
                 </p>
                 <Link
                   href={`mailto:${siteConfig.supportEmail}`}
@@ -137,8 +137,8 @@ export default async function RootLayout({
             </div>
             <div className="border-t border-line">
               <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span>(c) AceStudio. Draft-first Shopify automation.</span>
-                <span>SEO/GEO suggestions are reviewed before write-back.</span>
+                <span>(c) AceStudio.</span>
+                <span>Draft-first publishing. Review-before-write SEO/GEO updates.</span>
               </div>
             </div>
           </footer>

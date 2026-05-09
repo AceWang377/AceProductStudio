@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ExternalLink } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 import { seoResourceList } from "@/lib/seo-resources";
+import { siteConfig } from "@/lib/site";
 
 type SeoLandingPageProps = {
   eyebrow: string;
@@ -15,6 +17,20 @@ type SeoLandingPageProps = {
     body: string;
   }>;
   benefits: string[];
+  proof?: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    metrics: Array<{ label: string; value: string }>;
+    media: Array<{ src: string; alt: string; label: string }>;
+    resultCards: Array<{ title: string; detail: string }>;
+  };
+  richResults?: {
+    eyebrow: string;
+    title: string;
+    body: string;
+    checks: string[];
+  };
   optimizationAreas?: Array<{
     title: string;
     body: string;
@@ -34,6 +50,8 @@ export function SeoLandingPage({
   primaryCta,
   sections,
   benefits,
+  proof,
+  richResults,
   optimizationAreas,
   faq,
   translationKey
@@ -45,7 +63,10 @@ export function SeoLandingPage({
   const pageDescription = translatedPage?.description ?? description;
   const pagePrimaryCta = translatedPage?.primaryCta ?? primaryCta;
   const pageBenefits = translatedPage?.benefits ?? benefits;
+  const pageProof = translatedPage?.proof ?? proof;
+  const pageRichResults = translatedPage?.richResults ?? richResults;
   const pageOptimizationAreas = translatedPage?.optimizationAreas ?? optimizationAreas;
+  const richResultsUrl = `https://search.google.com/test/rich-results?url=${encodeURIComponent(`${siteConfig.url}/shopify-seo-geo-optimizer`)}`;
 
   return (
     <div className="mx-auto max-w-6xl space-y-10">
@@ -94,6 +115,72 @@ export function SeoLandingPage({
         ))}
       </section>
 
+      {pageProof ? (
+        <section className="border-y border-line py-10">
+          <div className="grid gap-6 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.05fr)]">
+            <div>
+              <p className="text-sm font-semibold text-action">{pageProof.eyebrow}</p>
+              <h2 className="mt-2 text-2xl font-semibold">{pageProof.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-muted">{pageProof.body}</p>
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+                {pageProof.metrics.map((metric) => (
+                  <div key={metric.label} className="border border-line bg-white p-4">
+                    <p className="text-2xl font-semibold">{metric.value}</p>
+                    <p className="mt-1 text-xs font-semibold uppercase text-muted">{metric.label}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                {pageProof.resultCards.map((result) => (
+                  <article key={result.title} className="border border-line bg-white p-4">
+                    <p className="text-sm font-semibold text-action">{result.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-muted">{result.detail}</p>
+                  </article>
+                ))}
+              </div>
+            </div>
+            <div className="border border-line bg-white p-4">
+              <div className="grid gap-3 sm:grid-cols-[1.15fr_0.85fr]">
+                {pageProof.media.map((item, index) => (
+                  <figure
+                    key={item.src}
+                    className={index === 0 ? "sm:row-span-2" : ""}
+                  >
+                    <div className="relative aspect-square overflow-hidden border border-line bg-canvas">
+                      <Image
+                        src={item.src}
+                        alt={item.alt}
+                        fill
+                        sizes={index === 0 ? "(min-width: 1024px) 360px, 100vw" : "(min-width: 1024px) 220px, 50vw"}
+                        className="object-cover"
+                      />
+                    </div>
+                    <figcaption className="mt-2 text-xs font-semibold uppercase text-muted">
+                      {item.label}
+                    </figcaption>
+                  </figure>
+                ))}
+              </div>
+              <div className="mt-4 border border-line bg-canvas p-4">
+                <p className="text-xs font-semibold uppercase text-muted">{t.seo.landing.sampleDiff}</p>
+                <div className="mt-3 grid gap-3 md:grid-cols-2">
+                  <div>
+                    <p className="text-xs font-semibold text-muted">{t.seo.landing.before}</p>
+                    <p className="mt-1 text-sm font-semibold">Blush Aurora Ring</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">No meta description. Missing image alt text.</p>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold text-action">{t.seo.landing.after}</p>
+                    <p className="mt-1 text-sm font-semibold">Blush Aurora Ring for Elegant Gift Styling</p>
+                    <p className="mt-1 text-xs leading-5 text-muted">Meta, FAQ, alt text, and internal link ready for approval.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       {pageOptimizationAreas?.length ? (
         <section className="border-y border-line py-10">
           <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
@@ -118,6 +205,35 @@ export function SeoLandingPage({
                     ))}
                   </ul>
                 </article>
+              ))}
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {pageRichResults ? (
+        <section className="border-y border-line py-10">
+          <div className="grid gap-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+            <div>
+              <p className="text-sm font-semibold text-action">{pageRichResults.eyebrow}</p>
+              <h2 className="mt-2 text-2xl font-semibold">{pageRichResults.title}</h2>
+              <p className="mt-3 text-sm leading-6 text-muted">{pageRichResults.body}</p>
+              <a
+                href={richResultsUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="studio-focus mt-5 inline-flex h-11 items-center gap-2 rounded border border-line bg-white px-4 text-sm font-semibold hover:bg-canvas"
+              >
+                {t.seo.landing.openRichResultsTest}
+                <ExternalLink className="h-4 w-4" aria-hidden />
+              </a>
+            </div>
+            <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-2">
+              {pageRichResults.checks.map((check) => (
+                <div key={check} className="flex gap-3 bg-white p-5 text-sm leading-6 text-muted">
+                  <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-action" aria-hidden />
+                  <span>{check}</span>
+                </div>
               ))}
             </div>
           </div>

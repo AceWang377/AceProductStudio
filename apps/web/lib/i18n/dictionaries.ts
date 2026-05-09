@@ -893,7 +893,11 @@ export const dictionaries = defineDictionaries({
         optimizationEyebrow: "Optimization coverage",
         optimizationTitle: "What the SEO/GEO audit should improve",
         optimizationIntro:
-          "The strongest Shopify optimization tools combine search basics, media context, technical signals, and answer-ready page copy."
+          "The strongest Shopify optimization tools combine search basics, media context, technical signals, and answer-ready page copy.",
+        sampleDiff: "Sample reviewed result",
+        before: "Before",
+        after: "After draft",
+        openRichResultsTest: "Open Google Rich Results Test"
       },
       shopifySeoGeoOptimizer: {
         eyebrow: "Shopify SEO and GEO optimizer",
@@ -907,6 +911,56 @@ export const dictionaries = defineDictionaries({
           "Review generated fixes for SEO copy, FAQ blocks, tags, and answer-friendly product details.",
           "Write approved improvements back to Shopify only after merchant confirmation."
         ],
+        proof: {
+          eyebrow: "Proof-driven workflow",
+          title: "See the audit, preview the fix, then approve the Shopify write-back.",
+          body:
+            "The page is built around the same review flow merchants use in Growth Studio: live product audit, editable before/after drafts, image SEO checks, internal link suggestions, and rich-result readiness.",
+          metrics: [
+            { label: "SEO/GEO fields checked", value: "20+" },
+            { label: "Write-back modes", value: "4" },
+            { label: "Default publish mode", value: "Draft" }
+          ],
+          media: [
+            {
+              src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-lifestyle-1-68a4d136-c1b7-4024-8953-a4c74eaca73c.png",
+              alt: "Generated lifestyle product image used in an AceStudio Shopify optimization workflow",
+              label: "Lifestyle media"
+            },
+            {
+              src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-product_detail-2-b72f5b62-982f-43ea-a154-848163bb4fe0.png",
+              alt: "Generated product detail image for Shopify image SEO review",
+              label: "Detail media"
+            },
+            {
+              src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-white_background-0-481fbc60-15dc-4649-afb1-94c8ab90db42.png",
+              alt: "Generated white background product image for Shopify product media order",
+              label: "Clean product media"
+            }
+          ],
+          resultCards: [
+            {
+              title: "Before",
+              detail: "Thin title, missing meta description, weak image alt text, no buyer FAQ, and no internal product context."
+            },
+            {
+              title: "After draft",
+              detail: "Editable SEO title, meta description, buyer questions, alt text, and internal links ready for merchant approval."
+            }
+          ]
+        },
+        richResults: {
+          eyebrow: "Structured data validation",
+          title: "Rich-result checks stay grounded in real Shopify data.",
+          body:
+            "AceStudio separates readiness from automation: it checks Product, Offer, Breadcrumb, FAQ, and Review prerequisites, then asks the merchant to validate live pages after deployment.",
+          checks: [
+            "Product schema has name, description, images, URL, brand/category context.",
+            "Offer readiness uses real Shopify price, currency, availability, and product URL.",
+            "FAQ and Review readiness are marked partial until visible FAQs and real customer review data exist.",
+            "Google Rich Results Test should be run after deployment on the canonical page URL."
+          ]
+        },
         optimizationAreas: [
           {
             title: "Search snippet quality",
@@ -1768,7 +1822,11 @@ export const dictionaries = defineDictionaries({
         optimizationEyebrow: "优化覆盖范围",
         optimizationTitle: "SEO/GEO 审核应优化的内容",
         optimizationIntro:
-          "更成熟的 Shopify 优化工具通常会结合搜索基础、图片语义、技术信号和答案友好的页面文案。"
+          "更成熟的 Shopify 优化工具通常会结合搜索基础、图片语义、技术信号和答案友好的页面文案。",
+        sampleDiff: "示例审核结果",
+        before: "优化前",
+        after: "优化草稿",
+        openRichResultsTest: "打开 Google 富结果测试"
       },
       shopifySeoGeoOptimizer: {
         eyebrow: "Shopify SEO 和 GEO 优化器",
@@ -1782,6 +1840,56 @@ export const dictionaries = defineDictionaries({
           "审核生成的 SEO 文案、FAQ 区块、标签和答案友好的商品详情。",
           "仅在商家确认后，将批准的优化写回 Shopify。"
         ],
+        proof: {
+          eyebrow: "结果驱动流程",
+          title: "先查看审核，再预览修复，最后确认 Shopify 写回。",
+          body:
+            "这个页面围绕 Growth Studio 的真实审核流程设计：在线商品审核、可编辑 before/after 草稿、图片 SEO 检查、内链建议和富结果准备度。",
+          metrics: [
+            { label: "SEO/GEO 检查字段", value: "20+" },
+            { label: "写回模式", value: "4" },
+            { label: "默认发布方式", value: "草稿" }
+          ],
+          media: [
+            {
+              src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-lifestyle-1-68a4d136-c1b7-4024-8953-a4c74eaca73c.png",
+              alt: "AceStudio Shopify 优化流程中生成的生活方式商品图",
+              label: "场景图"
+            },
+            {
+              src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-product_detail-2-b72f5b62-982f-43ea-a154-848163bb4fe0.png",
+              alt: "用于 Shopify 图片 SEO 审核的商品细节图",
+              label: "细节图"
+            },
+            {
+              src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-white_background-0-481fbc60-15dc-4649-afb1-94c8ab90db42.png",
+              alt: "用于 Shopify 商品媒体排序的白底商品图",
+              label: "白底商品图"
+            }
+          ],
+          resultCards: [
+            {
+              title: "优化前",
+              detail: "标题较薄、缺少 Meta 描述、图片 alt 弱、没有买家 FAQ，也缺少内部商品语境。"
+            },
+            {
+              title: "优化草稿",
+              detail: "可编辑 SEO 标题、Meta 描述、买家问题、alt 文本和内链，等待商家确认。"
+            }
+          ]
+        },
+        richResults: {
+          eyebrow: "结构化数据验证",
+          title: "富结果检查必须基于真实 Shopify 数据。",
+          body:
+            "AceStudio 会区分准备度和自动化：检查 Product、Offer、Breadcrumb、FAQ 和 Review 的前置条件，并提示商家在部署后验证真实页面。",
+          checks: [
+            "Product schema 包含名称、描述、图片、URL、品牌/分类语境。",
+            "Offer 准备度使用真实 Shopify 价格、货币、库存可售状态和商品 URL。",
+            "FAQ 与 Review 在页面可见 FAQ 和真实客户评价数据存在前保持 partial。",
+            "部署后应使用 Google 富结果测试检查规范页面 URL。"
+          ]
+        },
         optimizationAreas: [
           {
             title: "搜索摘要质量",

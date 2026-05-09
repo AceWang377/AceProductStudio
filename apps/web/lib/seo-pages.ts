@@ -148,6 +148,56 @@ export const seoPages = {
       "Review generated fixes for SEO copy, FAQ blocks, tags, and answer-friendly product details.",
       "Write approved improvements back to Shopify only after merchant confirmation."
     ],
+    proof: {
+      eyebrow: "Proof-driven workflow",
+      title: "See the audit, preview the fix, then approve the Shopify write-back.",
+      body:
+        "The page is built around the same review flow merchants use in Growth Studio: live product audit, editable before/after drafts, image SEO checks, internal link suggestions, and rich-result readiness.",
+      metrics: [
+        { label: "SEO/GEO fields checked", value: "20+" },
+        { label: "Write-back modes", value: "4" },
+        { label: "Default publish mode", value: "Draft" }
+      ],
+      media: [
+        {
+          src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-lifestyle-1-68a4d136-c1b7-4024-8953-a4c74eaca73c.png",
+          alt: "Generated lifestyle product image used in an AceStudio Shopify optimization workflow",
+          label: "Lifestyle media"
+        },
+        {
+          src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-product_detail-2-b72f5b62-982f-43ea-a154-848163bb4fe0.png",
+          alt: "Generated product detail image for Shopify image SEO review",
+          label: "Detail media"
+        },
+        {
+          src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-white_background-0-481fbc60-15dc-4649-afb1-94c8ab90db42.png",
+          alt: "Generated white background product image for Shopify product media order",
+          label: "Clean product media"
+        }
+      ],
+      resultCards: [
+        {
+          title: "Before",
+          detail: "Thin title, missing meta description, weak image alt text, no buyer FAQ, and no internal product context."
+        },
+        {
+          title: "After draft",
+          detail: "Editable SEO title, meta description, buyer questions, alt text, and internal links ready for merchant approval."
+        }
+      ]
+    },
+    richResults: {
+      eyebrow: "Structured data validation",
+      title: "Rich-result checks stay grounded in real Shopify data.",
+      body:
+        "AceStudio separates readiness from automation: it checks Product, Offer, Breadcrumb, FAQ, and Review prerequisites, then asks the merchant to validate live pages after deployment.",
+      checks: [
+        "Product schema has name, description, images, URL, brand/category context.",
+        "Offer readiness uses real Shopify price, currency, availability, and product URL.",
+        "FAQ and Review readiness are marked partial until visible FAQs and real customer review data exist.",
+        "Google Rich Results Test should be run after deployment on the canonical page URL."
+      ]
+    },
     sections: [
       {
         title: "From product creation to product optimization",
@@ -266,6 +316,20 @@ export const seoPages = {
     description: string;
     primaryCta: string;
     benefits: string[];
+    proof?: {
+      eyebrow: string;
+      title: string;
+      body: string;
+      metrics: Array<{ label: string; value: string }>;
+      media: Array<{ src: string; alt: string; label: string }>;
+      resultCards: Array<{ title: string; detail: string }>;
+    };
+    richResults?: {
+      eyebrow: string;
+      title: string;
+      body: string;
+      checks: string[];
+    };
     optimizationAreas?: Array<{
       title: string;
       body: string;
@@ -282,6 +346,17 @@ export function getSeoPageMetadata(key: SeoPageKey): Metadata {
   return {
     title: page.title,
     description: page.description,
+    keywords: key === "shopifySeoGeoOptimizer"
+      ? [
+        "Shopify SEO optimizer",
+        "Shopify GEO optimizer",
+        "Shopify rich results",
+        "Shopify product schema",
+        "Shopify image alt text",
+        "Shopify internal links",
+        "AI answer readiness for Shopify"
+      ]
+      : undefined,
     alternates: {
       canonical: page.path
     },
@@ -289,7 +364,7 @@ export function getSeoPageMetadata(key: SeoPageKey): Metadata {
       title: `${page.title} | ${siteConfig.name}`,
       description: page.description,
       url: `${siteConfig.url}${page.path}`,
-      type: "article"
+      type: "website"
     },
     twitter: {
       card: "summary_large_image",
@@ -302,56 +377,106 @@ export function getSeoPageMetadata(key: SeoPageKey): Metadata {
 
 export function getSeoPageStructuredData(key: SeoPageKey) {
   const page = seoPages[key];
+  const optimizationAreas = "optimizationAreas" in page ? page.optimizationAreas : undefined;
+  const pageUrl = `${siteConfig.url}${page.path}`;
+  const organizationId = `${siteConfig.url}/#organization`;
+  const websiteId = `${siteConfig.url}/#website`;
+  const webpageId = `${pageUrl}#webpage`;
+  const serviceId = `${pageUrl}#service`;
 
-  return [
-    {
-      "@context": "https://schema.org",
-      "@type": "WebPage",
-      name: page.title,
-      description: page.description,
-      url: `${siteConfig.url}${page.path}`,
-      isPartOf: {
+  return {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
         "@type": "WebSite",
+        "@id": websiteId,
         name: siteConfig.name,
-        url: siteConfig.url
+        url: siteConfig.url,
+        publisher: {
+          "@id": organizationId
+        }
       },
-      publisher: {
+      {
         "@type": "Organization",
+        "@id": organizationId,
         name: siteConfig.name,
         legalName: siteConfig.company,
         url: siteConfig.url,
         logo: `${siteConfig.url}/brand/ace-studio-logo.png`
-      }
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: siteConfig.name,
-          item: siteConfig.url
+      },
+      {
+        "@type": "WebPage",
+        "@id": webpageId,
+        name: page.title,
+        description: page.description,
+        url: pageUrl,
+        isPartOf: {
+          "@id": websiteId
         },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: page.title,
-          item: `${siteConfig.url}${page.path}`
+        about: {
+          "@id": serviceId
+        },
+        publisher: {
+          "@id": organizationId
         }
-      ]
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: page.faq.map((item) => ({
-        "@type": "Question",
-        name: item.question,
-        acceptedAnswer: {
-          "@type": "Answer",
-          text: item.answer
+      },
+      {
+        "@type": "Service",
+        "@id": serviceId,
+        name: page.title,
+        serviceType: key === "shopifySeoGeoOptimizer"
+          ? "Shopify SEO and generative engine optimization software"
+          : "Shopify AI product workflow software",
+        provider: {
+          "@id": organizationId
+        },
+        areaServed: "Worldwide",
+        audience: {
+          "@type": "Audience",
+          audienceType: "Shopify merchants"
+        },
+        description: page.description
+      },
+      {
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          {
+            "@type": "ListItem",
+            position: 1,
+            name: siteConfig.name,
+            item: siteConfig.url
+          },
+          {
+            "@type": "ListItem",
+            position: 2,
+            name: page.title,
+            item: pageUrl
+          }
+        ]
+      },
+      optimizationAreas?.length
+        ? {
+          "@type": "ItemList",
+          name: `${page.title} optimization coverage`,
+          itemListElement: optimizationAreas.map((area, index) => ({
+            "@type": "ListItem",
+            position: index + 1,
+            name: area.title,
+            description: area.body
+          }))
         }
-      }))
-    }
-  ];
+        : null,
+      {
+        "@type": "FAQPage",
+        mainEntity: page.faq.map((item) => ({
+          "@type": "Question",
+          name: item.question,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: item.answer
+          }
+        }))
+      }
+    ].filter(Boolean)
+  };
 }
