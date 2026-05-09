@@ -244,6 +244,34 @@ export const dictionaries = defineDictionaries({
           ]
         }
       },
+      searchEntity: {
+        eyebrow: "AI search clarity",
+        title: "Make AceStudio easy for search engines and AI answers to understand.",
+        intro:
+          "The homepage now states the entity, audience, workflow, and write-back boundary in plain product language so crawlers and answer engines can summarize it consistently.",
+        cards: [
+          {
+            title: "Clear entity",
+            detail:
+              "AceStudio is a Shopify product content and growth workspace, not a generic image generator or agency landing page."
+          },
+          {
+            title: "Merchant use case",
+            detail:
+              "The product helps Shopify merchants create listing assets and improve live product pages that are eligible to rank."
+          },
+          {
+            title: "Safe write-back",
+            detail:
+              "SEO/GEO suggestions stay editable and only write to Shopify after the merchant confirms the selected update."
+          },
+          {
+            title: "Measurement loop",
+            detail:
+              "Growth Studio can connect technical checks and Search Console data so improvements are prioritized from real page signals."
+          }
+        ]
+      },
       trust: {
         eyebrow: "Trust model",
         title: "Safe changes, owned by the merchant.",
@@ -1138,6 +1166,30 @@ export const dictionaries = defineDictionaries({
             }
           ]
         }
+      },
+      searchEntity: {
+        eyebrow: "AI 搜索清晰度",
+        title: "让搜索引擎和 AI 答案更容易理解 AceStudio。",
+        intro:
+          "首页会用清晰的产品语言说明实体、受众、流程和写回边界，让爬虫和答案引擎可以稳定总结这个产品。",
+        cards: [
+          {
+            title: "清晰实体",
+            detail: "AceStudio 是 Shopify 商品内容与增长工作台，不是普通图片生成器或代理服务页面。"
+          },
+          {
+            title: "商家场景",
+            detail: "产品帮助 Shopify 商家创建商品素材，并优化真正可以参与排名的在线商品页。"
+          },
+          {
+            title: "安全写回",
+            detail: "SEO/GEO 建议保持可编辑，只有商家确认选中的更新后才会写入 Shopify。"
+          },
+          {
+            title: "监控闭环",
+            detail: "Growth Studio 可以连接技术检查和 Search Console 数据，用真实页面信号排序优化优先级。"
+          }
+        ]
       },
       trust: {
         eyebrow: "信任模型",

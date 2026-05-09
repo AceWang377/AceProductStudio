@@ -22,6 +22,7 @@ import type { LucideIcon } from "lucide-react";
 import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const workflowIcons = [ImagePlus, Sparkles, FileText, Send] as const;
+const searchEntityIcons = [SearchCheck, Store, ShieldCheck, LineChart] as const;
 
 export function HomeLanding() {
   const { t } = useLanguage();
@@ -29,9 +30,9 @@ export function HomeLanding() {
 
   return (
     <>
-      <section className="relative left-1/2 right-1/2 -mx-[50vw] -mt-6 min-h-[calc(100svh-66px)] w-screen overflow-hidden border-b border-line bg-[#f4f5f1]">
+      <section className="relative left-1/2 right-1/2 -mx-[50vw] -mt-6 min-h-[calc(88svh-66px)] w-screen overflow-hidden border-b border-line bg-[#f4f5f1]">
         <div className="absolute inset-0 opacity-[0.45] landing-grid" aria-hidden />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:min-h-[calc(100svh-66px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(520px,1fr)] lg:items-center lg:py-16">
+        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-12 sm:px-6 lg:min-h-[calc(88svh-66px)] lg:grid-cols-[minmax(0,0.9fr)_minmax(520px,1fr)] lg:items-center lg:py-16">
           <div className="landing-reveal">
             <p className="inline-flex items-center gap-2 border border-[#c8d6cf] bg-white/70 px-3 py-1.5 text-sm font-semibold text-action">
               <BadgeCheck className="h-4 w-4" aria-hidden />
@@ -132,40 +133,64 @@ export function HomeLanding() {
         </div>
       </SectionShell>
 
-      <section className="border-y border-line bg-white py-10">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[320px_minmax(0,1fr)] lg:items-start">
-          <div>
-            <p className="text-sm font-semibold text-action">{landing.trust.eyebrow}</p>
-            <h2 className="mt-3 text-3xl font-semibold leading-tight">{landing.trust.title}</h2>
-          </div>
-          <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
-            <TrustLine icon={ShieldCheck} title={landing.trust.lines[0]?.title ?? ""} detail={landing.trust.lines[0]?.detail ?? ""} />
-            <TrustLine icon={Store} title={landing.trust.lines[1]?.title ?? ""} detail={landing.trust.lines[1]?.detail ?? ""} />
-            <TrustLine icon={SearchCheck} title={landing.trust.lines[2]?.title ?? ""} detail={landing.trust.lines[2]?.detail ?? ""} />
-          </div>
-        </div>
-      </section>
-
-      <SectionShell eyebrow={landing.resources.eyebrow} title={landing.resources.title}>
-        <div className="grid gap-4 md:grid-cols-3">
-          {landing.resources.cards.map((article) => (
-            <ResourceCard
-              key={article.href}
-              href={article.href}
-              category={article.category}
-              title={article.title}
-              excerpt={article.excerpt}
-              readGuide={landing.resources.readGuide}
+      <SectionShell
+        eyebrow={landing.searchEntity.eyebrow}
+        title={landing.searchEntity.title}
+        intro={landing.searchEntity.intro}
+      >
+        <div className="grid gap-px overflow-hidden border border-line bg-line lg:grid-cols-4">
+          {landing.searchEntity.cards.map((card, index) => (
+            <SearchEntityCard
+              key={card.title}
+              icon={searchEntityIcons[index] ?? SearchCheck}
+              title={card.title}
+              detail={card.detail}
             />
           ))}
         </div>
       </SectionShell>
 
-      <SectionShell eyebrow={landing.faq.eyebrow} title={landing.faq.title}>
-        <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3">
-          {landing.faq.items.map((item) => (
-            <FaqItem key={item.question} question={item.question} answer={item.answer} />
-          ))}
+      <SectionShell eyebrow={landing.trust.eyebrow} title={landing.trust.title}>
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)]">
+          <div className="grid gap-px overflow-hidden border border-line bg-line">
+            <TrustLine icon={ShieldCheck} title={landing.trust.lines[0]?.title ?? ""} detail={landing.trust.lines[0]?.detail ?? ""} />
+            <TrustLine icon={Store} title={landing.trust.lines[1]?.title ?? ""} detail={landing.trust.lines[1]?.detail ?? ""} />
+            <TrustLine icon={SearchCheck} title={landing.trust.lines[2]?.title ?? ""} detail={landing.trust.lines[2]?.detail ?? ""} />
+          </div>
+          <div className="grid gap-6">
+            <div>
+              <div className="mb-3 flex items-end justify-between gap-4">
+                <div>
+                  <p className="text-sm font-semibold text-action">{landing.resources.eyebrow}</p>
+                  <h3 className="mt-1 text-xl font-semibold">{landing.resources.title}</h3>
+                </div>
+                <Link href="/resources" className="hidden text-sm font-semibold text-action sm:inline-flex">
+                  {landing.resources.readGuide}
+                </Link>
+              </div>
+              <div className="grid gap-3 md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                {landing.resources.cards.map((article) => (
+                  <ResourceCard
+                    key={article.href}
+                    href={article.href}
+                    category={article.category}
+                    title={article.title}
+                    excerpt={article.excerpt}
+                    readGuide={landing.resources.readGuide}
+                  />
+                ))}
+              </div>
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-action">{landing.faq.eyebrow}</p>
+              <h3 className="mt-1 text-xl font-semibold">{landing.faq.title}</h3>
+              <div className="mt-3 grid gap-px overflow-hidden border border-line bg-line md:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+                {landing.faq.items.map((item) => (
+                  <FaqItem key={item.question} question={item.question} answer={item.answer} />
+                ))}
+              </div>
+            </div>
+          </div>
         </div>
       </SectionShell>
 
@@ -375,7 +400,7 @@ function ProductControlSurface() {
               {control.ready}
             </span>
           </div>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-4 grid gap-3 2xl:grid-cols-2">
             {control.fields.map((field) => (
               <ControlField key={field.label} label={field.label} value={field.value} />
             ))}
@@ -504,6 +529,24 @@ function GrowthSignal({ title, detail }: { title: string; detail: string }) {
   );
 }
 
+function SearchEntityCard({
+  icon: Icon,
+  title,
+  detail
+}: {
+  icon: LucideIcon;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <article className="bg-white p-5 transition hover:bg-[#f8faf7]">
+      <Icon className="h-5 w-5 text-action" aria-hidden />
+      <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+      <p className="mt-3 text-sm leading-6 text-muted">{detail}</p>
+    </article>
+  );
+}
+
 function TrustLine({ icon: Icon, title, detail }: { icon: LucideIcon; title: string; detail: string }) {
   return (
     <div className="grid gap-4 bg-white p-5 lg:grid-cols-[40px_minmax(0,1fr)]">
@@ -534,7 +577,7 @@ function ResourceCard({
   return (
     <Link
       href={href}
-      className="studio-focus group flex min-h-64 flex-col border border-line bg-white p-5 transition hover:-translate-y-1 hover:border-action hover:bg-[#f8faf7]"
+      className="studio-focus group flex min-h-52 flex-col border border-line bg-white p-5 transition hover:-translate-y-1 hover:border-action hover:bg-[#f8faf7]"
     >
       <p className="text-sm font-semibold text-action">{category}</p>
       <h3 className="mt-4 text-xl font-semibold leading-snug">{title}</h3>
