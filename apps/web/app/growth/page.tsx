@@ -25,11 +25,11 @@ import {
 } from "lucide-react";
 import { GrowthApplyButton } from "@/components/growth/GrowthApplyButton";
 import { GrowthMonitorButton } from "@/components/growth/GrowthMonitorButton";
+import { SearchConsoleRewriteApplyButton } from "@/components/growth/SearchConsoleRewriteApplyButton";
 import { requireCurrentUser } from "@/lib/auth";
 import { GROWTH_APPLY_CREDIT_COST, GROWTH_AUDIT_CREDIT_COST, TRIAL_CREDITS } from "@/lib/credits";
 import {
   getGrowthAudit,
-  type GrowthAuditCapability,
   type GrowthAuditIssue,
   type GrowthCollectionScore,
   type GrowthInternalLinkSuggestion,
@@ -73,6 +73,19 @@ export default async function GrowthPage() {
   ).slice(0, 5);
   const latestPageSpeed = latestMonitorRun?.output?.technicalSeo?.pageSpeed;
   const competitorGapCount = latestMonitorRun?.output?.competitorKeywordGaps?.length ?? 0;
+  const keywordOpportunityTargets = (latestMonitorRun?.output?.keywordOpportunities ?? []).slice(0, 4).map((opportunity) => ({
+    opportunity,
+    product: findProductForOpportunity(opportunity.page, audit.products)
+  }));
+  const writeBackCandidates = audit.products
+    .filter((product) =>
+      product.product.source === "shopify" &&
+      product.product.id.startsWith("gid://shopify/Product/") &&
+      product.issues.length > 0
+    )
+    .slice()
+    .sort((left, right) => left.overallScore - right.overallScore)
+    .slice(0, 3);
   const workflowStages = [
     {
       title: "Audit",
@@ -363,13 +376,75 @@ export default async function GrowthPage() {
         </aside>
       </section>
 
+      <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
+        <div className="border border-line bg-white p-5">
+          <div className="flex items-start gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded bg-[#e9f8f2]">
+              <FilePenLine className="h-5 w-5 text-action" aria-hidden />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-action">Optimization writer</p>
+              <h2 className="mt-1 text-2xl font-semibold">Do the SEO/GEO work, not just score it</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
+                The commercial version has to behave like an approved optimization assistant: generate better fields,
+                show an editable before/after diff, preview credit cost, then write selected improvements back to Shopify.
+              </p>
+            </div>
+          </div>
+          <div className="mt-5 grid gap-3 md:grid-cols-3">
+            <WriteBackCapability
+              icon={SearchCheck}
+              title="Search snippet fields"
+              detail="Improve SEO title and meta description without changing the merchant-facing product name by default."
+            />
+            <WriteBackCapability
+              icon={Target}
+              title="Keyword tags"
+              detail="Normalize product tags around category, intent, material, use case, and buyer search language."
+            />
+            <WriteBackCapability
+              icon={Sparkles}
+              title="AI answer content"
+              detail="Append answer-ready buyer Q&A and product facts so the page is easier for search and AI systems to understand."
+            />
+          </div>
+          <div className="mt-5 border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
+            Product display titles are deliberately not overwritten yet. That field affects merchandising, brand naming,
+            and ads. Add it later as a separate checkbox when the merchant explicitly wants AceStudio to rewrite public product names.
+          </div>
+        </div>
+
+        <aside className="border border-line bg-white p-5">
+          <ShieldCheck className="h-5 w-5 text-action" aria-hidden />
+          <h2 className="mt-4 text-lg font-semibold">Ready for approved write-back</h2>
+          <p className="mt-2 text-sm leading-6 text-muted">
+            These live Shopify products have the weakest scores and can be improved now with a reviewed Shopify update.
+          </p>
+          <div className="mt-4 space-y-3">
+            {writeBackCandidates.length ? (
+              writeBackCandidates.map((product) => (
+                <WriteBackCandidateCard
+                  key={product.product.id}
+                  product={product}
+                  creditCost={GROWTH_APPLY_CREDIT_COST}
+                />
+              ))
+            ) : (
+              <p className="border border-line bg-canvas p-3 text-sm leading-6 text-muted">
+                No live Shopify products need write-back right now. Draft, archived, hidden, and unlisted products stay out of this queue.
+              </p>
+            )}
+          </div>
+        </aside>
+      </section>
+
       <section className="border border-line bg-white p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <p className="text-sm font-medium text-action">SEO/GEO skill coverage</p>
             <h2 className="mt-1 text-2xl font-semibold">The core skill map this feature should own</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-              The strongest commercial version covers the same pillars merchants expect from SEO suites and newer GEO tools: content, answer readiness, images, indexability, rich snippets, and growth intelligence.
+              The strongest commercial version covers the same pillars merchants expect from SEO suites and newer GEO tools: content, answer readiness, images, indexability, rich snippets, internal links, and growth intelligence.
             </p>
           </div>
           <span className="inline-flex h-9 items-center rounded border border-line px-3 text-sm font-semibold">
@@ -472,26 +547,6 @@ export default async function GrowthPage() {
         </aside>
       </section>
 
-      <section className="border border-line bg-white p-5">
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <p className="text-sm font-medium text-action">Technical SEO and AI visibility</p>
-            <h2 className="mt-1 text-2xl font-semibold">Make product pages crawlable, rich-result ready, and AI-answer ready.</h2>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-              This layer expands Growth Studio beyond copy checks: schema readiness, image SEO depth, broken-link and sitemap health, Google Search Console signals, and AI visibility tracking.
-            </p>
-          </div>
-          <span className="inline-flex h-9 items-center rounded border border-line px-3 text-sm font-semibold">
-            {audit.productCount} products
-          </span>
-        </div>
-        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          {audit.capabilities.map((capability) => (
-            <CapabilityCard key={capability.key} capability={capability} />
-          ))}
-        </div>
-      </section>
-
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_420px]">
         <div className="border border-line bg-white p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -529,11 +584,13 @@ export default async function GrowthPage() {
             The strongest commercial signal is not just the average score. It is which query is already getting visibility and what update can convert it into clicks.
           </p>
           <div className="mt-4 space-y-3">
-            {latestMonitorRun?.output?.keywordOpportunities?.length ? (
-              latestMonitorRun.output.keywordOpportunities.slice(0, 4).map((opportunity) => (
+            {keywordOpportunityTargets.length ? (
+              keywordOpportunityTargets.map(({ opportunity, product }) => (
                 <KeywordOpportunityBlock
                   key={`${opportunity.opportunityType}-${opportunity.query}-${opportunity.page ?? ""}`}
                   opportunity={opportunity}
+                  product={product}
+                  creditCost={GROWTH_APPLY_CREDIT_COST}
                 />
               ))
             ) : (
@@ -732,6 +789,60 @@ function WorkflowStep({
   );
 }
 
+function WriteBackCapability({
+  icon: Icon,
+  title,
+  detail
+}: {
+  icon: ComponentType<{ className?: string }>;
+  title: string;
+  detail: string;
+}) {
+  return (
+    <article className="border border-line bg-canvas p-4">
+      <Icon className="h-5 w-5 text-action" aria-hidden />
+      <h3 className="mt-4 text-sm font-semibold">{title}</h3>
+      <p className="mt-2 text-sm leading-6 text-muted">{detail}</p>
+    </article>
+  );
+}
+
+function WriteBackCandidateCard({
+  product,
+  creditCost
+}: {
+  product: GrowthProductScore;
+  creditCost: number;
+}) {
+  const primaryIssue = product.issues[0];
+
+  return (
+    <article className="border border-line bg-canvas p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold leading-5">{product.product.title}</h3>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            {primaryIssue?.label ?? "SEO/GEO improvements available"}
+          </p>
+        </div>
+        <span className={`rounded border px-2 py-1 text-xs font-semibold ${scoreTone(product.overallScore)}`}>
+          {product.overallScore}
+        </span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {["SEO title", "Meta", "Tags", "Q&A"].map((field) => (
+          <span key={field} className="rounded bg-white px-2 py-0.5 text-[11px] font-semibold text-muted">
+            {field}
+          </span>
+        ))}
+      </div>
+      <div className="mt-3">
+        <GrowthApplyButton productId={product.product.id} creditCost={creditCost} />
+      </div>
+    </article>
+  );
+}
+
 function OptimizationTaskRow({ task }: { task: GrowthOptimizationTask }) {
   const writeBack = task.canWriteBack && task.writeBackScope.length;
   const categoryIcon = {
@@ -891,6 +1002,28 @@ function scoreTone(score: number) {
   return "border-red-200 bg-red-50 text-red-700";
 }
 
+function normalizeOpportunityUrl(value?: string | null) {
+  if (!value) return "";
+  try {
+    const url = new URL(value);
+    return `${url.hostname.replace(/^www\./, "")}${url.pathname.replace(/\/$/, "")}`.toLowerCase();
+  } catch {
+    return value.toLowerCase().replace(/^https?:\/\//, "").replace(/^www\./, "").replace(/\/$/, "");
+  }
+}
+
+function findProductForOpportunity(page: string | undefined, products: GrowthProductScore[]) {
+  const pageKey = normalizeOpportunityUrl(page);
+  if (!pageKey) return undefined;
+
+  return products.find((entry) => {
+    const product = entry.product;
+    const productKey = normalizeOpportunityUrl(product.onlineStoreUrl);
+    if (productKey && productKey === pageKey) return true;
+    return Boolean(product.handle && pageKey.endsWith(`/products/${product.handle.toLowerCase()}`));
+  });
+}
+
 function ProductAuditRow({
   product,
   applyCreditCost
@@ -904,7 +1037,7 @@ function ProductAuditRow({
   const canApplyToShopify = product.product.source === "shopify" && product.product.id.startsWith("gid://shopify/Product/");
 
   return (
-    <article className="grid gap-4 border-b border-line bg-white p-4 last:border-b-0 lg:grid-cols-[minmax(0,1fr)_260px]">
+    <article className="grid gap-4 border-b border-line bg-white p-4 last:border-b-0 lg:grid-cols-[minmax(0,1fr)_320px]">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-semibold">{title}</h3>
@@ -926,7 +1059,7 @@ function ProductAuditRow({
         </div>
         {product.issues.length ? (
           <div className="mt-4 border border-line bg-canvas p-3">
-            <p className="text-xs font-semibold uppercase text-muted">Suggested update</p>
+            <p className="text-xs font-semibold uppercase text-muted">Write-back draft</p>
             <p className="mt-2 text-sm font-semibold">{product.suggestedFix.seoTitle}</p>
             <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted">{product.suggestedFix.seoDescription}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -950,6 +1083,53 @@ function ProductAuditRow({
           {product.snippetPreview.warnings.length ? (
             <p className="mt-2 text-xs font-semibold text-amber-700">{product.snippetPreview.warnings[0]}</p>
           ) : null}
+        </div>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <div className="border border-line bg-canvas p-3">
+            <div className="flex items-center justify-between gap-3">
+              <p className="text-xs font-semibold uppercase text-muted">AI answer readiness</p>
+              <span className={`rounded border px-2 py-0.5 text-[11px] font-semibold ${scoreTone(product.aiAnswerReadiness.score)}`}>
+                {product.aiAnswerReadiness.score}/100
+              </span>
+            </div>
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-muted">
+              {product.aiAnswerReadiness.factors.slice(0, 4).map((factor) => (
+                <li key={factor.key} className="flex gap-2">
+                  {factor.passed ? (
+                    <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-action" aria-hidden />
+                  ) : (
+                    <CircleAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-700" aria-hidden />
+                  )}
+                  <span>
+                    <span className="font-semibold text-ink">{factor.label}: </span>
+                    {factor.passed ? factor.detail : factor.recommendedAction}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div className="border border-line bg-canvas p-3">
+            <p className="text-xs font-semibold uppercase text-muted">Schema writer</p>
+            <ul className="mt-3 space-y-2 text-xs leading-5 text-muted">
+              {product.schemaSuggestions.slice(0, 4).map((schema) => (
+                <li key={schema.type} className="flex items-start justify-between gap-3 border-b border-line/70 pb-2 last:border-b-0 last:pb-0">
+                  <span>
+                    <span className="font-semibold text-ink">{schema.type}</span>
+                    <span className="block">{schema.missing.length ? `Missing: ${schema.missing.join(", ")}` : schema.note}</span>
+                  </span>
+                  <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase ${
+                    schema.status === "ready"
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+                      : schema.status === "partial"
+                        ? "border-amber-200 bg-amber-50 text-amber-900"
+                        : "border-red-200 bg-red-50 text-red-700"
+                  }`}>
+                    {schema.status}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
       <div className="space-y-3">
@@ -1062,38 +1242,6 @@ function InternalLinkSuggestionBlock({ suggestion }: { suggestion: GrowthInterna
   );
 }
 
-function CapabilityCard({ capability }: { capability: GrowthAuditCapability }) {
-  const statusClass =
-    capability.status === "ready"
-      ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-      : capability.status === "partial"
-        ? "border-amber-200 bg-amber-50 text-amber-900"
-        : "border-red-200 bg-red-50 text-red-700";
-
-  return (
-    <article className="flex min-h-72 flex-col border border-line bg-canvas p-4">
-      <div className="flex items-start justify-between gap-3">
-        <h3 className="text-sm font-semibold leading-5">{capability.title}</h3>
-        <span className={`rounded border px-2 py-1 text-xs font-semibold ${statusClass}`}>
-          {capability.score}
-        </span>
-      </div>
-      <p className="mt-3 text-sm leading-6 text-muted">{capability.description}</p>
-      <ul className="mt-4 flex-1 space-y-2 text-xs leading-5 text-muted">
-        {capability.recommendations.map((recommendation) => (
-          <li key={recommendation} className="flex gap-2">
-            <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-action" aria-hidden />
-            <span>{recommendation}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 text-[11px] font-semibold uppercase text-muted">
-        {capability.status === "ready" ? "Ready" : capability.status === "partial" ? "Partial" : "Needs setup"}
-      </p>
-    </article>
-  );
-}
-
 function MonitorRunCard({ run }: { run: GrowthMonitorRun }) {
   const output = run.output;
   const searchConsole = output?.searchConsole;
@@ -1137,6 +1285,10 @@ function MonitorRunCard({ run }: { run: GrowthMonitorRun }) {
           <dd className="font-semibold">{pageSpeed?.averageResponseMs ? `${pageSpeed.averageResponseMs}ms` : "--"}</dd>
         </div>
         <div className="flex justify-between gap-4">
+          <dt className="text-muted">PageSpeed URLs</dt>
+          <dd className="font-semibold">{pageSpeed?.coreWebVitals?.length ?? 0}</dd>
+        </div>
+        <div className="flex justify-between gap-4">
           <dt className="text-muted">Competitor gaps</dt>
           <dd className="font-semibold">{output?.competitorKeywordGaps?.length ?? "--"}</dd>
         </div>
@@ -1149,6 +1301,17 @@ function MonitorRunCard({ run }: { run: GrowthMonitorRun }) {
         <p className="mt-4 line-clamp-3 text-xs leading-5 text-muted">{output.recommendations[0]}</p>
       ) : run.error ? (
         <p className="mt-4 line-clamp-3 text-xs leading-5 text-red-700">{run.error}</p>
+      ) : null}
+      {pageSpeed?.coreWebVitals?.[0] ? (
+        <div className="mt-4 border border-line bg-white p-3 text-xs leading-5 text-muted">
+          <p className="font-semibold text-ink">
+            PSI mobile score: {pageSpeed.coreWebVitals[0].performanceScore ?? "--"}/100
+          </p>
+          <p className="mt-1">
+            LCP {pageSpeed.coreWebVitals[0].largestContentfulPaintMs ? `${pageSpeed.coreWebVitals[0].largestContentfulPaintMs}ms` : "--"} ·
+            CLS {pageSpeed.coreWebVitals[0].cumulativeLayoutShift ?? "--"}
+          </p>
+        </div>
       ) : null}
     </article>
   );
@@ -1180,6 +1343,24 @@ function ActionPlanCard({
         <p className="mt-1 text-sm font-semibold">{item.actionType.replaceAll("_", " ")}</p>
         <p className="mt-1 text-xs leading-5 text-muted">{item.estimatedImpact}</p>
       </div>
+      {item.rewrite ? (
+        <div className="mt-3 border border-line bg-white p-3">
+          <p className="text-[11px] font-semibold uppercase text-muted">Search Console rewrite draft</p>
+          <p className="mt-2 text-sm font-semibold">{item.rewrite.seoTitle}</p>
+          <p className="mt-1 text-xs leading-5 text-muted">{item.rewrite.seoDescription}</p>
+          <p className="mt-2 text-xs font-semibold text-action">{item.rewrite.faqQuestion}</p>
+        </div>
+      ) : null}
+      {item.playbook?.length ? (
+        <ul className="mt-3 space-y-1.5 text-xs leading-5 text-muted">
+          {item.playbook.slice(0, 3).map((step) => (
+            <li key={step} className="flex gap-2">
+              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-action" aria-hidden />
+              <span>{step}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
       {item.targetUrl ? (
         <Link
           href={item.targetUrl}
@@ -1194,10 +1375,16 @@ function ActionPlanCard({
 }
 
 function KeywordOpportunityBlock({
-  opportunity
+  opportunity,
+  product,
+  creditCost
 }: {
   opportunity: NonNullable<NonNullable<GrowthMonitorRun["output"]>["keywordOpportunities"]>[number];
+  product?: GrowthProductScore;
+  creditCost: number;
 }) {
+  const canWriteBack = Boolean(product?.product.source === "shopify" && product.product.id.startsWith("gid://shopify/Product/"));
+
   return (
     <div className="border border-white/10 bg-white/[0.04] p-3">
       <div className="flex items-start justify-between gap-3">
@@ -1206,7 +1393,9 @@ function KeywordOpportunityBlock({
           {opportunity.opportunityType.replaceAll("_", " ")}
         </span>
       </div>
-      <p className="mt-2 text-xs leading-5 text-white/60">{opportunity.reason}</p>
+      <p className="mt-2 text-xs leading-5 text-white/60">
+        {opportunity.reason} <span className="font-semibold text-white/75">{opportunity.pageType}</span>
+      </p>
       <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden border border-white/10 bg-white/10 text-center text-xs">
         <div className="bg-[#16251f] p-2">
           <p className="text-white/45">Impr.</p>
@@ -1221,6 +1410,22 @@ function KeywordOpportunityBlock({
           <p className="mt-1 font-semibold">{opportunity.position || "--"}</p>
         </div>
       </div>
+      <div className="mt-3 border border-white/10 bg-black/10 p-3">
+        <p className="text-[10px] font-semibold uppercase text-white/45">Rewrite draft</p>
+        <p className="mt-1 text-xs font-semibold leading-5 text-white/85">{opportunity.rewrite.seoTitle}</p>
+        <p className="mt-1 text-xs leading-5 text-white/60">{opportunity.rewrite.seoDescription}</p>
+      </div>
+      {canWriteBack && product ? (
+        <SearchConsoleRewriteApplyButton
+          productId={product.product.id}
+          rewrite={opportunity.rewrite}
+          creditCost={creditCost}
+        />
+      ) : (
+        <p className="mt-3 border border-white/10 bg-white/[0.04] p-2 text-xs leading-5 text-white/55">
+          Write-back is available when this query is matched to a live Shopify product page.
+        </p>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ const SEARCH_CONSOLE_SCOPE = "https://www.googleapis.com/auth/webmasters.readonl
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const SEARCH_CONSOLE_API_BASE = "https://searchconsole.googleapis.com/webmasters/v3";
 const CUSTOM_SEARCH_URL = "https://www.googleapis.com/customsearch/v1";
+const PAGESPEED_INSIGHTS_URL = "https://www.googleapis.com/pagespeedonline/v5/runPagespeed";
 const MAX_CRAWL_URLS = 24;
 
 export type GrowthMonitorRunType = "search_console" | "technical_seo" | "ai_visibility" | "full";
@@ -43,6 +44,18 @@ export type PageSpeedSummary = {
   averageResponseMs: number;
   slowUrls: Array<{ url: string; responseMs: number }>;
   coreWebVitalsConfigured: boolean;
+  coreWebVitals: Array<{
+    url: string;
+    performanceScore?: number;
+    seoScore?: number;
+    accessibilityScore?: number;
+    bestPracticesScore?: number;
+    largestContentfulPaintMs?: number;
+    cumulativeLayoutShift?: number;
+    totalBlockingTimeMs?: number;
+    recommendations: string[];
+    error?: string;
+  }>;
   recommendations: string[];
 };
 
@@ -76,6 +89,7 @@ export type AiVisibilitySummary = {
 export type GrowthKeywordOpportunity = {
   query: string;
   page?: string;
+  pageType: "product" | "collection" | "blog" | "home" | "unknown";
   opportunityType: "low_ctr" | "striking_distance" | "zero_click" | "ai_visibility_gap";
   priority: "high" | "medium" | "low";
   clicks: number;
@@ -84,6 +98,16 @@ export type GrowthKeywordOpportunity = {
   position: number;
   reason: string;
   recommendedAction: string;
+  rewrite: GrowthSnippetRewrite;
+};
+
+export type GrowthSnippetRewrite = {
+  seoTitle: string;
+  seoDescription: string;
+  faqQuestion: string;
+  answerBlock: string;
+  intent: "commercial" | "informational" | "comparison" | "brand";
+  confidence: "high" | "medium" | "low";
 };
 
 export type GrowthCompetitorKeywordGap = {
@@ -111,6 +135,8 @@ export type GrowthActionPlanItem = {
     | "improve_page_speed";
   targetUrl?: string;
   query?: string;
+  rewrite?: GrowthSnippetRewrite;
+  playbook?: string[];
   estimatedImpact: string;
 };
 
@@ -248,7 +274,7 @@ async function fetchSearchConsoleSummary(targetUrl: string): Promise<SearchConso
         startDate: daysAgo(31),
         endDate: daysAgo(3),
         dimensions: ["query", "page"],
-        rowLimit: 10,
+        rowLimit: 50,
         searchType: "web"
       })
     });
@@ -289,7 +315,7 @@ async function fetchSearchConsoleSummary(targetUrl: string): Promise<SearchConso
         impressions: Math.round(Number(row.impressions ?? 0)),
         ctr: Number(Number(row.ctr ?? 0).toFixed(4)),
         position: Number(Number(row.position ?? 0).toFixed(1))
-      })),
+      })).filter((row) => row.query),
       sitemaps: Array.isArray(sitemapData.sitemap)
         ? sitemapData.sitemap.map((sitemap: Record<string, unknown>) => ({
           path: String(sitemap.path ?? ""),
@@ -332,8 +358,80 @@ function defaultPageSpeedSummary(): PageSpeedSummary {
     averageResponseMs: 0,
     slowUrls: [],
     coreWebVitalsConfigured: Boolean(env("PAGESPEED_INSIGHTS_API_KEY") || env("GOOGLE_PAGESPEED_API_KEY")),
+    coreWebVitals: [],
     recommendations: ["Run the live crawler against public Shopify URLs before making Core Web Vitals decisions."]
   };
+}
+
+function millisecondsFromAuditValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? Math.round(value) : undefined;
+}
+
+function scoreFromCategory(category: unknown) {
+  if (!category || typeof category !== "object" || !("score" in category)) return undefined;
+  const score = Number((category as { score?: unknown }).score);
+  return Number.isFinite(score) ? Math.round(score * 100) : undefined;
+}
+
+function pageSpeedApiKey() {
+  return env("PAGESPEED_INSIGHTS_API_KEY") || env("GOOGLE_PAGESPEED_API_KEY");
+}
+
+async function fetchPageSpeedInsight(url: string) {
+  const apiKey = pageSpeedApiKey();
+  if (!apiKey) return null;
+
+  try {
+    const requestUrl = new URL(PAGESPEED_INSIGHTS_URL);
+    requestUrl.searchParams.set("url", url);
+    requestUrl.searchParams.set("strategy", "mobile");
+    requestUrl.searchParams.append("category", "performance");
+    requestUrl.searchParams.append("category", "seo");
+    requestUrl.searchParams.append("category", "accessibility");
+    requestUrl.searchParams.append("category", "best-practices");
+    requestUrl.searchParams.set("key", apiKey);
+
+    const response = await fetch(requestUrl, { cache: "no-store" });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) {
+      return {
+        url,
+        recommendations: [],
+        error: typeof data.error?.message === "string" ? data.error.message : "PageSpeed Insights request failed."
+      };
+    }
+
+    const lighthouse = data.lighthouseResult ?? {};
+    const categories = lighthouse.categories ?? {};
+    const audits = lighthouse.audits ?? {};
+    const opportunities = Object.values(audits as Record<string, { title?: string; score?: number | null; scoreDisplayMode?: string }>)
+      .filter((audit) => audit?.scoreDisplayMode === "numeric" && typeof audit.score === "number" && audit.score < 0.9)
+      .map((audit) => audit.title)
+      .filter((title): title is string => Boolean(title))
+      .slice(0, 4);
+
+    return {
+      url,
+      performanceScore: scoreFromCategory(categories.performance),
+      seoScore: scoreFromCategory(categories.seo),
+      accessibilityScore: scoreFromCategory(categories.accessibility),
+      bestPracticesScore: scoreFromCategory(categories["best-practices"]),
+      largestContentfulPaintMs: millisecondsFromAuditValue(audits["largest-contentful-paint"]?.numericValue),
+      cumulativeLayoutShift: typeof audits["cumulative-layout-shift"]?.numericValue === "number"
+        ? Number(audits["cumulative-layout-shift"].numericValue.toFixed(3))
+        : undefined,
+      totalBlockingTimeMs: millisecondsFromAuditValue(audits["total-blocking-time"]?.numericValue),
+      recommendations: opportunities.length
+        ? opportunities
+        : ["No major PageSpeed opportunity was returned for this URL."]
+    };
+  } catch (error) {
+    return {
+      url,
+      recommendations: [],
+      error: error instanceof Error ? error.message : "PageSpeed Insights request failed."
+    };
+  }
 }
 
 async function fetchWithRedirectInfo(url: string, maxHops = 5) {
@@ -457,17 +555,29 @@ async function fetchTechnicalSeoSummary(targetUrl: string, productUrls: string[]
       .filter((item) => item.responseMs > 1800)
       .sort((a, b) => b.responseMs - a.responseMs)
       .slice(0, 8);
+    const pageSpeedTargets = Array.from(new Set([
+      target.toString(),
+      ...publicProductUrls,
+      ...slowUrls.map((item) => item.url)
+    ])).slice(0, 3);
+    const coreWebVitals = pageSpeedApiKey()
+      ? (await Promise.all(pageSpeedTargets.map((url) => fetchPageSpeedInsight(url))))
+        .filter((item): item is NonNullable<Awaited<ReturnType<typeof fetchPageSpeedInsight>>> => Boolean(item))
+      : [];
     const pageSpeed: PageSpeedSummary = {
       checkedUrls: responseTimes.length,
       averageResponseMs,
       slowUrls,
       coreWebVitalsConfigured: Boolean(env("PAGESPEED_INSIGHTS_API_KEY") || env("GOOGLE_PAGESPEED_API_KEY")),
+      coreWebVitals,
       recommendations: [
+        coreWebVitals.length
+          ? "PageSpeed Insights is connected for mobile Core Web Vitals and Lighthouse SEO checks."
+          : "Connect PageSpeed Insights only when you want richer Core Web Vitals data; the basic crawler remains free.",
         slowUrls.length
           ? "Review slow Shopify templates, oversized media, third-party scripts, and app embeds on the listed URLs."
           : "Initial server response checks look acceptable. Use PageSpeed Insights later for full lab and field data.",
-        "Compress product media, lazy-load below-the-fold images, and keep theme app embeds lean.",
-        "Connect PageSpeed Insights only when you want richer Core Web Vitals data; the basic crawler remains free."
+        "Compress product media, lazy-load below-the-fold images, and keep theme app embeds lean."
       ]
     };
 
@@ -625,14 +735,101 @@ function keywordPriority({
   return "low";
 }
 
+function inferPageType(page?: string): GrowthKeywordOpportunity["pageType"] {
+  if (!page) return "unknown";
+  try {
+    const pathname = new URL(page).pathname;
+    if (pathname === "/" || pathname === "") return "home";
+    if (pathname.includes("/products/")) return "product";
+    if (pathname.includes("/collections/")) return "collection";
+    if (pathname.includes("/blogs/") || pathname.includes("/pages/")) return "blog";
+    return "unknown";
+  } catch {
+    return "unknown";
+  }
+}
+
+function titleCaseQuery(query: string) {
+  return query
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => word.length <= 3 ? word.toUpperCase() : `${word[0]?.toUpperCase() ?? ""}${word.slice(1).toLowerCase()}`)
+    .join(" ");
+}
+
+function clampSnippet(value: string, maxLength: number) {
+  const trimmed = value.replace(/\s+/g, " ").trim();
+  if (trimmed.length <= maxLength) return trimmed;
+  const sliced = trimmed.slice(0, maxLength - 1);
+  return `${sliced.slice(0, Math.max(0, sliced.lastIndexOf(" ")))}…`;
+}
+
+function inferQueryIntent(query: string): GrowthSnippetRewrite["intent"] {
+  if (/\b(best|vs|compare|alternative|difference|which)\b/i.test(query)) return "comparison";
+  if (/\b(how|what|why|guide|ideas|tips)\b/i.test(query)) return "informational";
+  if (/\b(brand|official|ace|store)\b/i.test(query)) return "brand";
+  return "commercial";
+}
+
+function buildQueryRewrite({
+  query,
+  page,
+  opportunityType
+}: {
+  query: string;
+  page?: string;
+  opportunityType: GrowthKeywordOpportunity["opportunityType"];
+}): GrowthSnippetRewrite {
+  const pageType = inferPageType(page);
+  const queryTitle = titleCaseQuery(query);
+  const pageLabel = pageType === "collection"
+    ? "Collection"
+    : pageType === "blog"
+      ? "Guide"
+      : pageType === "home"
+        ? "Store"
+        : "Product";
+  const intent = inferQueryIntent(query);
+  const seoTitle = clampSnippet(
+    intent === "comparison"
+      ? `${queryTitle}: Compare Options and Key Details`
+      : `${queryTitle} | ${pageLabel} Details, Photos and FAQs`,
+    68
+  );
+  const seoDescription = clampSnippet(
+    opportunityType === "striking_distance"
+      ? `Explore ${query} with clear product facts, image context, buyer FAQs, and comparison guidance to help shoppers choose confidently.`
+      : `Find ${query} with clear product details, photos, FAQs, shipping and return context, and helpful buying guidance before purchase.`,
+    158
+  );
+  const faqQuestion = intent === "comparison"
+    ? `How should shoppers compare ${query}?`
+    : `What should shoppers know before buying ${query}?`;
+  const answerBlock = clampSnippet(
+    `Use this page to answer ${query} directly: summarize the product or collection, list the key attributes, explain best-fit use cases, mention shipping/returns when available, and link to related products or collections.`,
+    260
+  );
+
+  return {
+    seoTitle,
+    seoDescription,
+    faqQuestion,
+    answerBlock,
+    intent,
+    confidence: query.length >= 4 && pageType !== "unknown" ? "high" : query.length >= 4 ? "medium" : "low"
+  };
+}
+
 function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibility: AiVisibilitySummary) {
   const opportunities = new Map<string, GrowthKeywordOpportunity>();
   for (const query of searchConsole.topQueries) {
     const priority = keywordPriority(query);
+    const pageType = inferPageType(query.page);
     if (query.impressions >= 10 && query.clicks === 0) {
       opportunities.set(`zero:${query.query}:${query.page ?? ""}`, {
         query: query.query,
         page: query.page,
+        pageType,
         opportunityType: "zero_click",
         priority,
         clicks: query.clicks,
@@ -640,7 +837,8 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
         ctr: query.ctr,
         position: query.position,
         reason: "This query already gets impressions but no clicks, so the snippet may not match search intent.",
-        recommendedAction: "Rewrite the SEO title and meta description around the exact buyer intent, then add a short FAQ answer for this query."
+        recommendedAction: "Rewrite the SEO title and meta description around the exact buyer intent, then add a short FAQ answer for this query.",
+        rewrite: buildQueryRewrite({ query: query.query, page: query.page, opportunityType: "zero_click" })
       });
       continue;
     }
@@ -648,6 +846,7 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
       opportunities.set(`ctr:${query.query}:${query.page ?? ""}`, {
         query: query.query,
         page: query.page,
+        pageType,
         opportunityType: "low_ctr",
         priority,
         clicks: query.clicks,
@@ -655,13 +854,15 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
         ctr: query.ctr,
         position: query.position,
         reason: "This query has meaningful visibility but a weak click-through rate.",
-        recommendedAction: "Improve the title promise, meta description specificity, and product benefit language for this query."
+        recommendedAction: "Improve the title promise, meta description specificity, and product benefit language for this query.",
+        rewrite: buildQueryRewrite({ query: query.query, page: query.page, opportunityType: "low_ctr" })
       });
     }
     if (query.position >= 8 && query.position <= 20 && query.impressions >= 10) {
       opportunities.set(`distance:${query.query}:${query.page ?? ""}`, {
         query: query.query,
         page: query.page,
+        pageType,
         opportunityType: "striking_distance",
         priority,
         clicks: query.clicks,
@@ -669,7 +870,8 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
         ctr: query.ctr,
         position: query.position,
         reason: "This query is close to page-one or higher page-one ranking, so content improvements can have leverage.",
-        recommendedAction: "Expand the page with product facts, comparison context, buyer FAQs, and image alt text that directly mention this query."
+        recommendedAction: "Expand the page with product facts, comparison context, buyer FAQs, and image alt text that directly mention this query.",
+        rewrite: buildQueryRewrite({ query: query.query, page: query.page, opportunityType: "striking_distance" })
       });
     }
   }
@@ -678,6 +880,7 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
     if (!mention.found) {
       opportunities.set(`ai:${mention.query}`, {
         query: mention.query,
+        pageType: "unknown",
         opportunityType: "ai_visibility_gap",
         priority: "medium",
         clicks: 0,
@@ -685,7 +888,8 @@ function buildKeywordOpportunities(searchConsole: SearchConsoleSummary, aiVisibi
         ctr: 0,
         position: 0,
         reason: "The site was not visible for this AI-search proxy query.",
-        recommendedAction: "Create answer-friendly FAQ, comparison, and product-use content that directly satisfies this query."
+        recommendedAction: "Create answer-friendly FAQ, comparison, and product-use content that directly satisfies this query.",
+        rewrite: buildQueryRewrite({ query: mention.query, opportunityType: "ai_visibility_gap" })
       });
     }
   }
@@ -787,6 +991,13 @@ function buildActionPlan({
         : "expand_product_content",
       targetUrl: topKeyword.page,
       query: topKeyword.query,
+      rewrite: topKeyword.rewrite,
+      playbook: [
+        "Use the suggested title/meta as a draft, then adjust for the merchant's real product claims.",
+        "Add the FAQ question and answer block to the product or collection description.",
+        "Add at least one internal link from the closest collection or buyer guide to this page.",
+        "Re-run the monitor after Google has recrawled the page."
+      ],
       estimatedImpact: topKeyword.impressions
         ? `${topKeyword.impressions} recent impressions at ${(topKeyword.ctr * 100).toFixed(1)}% CTR.`
         : "Improves answer-engine coverage for a missing visibility query."

@@ -443,7 +443,7 @@ export async function getLaunchReadiness(): Promise<ReadinessGroup[]> {
         "GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY"
       ])
         ? "warning"
-        : "missing",
+        : "warning",
       detail: hasAnyEnv([
         "GOOGLE_SEARCH_CONSOLE_SITE_URL",
         "GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL",

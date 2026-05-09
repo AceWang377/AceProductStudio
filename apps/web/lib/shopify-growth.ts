@@ -5,6 +5,15 @@ import {
   scoreGrowthProduct,
   type GrowthAuditProduct
 } from "@/lib/growth-audit";
+import {
+  buildGrowthRewritePlan,
+  type GrowthRewriteDraft
+} from "@/lib/growth-rewrite-plan";
+import {
+  buildGrowthFixPlan,
+  type GrowthFixField,
+  type GrowthFixOverrides
+} from "@/lib/growth-fix-plan";
 import type { ShopifyConnection } from "@/lib/types";
 
 const SHOPIFY_API_VERSION = "2026-04";
@@ -51,6 +60,8 @@ type ProductUpdatePayload = {
   };
 };
 
+type ShopifyGrowthProduct = NonNullable<ShopifyProductPayload["product"]>;
+
 async function shopifyGraphQL<T>({
   shopDomain,
   accessToken,
@@ -95,7 +106,7 @@ function countFaq(value?: string) {
   return Math.min(text.match(/\?/g)?.length ?? 0, 6);
 }
 
-export async function applyGrowthFixToShopify({
+function assertGrowthWriteBackInput({
   connection,
   productId
 }: {
@@ -108,10 +119,19 @@ export async function applyGrowthFixToShopify({
   if (!productId.startsWith("gid://shopify/Product/")) {
     throw new Error("Growth fixes can only be applied to live Shopify products.");
   }
+}
 
+async function fetchShopifyGrowthProduct({
+  connection,
+  productId
+}: {
+  connection: ShopifyConnection;
+  productId: string;
+}): Promise<ShopifyGrowthProduct> {
+  assertGrowthWriteBackInput({ connection, productId });
   const data = await shopifyGraphQL<ShopifyProductPayload>({
-    shopDomain: connection.shopDomain,
-    accessToken: connection.adminAccessToken,
+    shopDomain: connection.shopDomain!,
+    accessToken: connection.adminAccessToken!,
     query: `
       query GrowthProduct($id: ID!) {
         product(id: $id) {
@@ -154,7 +174,11 @@ export async function applyGrowthFixToShopify({
     throw new Error("Growth Studio only applies SEO/GEO fixes to live, listed Shopify products.");
   }
 
-  const auditProduct: GrowthAuditProduct = {
+  return product;
+}
+
+function shopifyProductToAuditProduct(product: ShopifyGrowthProduct): GrowthAuditProduct {
+  return {
     id: product.id,
     title: product.title,
     handle: product.handle,
@@ -177,17 +201,18 @@ export async function applyGrowthFixToShopify({
     })) ?? [],
     faqCount: countFaq(product.descriptionHtml)
   };
-  const beforeScore = scoreGrowthProduct(auditProduct);
-  const suggestedFix = buildGrowthSuggestedFix(auditProduct);
-  const currentDescription = product.descriptionHtml || "";
-  const alreadyApplied = currentDescription.includes("Product details for search and AI discovery");
-  const nextDescription = alreadyApplied
-    ? currentDescription
-    : `${currentDescription}${currentDescription ? "\n" : ""}${suggestedFix.descriptionAppendHtml}`;
+}
 
+async function updateShopifyGrowthProduct({
+  connection,
+  product
+}: {
+  connection: ShopifyConnection;
+  product: Record<string, unknown>;
+}) {
   const updated = await shopifyGraphQL<ProductUpdatePayload>({
-    shopDomain: connection.shopDomain,
-    accessToken: connection.adminAccessToken,
+    shopDomain: connection.shopDomain!,
+    accessToken: connection.adminAccessToken!,
     query: `
       mutation GrowthProductUpdate($product: ProductUpdateInput!) {
         productUpdate(product: $product) {
@@ -208,17 +233,7 @@ export async function applyGrowthFixToShopify({
         }
       }
     `,
-    variables: {
-      product: {
-        id: product.id,
-        descriptionHtml: nextDescription,
-        tags: suggestedFix.tags,
-        seo: {
-          title: suggestedFix.seoTitle,
-          description: suggestedFix.seoDescription
-        }
-      }
-    }
+    variables: { product }
   });
 
   const result = updated?.productUpdate;
@@ -226,16 +241,168 @@ export async function applyGrowthFixToShopify({
   if (userErrors.length) {
     throw new Error(userErrors.map((error) => error.message).join("; "));
   }
+  return result?.product ?? null;
+}
+
+export async function previewGrowthRewriteForShopify({
+  connection,
+  productId,
+  rewrite
+}: {
+  connection: ShopifyConnection;
+  productId: string;
+  rewrite: GrowthRewriteDraft;
+}) {
+  const product = await fetchShopifyGrowthProduct({ connection, productId });
+  const auditProduct = shopifyProductToAuditProduct(product);
+  const beforeScore = scoreGrowthProduct(auditProduct);
+  const plan = buildGrowthRewritePlan({
+    product: {
+      id: product.id,
+      title: product.title,
+      seoTitle: product.seo?.title,
+      seoDescription: product.seo?.description,
+      descriptionHtml: product.descriptionHtml
+    },
+    rewrite
+  });
 
   return {
     productId: product.id,
-    handle: result?.product?.handle,
+    title: product.title,
+    handle: product.handle,
+    onlineStoreUrl: product.onlineStoreUrl,
     beforeScore: beforeScore.overallScore,
+    after: {
+      seoTitle: plan.changes.seo?.title ?? product.seo?.title ?? product.title,
+      seoDescription: plan.changes.seo?.description ?? product.seo?.description ?? "",
+      descriptionAppended: plan.descriptionAppended
+    },
+    plan
+  };
+}
+
+export async function previewGrowthFixForShopify({
+  connection,
+  productId,
+  selectedFields,
+  overrides
+}: {
+  connection: ShopifyConnection;
+  productId: string;
+  selectedFields?: GrowthFixField[];
+  overrides?: GrowthFixOverrides;
+}) {
+  const product = await fetchShopifyGrowthProduct({ connection, productId });
+  const auditProduct = shopifyProductToAuditProduct(product);
+  const beforeScore = scoreGrowthProduct(auditProduct);
+  const suggestedFix = buildGrowthSuggestedFix(auditProduct);
+  const plan = buildGrowthFixPlan({
+    product: {
+      id: product.id,
+      title: product.title,
+      seoTitle: product.seo?.title,
+      seoDescription: product.seo?.description,
+      tags: product.tags,
+      descriptionHtml: product.descriptionHtml
+    },
+    suggestedFix,
+    selectedFields,
+    overrides
+  });
+
+  return {
+    productId: product.id,
+    title: product.title,
+    handle: product.handle,
+    onlineStoreUrl: product.onlineStoreUrl,
+    beforeScore: beforeScore.overallScore,
+    after: {
+      seoTitle: plan.changes.seo?.title ?? product.seo?.title ?? product.title,
+      seoDescription: plan.changes.seo?.description ?? product.seo?.description ?? "",
+      tags: plan.changes.tags ?? product.tags ?? [],
+      descriptionAppended: plan.descriptionAppended
+    },
+    plan
+  };
+}
+
+export async function applyGrowthRewriteToShopify({
+  connection,
+  productId,
+  rewrite
+}: {
+  connection: ShopifyConnection;
+  productId: string;
+  rewrite: GrowthRewriteDraft;
+}) {
+  const preview = await previewGrowthRewriteForShopify({ connection, productId, rewrite });
+  if (!preview.plan.hasChanges) {
+    throw new Error("This Search Console rewrite is already applied to Shopify.");
+  }
+
+  const productUpdate: Record<string, unknown> = { id: preview.productId };
+  if (preview.plan.changes.descriptionHtml) {
+    productUpdate.descriptionHtml = preview.plan.changes.descriptionHtml;
+  }
+  if (preview.plan.changes.seo) {
+    productUpdate.seo = preview.plan.changes.seo;
+  }
+
+  const result = await updateShopifyGrowthProduct({ connection, product: productUpdate });
+
+  return {
+    productId: preview.productId,
+    handle: result?.handle ?? preview.handle,
+    onlineStoreUrl: preview.onlineStoreUrl,
+    beforeScore: preview.beforeScore,
     applied: {
-      seoTitle: suggestedFix.seoTitle,
-      seoDescription: suggestedFix.seoDescription,
-      tags: suggestedFix.tags,
-      descriptionAppended: !alreadyApplied
-    }
+      rewrite: {
+        seoTitle: preview.after.seoTitle,
+        seoDescription: preview.after.seoDescription,
+        descriptionAppended: preview.plan.descriptionAppended
+      },
+      changedFields: preview.plan.summary
+    },
+    diff: preview.plan.diff
+  };
+}
+
+export async function applyGrowthFixToShopify({
+  connection,
+  productId,
+  selectedFields,
+  overrides
+}: {
+  connection: ShopifyConnection;
+  productId: string;
+  selectedFields?: GrowthFixField[];
+  overrides?: GrowthFixOverrides;
+}) {
+  const preview = await previewGrowthFixForShopify({ connection, productId, selectedFields, overrides });
+  if (!preview.plan.hasChanges) {
+    throw new Error("The suggested SEO/GEO fixes are already applied to Shopify.");
+  }
+
+  const productUpdate: Record<string, unknown> = { id: preview.productId };
+  if (preview.plan.changes.descriptionHtml) productUpdate.descriptionHtml = preview.plan.changes.descriptionHtml;
+  if (preview.plan.changes.tags) productUpdate.tags = preview.plan.changes.tags;
+  if (preview.plan.changes.seo) productUpdate.seo = preview.plan.changes.seo;
+
+  const result = await updateShopifyGrowthProduct({ connection, product: productUpdate });
+
+  return {
+    productId: preview.productId,
+    handle: result?.handle ?? preview.handle,
+    onlineStoreUrl: preview.onlineStoreUrl,
+    beforeScore: preview.beforeScore,
+    applied: {
+      seoTitle: preview.after.seoTitle,
+      seoDescription: preview.after.seoDescription,
+      tags: preview.after.tags,
+      descriptionAppended: preview.plan.descriptionAppended,
+      changedFields: preview.plan.summary
+    },
+    diff: preview.plan.diff
   };
 }

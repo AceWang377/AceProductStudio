@@ -59,17 +59,14 @@ export function HomeLanding() {
                 {landing.hero.secondaryCta}
               </Link>
             </div>
+            <div className="mt-10 grid max-w-2xl grid-cols-2 overflow-hidden border border-[#c8d6cf] bg-white/70 sm:grid-cols-4">
+              {landing.proof.map((metric) => (
+                <ProofMetric key={metric.label} {...metric} />
+              ))}
+            </div>
           </div>
 
           <HeroTerminal />
-        </div>
-      </section>
-
-      <section className="border-b border-line bg-white">
-        <div className="mx-auto grid max-w-7xl divide-y divide-line px-4 sm:px-6 md:grid-cols-4 md:divide-x md:divide-y-0 md:px-6">
-          {landing.proof.map((metric) => (
-            <ProofMetric key={metric.label} {...metric} />
-          ))}
         </div>
       </section>
 
@@ -106,22 +103,19 @@ export function HomeLanding() {
             </p>
           </div>
           <ProductControlSurface />
+          <div className="landing-reveal landing-reveal-delay grid gap-px border border-white/10 bg-white/10 lg:col-span-2 lg:grid-cols-4">
+            {landing.workflow.steps.map((step, index) => (
+              <WorkflowStep
+                key={step.number}
+                number={step.number}
+                icon={workflowIcons[index] ?? ImagePlus}
+                title={step.title}
+                detail={step.detail}
+              />
+            ))}
+          </div>
         </div>
       </section>
-
-      <SectionShell eyebrow={landing.workflow.eyebrow} title={landing.workflow.title}>
-        <div className="grid border-y border-line md:grid-cols-4">
-          {landing.workflow.steps.map((step, index) => (
-            <WorkflowStep
-              key={step.number}
-              number={step.number}
-              icon={workflowIcons[index] ?? ImagePlus}
-              title={step.title}
-              detail={step.detail}
-            />
-          ))}
-        </div>
-      </SectionShell>
 
       <SectionShell
         eyebrow={landing.growth.eyebrow}
@@ -310,10 +304,10 @@ function PreviewPill({ label }: { label: string }) {
 
 function ProofMetric({ value, label, detail }: { value: string; label: string; detail: string }) {
   return (
-    <div className="group p-5 transition hover:bg-[#f4f5f1]">
-      <p className="text-4xl font-semibold tracking-tight text-ink transition group-hover:-translate-y-0.5">{value}</p>
-      <p className="mt-3 text-sm font-semibold">{label}</p>
-      <p className="mt-1 text-xs leading-5 text-muted">{detail}</p>
+    <div className="group border-b border-r border-[#dbe3de] p-4 transition hover:bg-white even:border-r-0 sm:border-b-0 sm:even:border-r sm:last:border-r-0">
+      <p className="text-2xl font-semibold tracking-tight text-ink transition group-hover:-translate-y-0.5">{value}</p>
+      <p className="mt-2 text-xs font-semibold">{label}</p>
+      <p className="mt-1 text-[11px] leading-4 text-muted">{detail}</p>
     </div>
   );
 }
@@ -359,7 +353,7 @@ function ProductControlSurface() {
   const control = t.landing.control;
 
   return (
-    <div className="landing-reveal landing-reveal-delay border border-white/10 bg-white/[0.04] p-3">
+    <div className="landing-reveal landing-reveal-delay surface-scan border border-white/10 bg-white/[0.04] p-3">
       <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_230px]">
         <aside className="hidden border border-white/10 bg-[#101916] p-4 lg:block">
           <p className="text-sm font-semibold">AceStudio</p>
@@ -436,13 +430,13 @@ function WorkflowStep({
   detail: string;
 }) {
   return (
-    <div className="group border-b border-line bg-white p-5 transition hover:bg-[#f8faf7] md:border-b-0 md:border-r md:last:border-r-0">
+    <div className="group bg-white/[0.04] p-5 transition hover:bg-white/[0.08]">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-muted">{number}</span>
-        <Icon className="h-5 w-5 text-action transition group-hover:-translate-y-0.5" aria-hidden />
+        <span className="text-xs font-semibold text-white/45">{number}</span>
+        <Icon className="h-5 w-5 text-[#98d7c3] transition group-hover:-translate-y-0.5" aria-hidden />
       </div>
-      <h3 className="mt-10 text-xl font-semibold">{title}</h3>
-      <p className="mt-3 text-sm leading-6 text-muted">{detail}</p>
+      <h3 className="mt-8 text-lg font-semibold text-white">{title}</h3>
+      <p className="mt-3 text-sm leading-6 text-white/60">{detail}</p>
     </div>
   );
 }

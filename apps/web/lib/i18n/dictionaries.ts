@@ -149,9 +149,9 @@ export const dictionaries = defineDictionaries({
       hero: {
         badge: "Shopify AI product and growth workspace",
         productName: "AceStudio",
-        headline: "Generate Shopify product content. Then improve how it ranks.",
+        headline: "Create Shopify product pages that are ready to publish and easier to find.",
         body:
-          "From one product photo, create draft-ready media and copy, audit product SEO/GEO quality, and confirm selected improvements before writing back to Shopify.",
+          "Turn one product photo into draft-ready media, SEO copy, pricing fields, and inventory details, then use Growth Studio to improve the live pages that can actually rank.",
         primaryCta: "Start with Product Studio",
         secondaryCta: "Explore Growth Studio"
       },
@@ -179,7 +179,7 @@ export const dictionaries = defineDictionaries({
       ],
       workspaces: {
         eyebrow: "Platform",
-        title: "Two workspaces, one Shopify growth loop.",
+        title: "Two focused studios, one review-first Shopify loop.",
         product: {
           title: "Product Studio",
           detail:
@@ -264,9 +264,9 @@ export const dictionaries = defineDictionaries({
       },
       control: {
         eyebrow: "Product control surface",
-        title: "A reviewable product record before Shopify receives changes.",
+        title: "One clean review surface before Shopify receives changes.",
         intro:
-          "The interface keeps generated media, SEO copy, commerce fields, publish history, and quality checks together so users can inspect the full product before committing.",
+          "Generated media, SEO copy, commerce fields, publish history, and quality checks stay together so users can inspect the full product before committing.",
         sidebarItems: ["Product Studio", "Growth Studio", "Account"],
         recordLabel: "Product record",
         recordTitle: "Generated listing review",
@@ -317,7 +317,7 @@ export const dictionaries = defineDictionaries({
       },
       workflow: {
         eyebrow: "Workflow",
-        title: "From raw photo to optimized Shopify product.",
+        title: "A safer loop from raw photo to optimized Shopify page.",
         steps: [
           {
             number: "01",
@@ -603,9 +603,9 @@ export const dictionaries = defineDictionaries({
       hero: {
         badge: "Shopify AI 商品与增长工作台",
         productName: "AceStudio",
-        headline: "生成 Shopify 商品内容，并持续提升排名。",
+        headline: "创建可发布、也更容易被搜索到的 Shopify 商品页。",
         body:
-          "从一张商品图创建可发布草稿的图片和文案，审核商品 SEO/GEO 质量，并在确认后把优化写回 Shopify。",
+          "从一张商品图生成草稿级图片、SEO 文案、价格字段和库存信息，再用增长工作台优化真正能参与排名的在线页面。",
         primaryCta: "从产品工作台开始",
         secondaryCta: "了解增长工作台"
       },
@@ -633,7 +633,7 @@ export const dictionaries = defineDictionaries({
       ],
       workspaces: {
         eyebrow: "平台",
-        title: "两个工作台，一个 Shopify 增长闭环。",
+        title: "两个聚焦工作台，一个先审核再写入的 Shopify 闭环。",
         product: {
           title: "产品工作台",
           detail: "上传商品图片，生成图片和商品文案，检查价格与库存，然后发布 Shopify 草稿。",
@@ -713,9 +713,9 @@ export const dictionaries = defineDictionaries({
       },
       control: {
         eyebrow: "商品控制台",
-        title: "在 Shopify 接收改动前，先形成可审核的商品记录。",
+        title: "在 Shopify 接收改动前，先进入一个清晰的审核界面。",
         intro:
-          "界面把生成图片、SEO 文案、价格库存、发布历史和质量检查放在一起，用户提交前可以完整检查商品。",
+          "生成图片、SEO 文案、价格库存、发布历史和质量检查会放在一起，用户提交前可以完整检查商品。",
         sidebarItems: ["产品工作台", "增长工作台", "账户"],
         recordLabel: "商品记录",
         recordTitle: "生成商品页审核",
@@ -765,7 +765,7 @@ export const dictionaries = defineDictionaries({
       },
       workflow: {
         eyebrow: "流程",
-        title: "从原始图片到优化后的 Shopify 商品。",
+        title: "从原始图片到优化商品页的安全流程。",
         steps: [
           {
             number: "01",

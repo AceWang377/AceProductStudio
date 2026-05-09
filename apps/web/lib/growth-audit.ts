@@ -116,6 +116,8 @@ export type GrowthProductScore = {
   imageSeoScore: number;
   technicalSeoScore: number;
   aiVisibilityScore: number;
+  aiAnswerReadiness: GrowthAnswerReadiness;
+  schemaSuggestions: GrowthSchemaSuggestion[];
   overallScore: number;
   intentStage: GrowthIntentStage;
   snippetPreview: GrowthSnippetPreview;
@@ -150,6 +152,26 @@ export type GrowthSnippetPreview = {
   description: string;
   urlPath: string;
   warnings: string[];
+};
+
+export type GrowthAnswerReadiness = {
+  score: number;
+  factors: Array<{
+    key: string;
+    label: string;
+    passed: boolean;
+    detail: string;
+    recommendedAction: string;
+  }>;
+};
+
+export type GrowthSchemaSuggestion = {
+  type: "Product" | "Offer" | "BreadcrumbList" | "FAQPage" | "Review";
+  status: "ready" | "partial" | "blocked";
+  fields: string[];
+  missing: string[];
+  note: string;
+  jsonLdPreview?: string;
 };
 
 export type GrowthOptimizationTask = {
@@ -575,6 +597,166 @@ function scoreAiVisibilityReadiness(product: GrowthAuditProduct) {
   return clampScore(score);
 }
 
+function answerFactor({
+  key,
+  label,
+  passed,
+  detail,
+  recommendedAction
+}: {
+  key: string;
+  label: string;
+  passed: boolean;
+  detail: string;
+  recommendedAction: string;
+}) {
+  return { key, label, passed, detail, recommendedAction };
+}
+
+function buildAiAnswerReadiness(product: GrowthAuditProduct): GrowthAnswerReadiness {
+  const text = product.descriptionText;
+  const factors = [
+    answerFactor({
+      key: "sourceable-summary",
+      label: "Sourceable product summary",
+      passed: wordCount(text) >= 120,
+      detail: "AI answers need a clear, factual paragraph that can be summarized without guessing.",
+      recommendedAction: "Add a direct product summary with product type, use case, visible attributes, and buyer outcome."
+    }),
+    answerFactor({
+      key: "buyer-faq",
+      label: "Buyer FAQ coverage",
+      passed: product.faqCount >= 2 || hasQuestionContent(text),
+      detail: "Question-and-answer content is easier for AI search tools to quote and for shoppers to scan.",
+      recommendedAction: "Add 3-5 FAQs about fit, materials, use cases, shipping, returns, and care."
+    }),
+    answerFactor({
+      key: "product-facts",
+      label: "Concrete product facts",
+      passed: /material|size|dimension|fit|weight|capacity|color|care|compatib/i.test(text),
+      detail: "Generative search systems need specific facts to avoid vague or incorrect summaries.",
+      recommendedAction: "Add material, dimensions, color, fit, compatibility, care, or other factual attributes."
+    }),
+    answerFactor({
+      key: "comparison-context",
+      label: "Comparison context",
+      passed: /compare|alternative|unlike|better for|similar|instead/i.test(text),
+      detail: "Comparison wording helps answer engines understand when this product is the right choice.",
+      recommendedAction: "Add a short comparison block explaining what this product is best for versus similar options."
+    }),
+    answerFactor({
+      key: "trust-and-policies",
+      label: "Trust and policy signals",
+      passed: /shipping|return|warranty|support|guarantee|secure/i.test(text),
+      detail: "AI shopping answers often need buying confidence signals, not just product attributes.",
+      recommendedAction: "Mention real shipping, returns, warranty, support, or guarantee context when available."
+    }),
+    answerFactor({
+      key: "review-readiness",
+      label: "Review readiness",
+      passed: /review|rating|testimonial|customer|stars?/i.test(text),
+      detail: "Review schema should only use real review data, but the page can still prepare customer-proof context.",
+      recommendedAction: "Connect a real review source later, and never fabricate ratings or review counts."
+    })
+  ];
+  const score = clampScore((factors.filter((factor) => factor.passed).length / factors.length) * 100);
+  return { score, factors };
+}
+
+function buildJsonLdPreview(value: Record<string, unknown>) {
+  return JSON.stringify(value, null, 2);
+}
+
+function buildSchemaSuggestions(product: GrowthAuditProduct): GrowthSchemaSuggestion[] {
+  const imageUrls = product.images.map((image) => image.url).filter((url): url is string => Boolean(url)).slice(0, 4);
+  const hasDescription = product.descriptionText.trim().length >= 80;
+  const reviewAppConfigured = Boolean(process.env.JUDGEME_API_TOKEN || process.env.LOOX_API_KEY || process.env.SHOPIFY_REVIEWS_APP_ENABLED === "true");
+  const productSchemaMissing = [
+    product.title ? "" : "name",
+    hasDescription ? "" : "description",
+    imageUrls.length ? "" : "image",
+    product.onlineStoreUrl ? "" : "url"
+  ].filter(Boolean);
+
+  return [
+    {
+      type: "Product",
+      status: productSchemaMissing.length ? "partial" : "ready",
+      fields: ["name", "description", "image", "url", "brand/category context"],
+      missing: productSchemaMissing,
+      note: "Product schema should describe the real product facts already visible on the page.",
+      jsonLdPreview: buildJsonLdPreview({
+        "@context": "https://schema.org",
+        "@type": "Product",
+        name: product.title,
+        description: truncateWords(product.descriptionText || product.seoDescription || product.title, 240),
+        image: imageUrls,
+        url: product.onlineStoreUrl,
+        category: product.productType,
+        brand: product.tags[0] || undefined
+      })
+    },
+    {
+      type: "Offer",
+      status: "partial",
+      fields: ["price", "priceCurrency", "availability", "url", "shipping/returns context"],
+      missing: ["variant price", "currency", "availability"],
+      note: "Offer schema becomes useful after the audit reads Shopify variant price, currency, and inventory availability.",
+      jsonLdPreview: buildJsonLdPreview({
+        "@type": "Offer",
+        url: product.onlineStoreUrl,
+        availability: "https://schema.org/InStock",
+        price: "Connect Shopify variant price",
+        priceCurrency: "Connect store currency"
+      })
+    },
+    {
+      type: "BreadcrumbList",
+      status: product.onlineStoreUrl && product.productType ? "ready" : "partial",
+      fields: ["home", "collection/category", "product"],
+      missing: [product.productType ? "" : "collection/category", product.onlineStoreUrl ? "" : "product URL"].filter(Boolean),
+      note: "Breadcrumb schema helps Google understand page hierarchy and category context.",
+      jsonLdPreview: buildJsonLdPreview({
+        "@context": "https://schema.org",
+        "@type": "BreadcrumbList",
+        itemListElement: [
+          { "@type": "ListItem", position: 1, name: "Home", item: product.onlineStoreUrl ? new URL("/", product.onlineStoreUrl).toString() : undefined },
+          { "@type": "ListItem", position: 2, name: product.productType || "Collection" },
+          { "@type": "ListItem", position: 3, name: product.title, item: product.onlineStoreUrl }
+        ]
+      })
+    },
+    {
+      type: "FAQPage",
+      status: product.faqCount >= 2 || hasQuestionContent(product.descriptionText) ? "ready" : "partial",
+      fields: ["real buyer questions", "visible answers", "page-visible FAQ block"],
+      missing: product.faqCount >= 2 || hasQuestionContent(product.descriptionText) ? [] : ["FAQ questions and answers"],
+      note: "FAQ schema should match visible FAQ content on the product page.",
+      jsonLdPreview: buildJsonLdPreview({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          {
+            "@type": "Question",
+            name: `What should shoppers know about ${product.title}?`,
+            acceptedAnswer: {
+              "@type": "Answer",
+              text: "Use the visible product FAQ content from Shopify here."
+            }
+          }
+        ]
+      })
+    },
+    {
+      type: "Review",
+      status: reviewAppConfigured ? "partial" : "blocked",
+      fields: ["real rating value", "real review count", "review source"],
+      missing: reviewAppConfigured ? ["validated review feed"] : ["Judge.me, Loox, Shopify reviews, or another real review source"],
+      note: "Review schema must never use generated or fake ratings. It should only be enabled with real customer review data."
+    }
+  ];
+}
+
 function statusFromScore(score: number): GrowthCapabilityStatus {
   if (score >= 75) return "ready";
   if (score >= 45) return "partial";
@@ -923,7 +1105,9 @@ export function scoreGrowthProduct(product: GrowthAuditProduct): GrowthProductSc
   const schemaScore = scoreSchemaReadiness(product);
   const imageSeoScore = scoreImageSeoReadiness(product);
   const technicalSeoScore = scoreTechnicalSeoReadiness(product);
-  const aiVisibilityScore = scoreAiVisibilityReadiness(product);
+  const aiAnswerReadiness = buildAiAnswerReadiness(product);
+  const schemaSuggestions = buildSchemaSuggestions(product);
+  const aiVisibilityScore = clampScore((scoreAiVisibilityReadiness(product) + aiAnswerReadiness.score) / 2);
 
   if (schemaScore < 70) {
     issues.push(issue(
@@ -984,6 +1168,8 @@ export function scoreGrowthProduct(product: GrowthAuditProduct): GrowthProductSc
     imageSeoScore,
     technicalSeoScore,
     aiVisibilityScore,
+    aiAnswerReadiness,
+    schemaSuggestions,
     overallScore,
     intentStage: inferIntentStage(product),
     snippetPreview: buildSnippetPreview(product, suggestedFix),

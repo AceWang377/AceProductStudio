@@ -6,6 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "lint": "eslint .",
+    "test:visual": "node scripts/visual-check.mjs",
+    "test:growth-fix": "node scripts/growth-fix-plan-check.mjs",
+    "test:growth-rewrite": "node scripts/growth-rewrite-plan-check.mjs",
     "test:smoke": "node scripts/smoke-test.mjs",
     "test:qa-suite": "node scripts/qa-suite-check.mjs"
   },
@@ -27,6 +30,7 @@
     "zod": "^3.24.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.59.1",
     "@types/node": "^22.15.3",
     "@types/react": "^19.0.12",
     "@types/react-dom": "^19.0.4",
