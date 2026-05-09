@@ -24,10 +24,13 @@ import {
   Zap,
 } from "lucide-react";
 import { GrowthApplyButton } from "@/components/growth/GrowthApplyButton";
+import { GrowthImageAltApplyButton } from "@/components/growth/GrowthImageAltApplyButton";
+import { GrowthInternalLinkApplyButton } from "@/components/growth/GrowthInternalLinkApplyButton";
 import { GrowthMonitorButton } from "@/components/growth/GrowthMonitorButton";
 import { SearchConsoleRewriteApplyButton } from "@/components/growth/SearchConsoleRewriteApplyButton";
 import { requireCurrentUser } from "@/lib/auth";
 import { GROWTH_APPLY_CREDIT_COST, GROWTH_AUDIT_CREDIT_COST, TRIAL_CREDITS } from "@/lib/credits";
+import { getServerDictionary } from "@/lib/i18n/server";
 import {
   getGrowthAudit,
   type GrowthAuditIssue,
@@ -38,17 +41,22 @@ import {
   type GrowthProductScore
 } from "@/lib/growth-audit";
 import { listLatestGrowthMonitorRuns, type GrowthMonitorRun, type GrowthSnippetRewrite } from "@/lib/growth-monitoring";
+import type { Dictionary } from "@/lib/i18n/dictionaries";
 import { listProducts, readState } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
 
+type GrowthPageCopy = Dictionary["growthPage"];
+
 export default async function GrowthPage() {
   const user = await requireCurrentUser();
-  const [products, state, monitorRuns] = await Promise.all([
+  const [{ t }, products, state, monitorRuns] = await Promise.all([
+    getServerDictionary(),
     listProducts(),
     readState(),
     listLatestGrowthMonitorRuns(user.id, 3)
   ]);
+  const copy = t.growthPage;
   const audit = await getGrowthAudit({
     connection: state.shopifyConnection,
     workspaceProducts: products
@@ -86,156 +94,72 @@ export default async function GrowthPage() {
     .slice()
     .sort((left, right) => left.overallScore - right.overallScore)
     .slice(0, 3);
-  const workflowStages = [
-    {
-      title: "Audit",
-      detail: "Read only live Online Store products and collections, then score content, media, schema, technical, and AI-answer readiness.",
-      metricLabel: "Live products",
-      metricValue: audit.productCount,
-      icon: SearchCheck
-    },
-    {
-      title: "Prioritize",
-      detail: "Turn weak scores into a ranked queue with severity, effort, expected impact, and update scope.",
-      metricLabel: "Tasks",
-      metricValue: audit.optimizationTasks.length,
-      icon: FilePenLine
-    },
-    {
-      title: "Apply",
-      detail: "Write back SEO title, meta description, tags, and answer-ready copy only after merchant confirmation.",
-      metricLabel: "Write-back",
-      metricValue: writeBackReadyTasks,
-      icon: ShieldCheck
-    },
-    {
-      title: "Monitor",
-      detail: "Use Search Console, crawler, sitemap, redirect, page-speed, competitor-gap, and AI visibility checks to decide the next move.",
-      metricLabel: "Runs",
-      metricValue: monitorRuns.length,
-      icon: LineChart
-    }
+  const collectionWriteBackCandidates = audit.collections
+    .filter((collection) =>
+      collection.collection.source === "shopify" &&
+      collection.collection.id.startsWith("gid://shopify/Collection/") &&
+      collection.issues.length > 0
+    )
+    .slice()
+    .sort((left, right) => left.overallScore - right.overallScore)
+    .slice(0, 2);
+  const workflowIcons = [SearchCheck, FilePenLine, ShieldCheck, LineChart] as const;
+  const workflowMetricValues = [
+    audit.productCount,
+    audit.optimizationTasks.length,
+    writeBackReadyTasks,
+    monitorRuns.length
   ];
-  const skillCoverage = [
-    {
-      title: "On-page SEO",
-      score: audit.averageSeoScore,
-      status: "ready",
-      detail: "SEO titles, meta descriptions, product titles, descriptions, tags, snippet previews, and CTR-ready rewrites.",
-      skills: ["Title/meta scoring", "Description depth", "Keyword tags", "SERP preview"]
-    },
-    {
-      title: "GEO answer readiness",
-      score: audit.averageGeoScore,
-      status: "ready",
-      detail: "Buyer questions, product facts, use cases, comparison context, trust copy, and AI-answer-friendly blocks.",
-      skills: ["FAQ blocks", "Use cases", "Comparison copy", "Trust context"]
-    },
-    {
-      title: "Collection SEO",
-      score: audit.averageCollectionSeoScore,
-      status: audit.collections.length ? "ready" : "setup",
-      detail: "Collection/category pages are scored as ranking assets with title, meta, buying-guide copy, FAQs, image context, and public URL checks.",
-      skills: ["Category keywords", "Buying guides", "Collection FAQs", "Collection snippets"]
-    },
-    {
-      title: "Image SEO",
-      score: audit.averageImageSeoScore,
-      status: "ready",
-      detail: "Alt text, filename quality, image count, dimensions, compression readiness, and media ordering.",
-      skills: ["Alt text", "Filename guidance", "Image size", "Media order"]
-    },
-    {
-      title: "Technical indexability",
-      score: latestPageSpeed?.averageResponseMs ? Math.round((audit.averageTechnicalSeoScore + (latestPageSpeed.slowUrls?.length ? 55 : 85)) / 2) : audit.averageTechnicalSeoScore,
-      status: latestMonitorRun ? "ready" : "partial",
-      detail: "Live-product filtering, product handles, canonical domain, sitemap health, broken links, redirects, and page-speed/Core Web Vitals readiness.",
-      skills: ["Live-only audit", "Sitemap", "Broken links", "Page speed"]
-    },
-    {
-      title: "Structured data",
-      score: audit.averageSchemaScore,
-      status: "partial",
-      detail: "Product schema readiness, FAQ readiness, review/rating prerequisites, offer fields, collection context, and rich-result gaps.",
-      skills: ["Product schema", "FAQ readiness", "Review readiness", "Offer context"]
-    },
-    {
-      title: "Internal linking",
-      score: audit.internalLinkSuggestions.length ? Math.min(95, 45 + audit.internalLinkSuggestions.length * 6) : 20,
-      status: audit.internalLinkSuggestions.length ? "partial" : "setup",
-      detail: "Suggests contextual links between products, collections, and future blog/buying-guide pages so authority flows into revenue pages.",
-      skills: ["Product links", "Collection links", "Blog anchors", "Comparison paths"]
-    },
-    {
-      title: "Growth intelligence",
-      score: latestMonitorRun?.output?.commercialReadinessScore ?? audit.aiVisibilityScore,
-      status: latestMonitorRun ? "partial" : "setup",
-      detail: "Search Console queries, low-CTR pages, competitor keyword gaps, AI visibility checks, and history.",
-      skills: ["GSC queries", "CTR gaps", "Competitor gaps", "AI visibility"]
-    }
+  const workflowStages = copy.workflow.stages.map((step, index) => ({
+    ...step,
+    metricValue: workflowMetricValues[index] ?? 0,
+    icon: workflowIcons[index] ?? SearchCheck
+  }));
+  const skillScores = [
+    audit.averageSeoScore,
+    audit.averageGeoScore,
+    audit.averageCollectionSeoScore,
+    audit.averageImageSeoScore,
+    latestPageSpeed?.averageResponseMs ? Math.round((audit.averageTechnicalSeoScore + (latestPageSpeed.slowUrls?.length ? 55 : 85)) / 2) : audit.averageTechnicalSeoScore,
+    audit.averageSchemaScore,
+    audit.internalLinkSuggestions.length ? Math.min(95, 45 + audit.internalLinkSuggestions.length * 6) : 20,
+    latestMonitorRun?.output?.commercialReadinessScore ?? audit.aiVisibilityScore
+  ];
+  const skillStatuses = [
+    "ready",
+    "ready",
+    audit.collections.length ? "ready" : "setup",
+    "ready",
+    latestMonitorRun ? "ready" : "partial",
+    "partial",
+    audit.internalLinkSuggestions.length ? "partial" : "setup",
+    latestMonitorRun ? "partial" : "setup"
   ] as const;
-  const dataSources = [
-    {
-      label: "Shopify product audit",
-      status: shopifyConnected ? "ready" : "setup",
-      cost: "Included",
-      detail: "Uses the connected Shopify Admin API to read products and prepare user-approved write-back.",
-      action: shopifyConnected ? "Connected" : "Connect Shopify OAuth"
-    },
-    {
-      label: "Technical crawler",
-      status: "ready",
-      cost: "No paid API",
-      detail: "Runs inside your app to check sitemap.xml, robots.txt, broken internal links, and redirect chains.",
-      action: "Available now"
-    },
-    {
-      label: "Vercel daily cron",
-      status: process.env.CRON_SECRET?.trim() ? "ready" : "setup",
-      cost: "Hobby daily",
-      detail: "Vercel Cron Jobs are available on Hobby for once-per-day schedules, which fits the current MVP.",
-      action: process.env.CRON_SECRET?.trim() ? "Protected" : "Add CRON_SECRET"
-    },
-    {
-      label: "Competitor keyword gap",
-      status: process.env.GROWTH_COMPETITOR_DOMAINS?.trim() ? "ready" : "setup",
-      cost: "Free with manual competitor list",
-      detail: "Uses your Search Console queries and a manually configured competitor-domain list. Paid Ahrefs/Semrush-style keyword APIs can be added later.",
-      action: process.env.GROWTH_COMPETITOR_DOMAINS?.trim() ? "Competitors configured" : "Optional env later"
-    },
-    {
-      label: "Page speed / Core Web Vitals",
-      status: latestPageSpeed?.checkedUrls ? "ready" : "setup",
-      cost: "Free basic crawler",
-      detail: "The current crawler measures response time. PageSpeed Insights can be connected later for full Core Web Vitals field/lab data.",
-      action: latestPageSpeed?.checkedUrls ? "Crawler data ready" : "Run monitor"
-    },
-    {
-      label: "Review schema data",
-      status: process.env.JUDGEME_API_TOKEN?.trim() || process.env.LOOX_API_KEY?.trim() ? "ready" : "setup",
-      cost: "Likely paid app/API later",
-      detail: "Judge.me, Loox, or another review source is needed for real rating/review data. MVP only checks readiness and never fabricates reviews.",
-      action: "Defer until review app"
-    },
-    {
-      label: "Google Search Console",
-      status: process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL?.trim() && process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY?.trim()
-        ? "ready"
-        : "setup",
-      cost: "Free quota",
-      detail: "Reads clicks, impressions, CTR, position, queries, and sitemaps from verified properties.",
-      action: "Optional but high value"
-    },
-    {
-      label: "AI visibility proxy",
-      status: process.env.GOOGLE_CUSTOM_SEARCH_API_KEY?.trim() && process.env.GOOGLE_CUSTOM_SEARCH_ENGINE_ID?.trim()
-        ? "ready"
-        : "setup",
-      cost: "100/day free",
-      detail: "Uses Google Custom Search JSON API as a lightweight proxy for brand and product visibility checks.",
-      action: "Optional"
-    }
+  const skillCoverage = copy.skillCoverage.items.map((item, index) => ({
+    ...item,
+    score: skillScores[index] ?? 0,
+    status: skillStatuses[index] ?? "setup"
+  }));
+  const dataSourceStatuses = [
+    shopifyConnected ? "ready" : "setup",
+    "ready",
+    process.env.CRON_SECRET?.trim() ? "ready" : "setup",
+    process.env.GROWTH_COMPETITOR_DOMAINS?.trim() ? "ready" : "setup",
+    latestPageSpeed?.checkedUrls ? "ready" : "setup",
+    process.env.JUDGEME_API_TOKEN?.trim() || process.env.LOOX_API_KEY?.trim() ? "ready" : "setup",
+    process.env.GOOGLE_SEARCH_CONSOLE_CLIENT_EMAIL?.trim() && process.env.GOOGLE_SEARCH_CONSOLE_PRIVATE_KEY?.trim() ? "ready" : "setup",
+    process.env.GOOGLE_CUSTOM_SEARCH_API_KEY?.trim() && process.env.GOOGLE_CUSTOM_SEARCH_ENGINE_ID?.trim() ? "ready" : "setup"
   ] as const;
+  const dataSources = copy.dataSources.items.map((source, index) => {
+    const status = dataSourceStatuses[index] ?? "setup";
+    return {
+      label: source.label,
+      status,
+      cost: source.cost,
+      detail: source.detail,
+      action: status === "ready" ? source.readyAction : source.setupAction
+    };
+  });
   const noApiWins = audit.products
     .flatMap((product) => product.issues.slice(0, 2).map((issue) => ({
       key: `${product.product.id}-${issue.key}`,
@@ -255,7 +179,7 @@ export default async function GrowthPage() {
   const primaryFocus =
     audit.optimizationTasks[0]?.title ||
     latestMonitorRun?.output?.actionPlan?.[0]?.title ||
-    (shopifyConnected ? "Run live monitor" : "Connect Shopify");
+    (shopifyConnected ? copy.monitorButton.run : copy.hero.connectShopify);
 
   return (
     <div className="space-y-7">
@@ -263,47 +187,47 @@ export default async function GrowthPage() {
         <div className="grid gap-0 xl:grid-cols-[minmax(0,1fr)_440px]">
           <div className="p-5 sm:p-7">
             <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase text-white/60">
-              <span>Growth Studio</span>
+              <span>{copy.hero.eyebrow}</span>
               <span className="h-1 w-1 rounded-full bg-white/30" aria-hidden />
-              <span>{shopifyConnected ? "Live Online Store pages only" : "Connect Shopify for live audit"}</span>
+              <span>{shopifyConnected ? copy.hero.liveOnly : copy.hero.connectAudit}</span>
             </div>
             <h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight sm:text-4xl">
-              Score Shopify products and collections for SEO and GEO before you approve updates.
+              {copy.hero.title}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-white/70">
-              Read live pages from the connected Shopify store, find weak titles, thin descriptions, missing image context, internal-link gaps, and AI-answer gaps, then write selected fixes only after user confirmation.
+              {copy.hero.body}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href={shopifyConnected ? "/products" : "/settings/shopify"}
                 className="studio-focus inline-flex h-11 items-center gap-2 rounded bg-white px-4 text-sm font-semibold text-ink"
               >
-                {shopifyConnected ? "Open product workflow" : "Connect Shopify"}
+                {shopifyConnected ? copy.hero.openProductWorkflow : copy.hero.connectShopify}
                 <ArrowUpRight className="h-4 w-4" aria-hidden />
               </Link>
               <Link
                 href="/shopify-seo-geo-optimizer"
                 className="studio-focus inline-flex h-11 items-center gap-2 rounded border border-white/15 px-4 text-sm font-semibold text-white hover:bg-white/10"
               >
-                SEO/GEO guide
+                {copy.hero.guide}
                 <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             </div>
           </div>
           <div className="border-t border-white/10 bg-white/[0.04] p-5 sm:p-7 xl:border-l xl:border-t-0">
             <div className="grid grid-cols-2 gap-px overflow-hidden border border-white/10 bg-white/10">
-              <Metric label="SEO score" value={audit.averageSeoScore || "--"} tone="dark" icon={SearchCheck} />
-              <Metric label="GEO score" value={audit.averageGeoScore || "--"} tone="dark" icon={Sparkles} />
-              <Metric label="Schema" value={audit.averageSchemaScore || "--"} tone="dark" icon={CheckCircle2} />
-              <Metric label="Technical" value={audit.averageTechnicalSeoScore || "--"} tone="dark" icon={Gauge} />
+              <Metric label={copy.hero.metricLabels.seoScore} value={audit.averageSeoScore || "--"} tone="dark" icon={SearchCheck} />
+              <Metric label={copy.hero.metricLabels.geoScore} value={audit.averageGeoScore || "--"} tone="dark" icon={Sparkles} />
+              <Metric label={copy.hero.metricLabels.schema} value={audit.averageSchemaScore || "--"} tone="dark" icon={CheckCircle2} />
+              <Metric label={copy.hero.metricLabels.technical} value={audit.averageTechnicalSeoScore || "--"} tone="dark" icon={Gauge} />
             </div>
             <div className="mt-4 border border-white/10 bg-white/[0.04] p-4 text-sm">
               <div className="flex items-center justify-between gap-4">
-                <span className="text-white/60">Audit source</span>
-                <span className="font-semibold">{audit.source === "shopify" ? "Live Shopify products" : "AceStudio workspace"}</span>
+                <span className="text-white/60">{copy.hero.metricLabels.auditSource}</span>
+                <span className="font-semibold">{audit.source === "shopify" ? copy.hero.metricLabels.liveShopifyProducts : copy.hero.metricLabels.aceStudioWorkspace}</span>
               </div>
               <div className="mt-2 flex items-center justify-between gap-4">
-                <span className="text-white/60">Excluded non-live</span>
+                <span className="text-white/60">{copy.hero.metricLabels.excludedNonLive}</span>
                 <span className="font-semibold">{audit.excludedProductCount}</span>
               </div>
               {audit.storeName || audit.shopDomain ? (
@@ -319,9 +243,9 @@ export default async function GrowthPage() {
           <div className="flex gap-3">
             <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" aria-hidden />
             <div>
-              <h2 className="font-semibold">Live Shopify audit could not run</h2>
+              <h2 className="font-semibold">{copy.error.liveAuditTitle}</h2>
               <p className="mt-1 leading-6">
-                {audit.error} The page is showing AceStudio workspace products instead, so users still get a useful preview.
+                {audit.error} {copy.error.fallbackSuffix}
               </p>
             </div>
           </div>
@@ -332,18 +256,18 @@ export default async function GrowthPage() {
         <div className="border border-line bg-white p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-action">Structured growth command center</p>
-              <h2 className="mt-1 text-2xl font-semibold">One operating system for Shopify SEO and GEO</h2>
+              <p className="text-sm font-medium text-action">{copy.commandCenter.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.commandCenter.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                Mature SEO products do not stop at a score. AceStudio now separates the work into audit, prioritization, approved write-back, and measurement so merchants always know what to do next.
+                {copy.commandCenter.body}
               </p>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                Only Shopify products with <strong className="font-semibold text-ink">ACTIVE status, a published date, and a public Online Store URL</strong> are included. Draft, archived, hidden, and unlisted products are excluded because they cannot rank in search.
+                {copy.commandCenter.liveOnlyNote}
               </p>
             </div>
             <div className="grid grid-cols-2 gap-2 sm:min-w-64">
-              <MiniMetric label="High priority" value={highImpactTasks} />
-              <MiniMetric label="Write-back ready" value={writeBackReadyTasks} />
+              <MiniMetric label={copy.commandCenter.highPriority} value={highImpactTasks} />
+              <MiniMetric label={copy.commandCenter.writeBackReady} value={writeBackReadyTasks} />
             </div>
           </div>
           <div className="mt-5 grid gap-3 lg:grid-cols-4">
@@ -362,15 +286,15 @@ export default async function GrowthPage() {
 
         <aside className="border border-line bg-[#16251f] p-5 text-white">
           <Zap className="h-5 w-5 text-[#98d7c3]" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">Next best action</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.nextBestAction.title}</h2>
           <p className="mt-2 text-sm leading-6 text-white/65">
-            The page should guide the merchant to one clear move instead of making them interpret every score.
+            {copy.nextBestAction.body}
           </p>
           <div className="mt-4 border border-white/10 bg-white/[0.04] p-4">
-            <p className="text-xs font-semibold uppercase text-white/45">Recommended now</p>
+            <p className="text-xs font-semibold uppercase text-white/45">{copy.nextBestAction.recommendedNow}</p>
             <p className="mt-2 text-xl font-semibold">{primaryFocus}</p>
             <p className="mt-2 text-sm leading-6 text-white/60">
-              Monitoring costs {GROWTH_AUDIT_CREDIT_COST} credit. Confirmed Shopify write-back costs {GROWTH_APPLY_CREDIT_COST} credits. Trial users start with {TRIAL_CREDITS} credits.
+              {copy.nextBestAction.monitoringCosts} {GROWTH_AUDIT_CREDIT_COST} {GROWTH_AUDIT_CREDIT_COST === 1 ? copy.nextBestAction.credit : copy.nextBestAction.credits}. {copy.nextBestAction.confirmedWriteBackCosts} {GROWTH_APPLY_CREDIT_COST} {copy.nextBestAction.credits}. {copy.nextBestAction.trialUsersStartWith} {TRIAL_CREDITS} {copy.nextBestAction.credits}.
             </p>
           </div>
         </aside>
@@ -383,55 +307,64 @@ export default async function GrowthPage() {
               <FilePenLine className="h-5 w-5 text-action" aria-hidden />
             </div>
             <div>
-              <p className="text-sm font-medium text-action">Optimization writer</p>
-              <h2 className="mt-1 text-2xl font-semibold">Do the SEO/GEO work, not just score it</h2>
+              <p className="text-sm font-medium text-action">{copy.optimizationWriter.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.optimizationWriter.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                The commercial version has to behave like an approved optimization assistant: generate better fields,
-                show an editable before/after diff, preview credit cost, then write selected improvements back to Shopify.
+                {copy.optimizationWriter.body}
               </p>
             </div>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-3">
             <WriteBackCapability
               icon={SearchCheck}
-              title="Search snippet fields"
-              detail="Improve SEO title and meta description without changing the merchant-facing product name by default."
+              title={copy.optimizationWriter.capabilities[0]?.title ?? ""}
+              detail={copy.optimizationWriter.capabilities[0]?.detail ?? ""}
             />
             <WriteBackCapability
               icon={Target}
-              title="Keyword tags"
-              detail="Normalize product tags around category, intent, material, use case, and buyer search language."
+              title={copy.optimizationWriter.capabilities[1]?.title ?? ""}
+              detail={copy.optimizationWriter.capabilities[1]?.detail ?? ""}
             />
             <WriteBackCapability
               icon={Sparkles}
-              title="AI answer content"
-              detail="Append answer-ready buyer Q&A and product facts so the page is easier for search and AI systems to understand."
+              title={copy.optimizationWriter.capabilities[2]?.title ?? ""}
+              detail={copy.optimizationWriter.capabilities[2]?.detail ?? ""}
             />
           </div>
           <div className="mt-5 border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-950">
-            Product display titles are deliberately not overwritten yet. That field affects merchandising, brand naming,
-            and ads. Add it later as a separate checkbox when the merchant explicitly wants AceStudio to rewrite public product names.
+            {copy.optimizationWriter.safetyNote}
           </div>
         </div>
 
         <aside className="border border-line bg-white p-5">
           <ShieldCheck className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">Ready for approved write-back</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.optimizationWriter.readyTitle}</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            These live Shopify products have the weakest scores and can be improved now with a reviewed Shopify update.
+            {copy.optimizationWriter.readyBody}
           </p>
           <div className="mt-4 space-y-3">
-            {writeBackCandidates.length ? (
-              writeBackCandidates.map((product) => (
-                <WriteBackCandidateCard
-                  key={product.product.id}
-                  product={product}
-                  creditCost={GROWTH_APPLY_CREDIT_COST}
-                />
-              ))
+            {writeBackCandidates.length || collectionWriteBackCandidates.length ? (
+              <>
+                {writeBackCandidates.map((product) => (
+                  <WriteBackCandidateCard
+                    key={product.product.id}
+                    product={product}
+                    creditCost={GROWTH_APPLY_CREDIT_COST}
+                    copy={copy}
+                  />
+                ))}
+                {collectionWriteBackCandidates.map((collection) => (
+                  <WriteBackCollectionCandidateCard
+                    key={collection.collection.id}
+                    collection={collection}
+                    creditCost={GROWTH_APPLY_CREDIT_COST}
+                    copy={copy}
+                  />
+                ))}
+              </>
             ) : (
               <p className="border border-line bg-canvas p-3 text-sm leading-6 text-muted">
-                No live Shopify products need write-back right now. Draft, archived, hidden, and unlisted products stay out of this queue.
+                {copy.optimizationWriter.noCandidates}
               </p>
             )}
           </div>
@@ -441,19 +374,19 @@ export default async function GrowthPage() {
       <section className="border border-line bg-white p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
           <div>
-            <p className="text-sm font-medium text-action">SEO/GEO skill coverage</p>
-            <h2 className="mt-1 text-2xl font-semibold">The core skill map this feature should own</h2>
+            <p className="text-sm font-medium text-action">{copy.skillCoverage.eyebrow}</p>
+            <h2 className="mt-1 text-2xl font-semibold">{copy.skillCoverage.title}</h2>
             <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-              The strongest commercial version covers the same pillars merchants expect from SEO suites and newer GEO tools: content, answer readiness, images, indexability, rich snippets, internal links, and growth intelligence.
+              {copy.skillCoverage.body}
             </p>
           </div>
           <span className="inline-flex h-9 items-center rounded border border-line px-3 text-sm font-semibold">
-            {skillCoverage.length} pillars
+            {skillCoverage.length} {copy.skillCoverage.pillars}
           </span>
         </div>
         <div className="mt-5 grid gap-3 lg:grid-cols-2">
           {skillCoverage.map((item) => (
-            <SkillCoverageBlock key={item.title} item={item} />
+            <SkillCoverageBlock key={item.title} item={item} copy={copy} />
           ))}
         </div>
       </section>
@@ -462,25 +395,30 @@ export default async function GrowthPage() {
         <div className="border border-line bg-white p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-action">Collection SEO scoring</p>
-              <h2 className="mt-1 text-2xl font-semibold">Score category pages, not only product pages</h2>
+              <p className="text-sm font-medium text-action">{copy.collectionSeo.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.collectionSeo.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                Collection pages can rank for broader category keywords and should act like buying-guide landing pages. AceStudio now audits live public collections for snippets, category copy, FAQs, images, and crawlable URLs.
+                {copy.collectionSeo.body}
               </p>
             </div>
             <div className={`min-w-32 border p-3 text-center ${scoreTone(audit.averageCollectionSeoScore)}`}>
-              <p className="text-[11px] font-semibold uppercase">Collection score</p>
+              <p className="text-[11px] font-semibold uppercase">{copy.collectionSeo.scoreLabel}</p>
               <p className="mt-1 text-2xl font-semibold">{audit.averageCollectionSeoScore || "--"}</p>
             </div>
           </div>
           <div className="mt-5 divide-y divide-line border-y border-line">
             {audit.collections.length ? (
               audit.collections.slice(0, 6).map((collection) => (
-                <CollectionAuditRow key={collection.collection.id} collection={collection} />
+                <CollectionAuditRow
+                  key={collection.collection.id}
+                  collection={collection}
+                  applyCreditCost={GROWTH_APPLY_CREDIT_COST}
+                  copy={copy}
+                />
               ))
             ) : (
               <div className="bg-canvas p-5 text-sm leading-6 text-muted">
-                No public Shopify collections were returned yet. Publish collections to Online Store, then run Growth Studio again to score category pages.
+                {copy.collectionSeo.empty}
               </div>
             )}
           </div>
@@ -488,18 +426,23 @@ export default async function GrowthPage() {
 
         <aside className="border border-line bg-white p-5">
           <Link2 className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">Internal linking suggestions</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.internalLinks.title}</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            Use these as human-reviewed recommendations first. Later, you can add a Shopify write-back confirmation to insert links into product, collection, or blog content.
+            {copy.internalLinks.body}
           </p>
           <div className="mt-4 space-y-3">
             {audit.internalLinkSuggestions.length ? (
               audit.internalLinkSuggestions.slice(0, 6).map((suggestion) => (
-                <InternalLinkSuggestionBlock key={suggestion.key} suggestion={suggestion} />
+                <InternalLinkSuggestionBlock
+                  key={suggestion.key}
+                  suggestion={suggestion}
+                  copy={copy}
+                  creditCost={GROWTH_APPLY_CREDIT_COST}
+                />
               ))
             ) : (
               <p className="border border-line bg-canvas p-3 text-sm leading-6 text-muted">
-                Add live collections or related live products to generate internal linking ideas.
+                {copy.internalLinks.empty}
               </p>
             )}
           </div>
@@ -510,24 +453,24 @@ export default async function GrowthPage() {
         <div className="border border-line bg-white p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-action">Optimization queue</p>
-              <h2 className="mt-1 text-2xl font-semibold">Ranked fixes merchants can actually execute</h2>
+              <p className="text-sm font-medium text-action">{copy.optimizationQueue.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.optimizationQueue.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                Prioritized by issue severity, page score, and commercial category. This mirrors the useful part of paid SEO suites: a clear queue with impact, effort, and update scope.
+                {copy.optimizationQueue.body}
               </p>
             </div>
             <span className="inline-flex h-9 items-center rounded border border-line px-3 text-sm font-semibold">
-              {audit.optimizationTasks.length} tasks
+              {audit.optimizationTasks.length} {copy.optimizationQueue.tasks}
             </span>
           </div>
           <div className="mt-5 divide-y divide-line border-y border-line">
             {audit.optimizationTasks.length ? (
               audit.optimizationTasks.slice(0, 8).map((task) => (
-                <OptimizationTaskRow key={task.key} task={task} />
+                <OptimizationTaskRow key={task.key} task={task} copy={copy} />
               ))
             ) : (
               <div className="bg-canvas p-5 text-sm leading-6 text-muted">
-                No optimization tasks yet. Connect Shopify or add product drafts to build the queue.
+                {copy.optimizationQueue.empty}
               </div>
             )}
           </div>
@@ -535,13 +478,13 @@ export default async function GrowthPage() {
 
         <aside className="border border-line bg-white p-5">
           <Lightbulb className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">Store-level playbooks</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.storePlaybooks.title}</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            These are the repeatable growth motions that make the feature feel like a product, not a one-off checker.
+            {copy.storePlaybooks.body}
           </p>
           <div className="mt-4 space-y-3">
             {audit.storeOpportunities.slice(0, 4).map((opportunity) => (
-              <StoreOpportunityBlock key={opportunity.key} opportunity={opportunity} />
+              <StoreOpportunityBlock key={opportunity.key} opportunity={opportunity} copy={copy} />
             ))}
           </div>
         </aside>
@@ -551,14 +494,14 @@ export default async function GrowthPage() {
         <div className="border border-line bg-white p-5">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-action">Commercial SEO engine</p>
-              <h2 className="mt-1 text-2xl font-semibold">Turn monitoring into prioritized optimization tasks</h2>
+              <p className="text-sm font-medium text-action">{copy.commercialSeo.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.commercialSeo.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                AceStudio now converts Search Console queries, crawler results, and AI visibility gaps into a ranked action plan that merchants can review before writing changes back to Shopify.
+                {copy.commercialSeo.body}
               </p>
             </div>
             <div className="min-w-32 border border-line bg-canvas p-3 text-center">
-              <p className="text-[11px] font-semibold uppercase text-muted">Readiness</p>
+              <p className="text-[11px] font-semibold uppercase text-muted">{copy.commercialSeo.readiness}</p>
               <p className="mt-1 text-2xl font-semibold">
                 {latestMonitorRun?.output?.commercialReadinessScore ?? "--"}
               </p>
@@ -567,11 +510,11 @@ export default async function GrowthPage() {
           <div className="mt-5 grid gap-3 lg:grid-cols-2">
             {latestMonitorRun?.output?.actionPlan?.length ? (
               latestMonitorRun.output.actionPlan.map((item) => (
-                <ActionPlanCard key={item.key} item={item} />
+                <ActionPlanCard key={item.key} item={item} copy={copy} />
               ))
             ) : (
               <div className="border border-dashed border-line bg-canvas p-5 text-sm leading-6 text-muted lg:col-span-2">
-                Run the live monitor to generate a prioritized action plan. Without Search Console credentials, the plan will focus on setup, technical SEO, and AI visibility readiness.
+                {copy.commercialSeo.empty}
               </div>
             )}
           </div>
@@ -579,9 +522,9 @@ export default async function GrowthPage() {
 
         <aside className="border border-line bg-[#16251f] p-5 text-white">
           <Target className="h-5 w-5 text-[#98d7c3]" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">Keyword opportunities</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.keywordOpportunities.title}</h2>
           <p className="mt-2 text-sm leading-6 text-white/65">
-            The strongest commercial signal is not just the average score. It is which query is already getting visibility and what update can convert it into clicks.
+            {copy.keywordOpportunities.body}
           </p>
           <div className="mt-4 space-y-3">
             {keywordOpportunityTargets.length ? (
@@ -591,17 +534,18 @@ export default async function GrowthPage() {
                   opportunity={opportunity}
                   product={product}
                   creditCost={GROWTH_APPLY_CREDIT_COST}
+                  copy={copy}
                 />
               ))
             ) : (
               <p className="border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-white/65">
-                Connect Search Console to unlock query-level opportunities like low CTR, zero-click, and striking-distance keywords.
+                {copy.dataSources.items[6]?.setupAction}
               </p>
             )}
           </div>
           <div className="mt-5 border-t border-white/10 pt-4">
             <div className="flex items-center justify-between gap-3">
-              <h3 className="text-sm font-semibold">Competitor keyword gaps</h3>
+              <h3 className="text-sm font-semibold">{copy.keywordOpportunities.competitorGaps}</h3>
               <span className="rounded bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase text-white/70">
                 {competitorGapCount || "setup"}
               </span>
@@ -609,11 +553,11 @@ export default async function GrowthPage() {
             <div className="mt-3 space-y-3">
               {latestMonitorRun?.output?.competitorKeywordGaps?.length ? (
                 latestMonitorRun.output.competitorKeywordGaps.slice(0, 3).map((gap) => (
-                  <CompetitorGapBlock key={`${gap.query}-${gap.page ?? ""}`} gap={gap} />
+                  <CompetitorGapBlock key={`${gap.query}-${gap.page ?? ""}`} gap={gap} copy={copy} />
                 ))
               ) : (
                 <p className="border border-white/10 bg-white/[0.04] p-3 text-sm leading-6 text-white/65">
-                  Add a comma-separated <span className="font-semibold">GROWTH_COMPETITOR_DOMAINS</span> env var to compare your Search Console queries against chosen competitor stores. No paid API required for this MVP layer.
+                  {copy.keywordOpportunities.competitorSetup}
                 </p>
               )}
             </div>
@@ -626,32 +570,32 @@ export default async function GrowthPage() {
           <div className="flex items-start gap-3">
             <Database className="mt-1 h-5 w-5 text-action" aria-hidden />
             <div>
-              <p className="text-sm font-medium text-action">Data source setup</p>
-              <h2 className="mt-1 text-2xl font-semibold">Keep the MVP useful before every optional API is connected</h2>
+              <p className="text-sm font-medium text-action">{copy.dataSources.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.dataSources.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                The product audit, technical crawler, and daily cron can already run on the current stack. Google APIs unlock stronger query and visibility intelligence, but they are not required for the first customer demos.
+                {copy.dataSources.body}
               </p>
             </div>
           </div>
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {dataSources.map((source) => (
-              <DataSourceCard key={source.label} source={source} />
+              <DataSourceCard key={source.label} source={source} copy={copy} />
             ))}
           </div>
         </div>
 
         <aside className="border border-line bg-white p-5">
           <Clock3 className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">No-API optimization queue</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.noApiQueue.title}</h2>
           <p className="mt-2 text-sm leading-6 text-muted">
-            These fixes are generated from product content and Shopify data, so merchants can improve pages even before Search Console is connected.
+            {copy.noApiQueue.body}
           </p>
           <div className="mt-4 space-y-3">
             {noApiWins.length ? (
               noApiWins.map((win) => <NoApiWinBlock key={win.key} win={win} />)
             ) : (
               <p className="border border-line bg-canvas p-3 text-sm leading-6 text-muted">
-                No urgent no-API fixes are available right now. Create or connect products to populate this queue.
+                {copy.noApiQueue.empty}
               </p>
             )}
           </div>
@@ -662,10 +606,10 @@ export default async function GrowthPage() {
         <div className="border border-line bg-white p-5">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div>
-              <p className="text-sm font-medium text-action">Live monitor</p>
-              <h2 className="mt-1 text-2xl font-semibold">Search Console, crawler, and AI visibility tracking</h2>
+              <p className="text-sm font-medium text-action">{copy.liveMonitor.eyebrow}</p>
+              <h2 className="mt-1 text-2xl font-semibold">{copy.liveMonitor.title}</h2>
               <p className="mt-2 max-w-3xl text-sm leading-6 text-muted">
-                Run a real check for clicks, impressions, query data, sitemap health, product-page response speed, broken internal links, redirect chains, competitor gaps, and visibility across Google search results as an AI visibility proxy.
+                {copy.liveMonitor.body}
               </p>
             </div>
             <GrowthMonitorButton creditCost={GROWTH_AUDIT_CREDIT_COST} />
@@ -673,25 +617,23 @@ export default async function GrowthPage() {
           {monitorRuns.length ? (
             <div className="mt-5 grid gap-3 lg:grid-cols-3">
               {monitorRuns.map((run) => (
-                <MonitorRunCard key={run.id} run={run} />
+                <MonitorRunCard key={run.id} run={run} copy={copy} />
               ))}
             </div>
           ) : (
             <div className="mt-5 border border-dashed border-line bg-canvas p-5 text-sm leading-6 text-muted">
-              No live monitor run yet. Run it once after adding the Growth monitoring Supabase migration and the optional Google credentials.
+              {copy.liveMonitor.empty}
             </div>
           )}
         </div>
 
         <aside className="border border-line bg-[#f7faf8] p-5">
           <Activity className="h-5 w-5 text-action" aria-hidden />
-          <h2 className="mt-4 text-lg font-semibold">What this unlocks</h2>
+          <h2 className="mt-4 text-lg font-semibold">{copy.liveMonitor.unlocksTitle}</h2>
           <div className="mt-4 space-y-3 text-sm leading-6 text-muted">
-            <p>Search Console: find high-impression queries with weak CTR and rewrite titles around them.</p>
-            <p>Technical crawler: catch 404s, redirect chains, sitemap gaps, and canonical host issues.</p>
-            <p>Page speed: flag slow Shopify pages now, then connect PageSpeed Insights later only if you need full Core Web Vitals field data.</p>
-            <p>Competitor gaps: use your own competitor list plus Search Console queries before paying for keyword databases.</p>
-            <p>AI visibility: track whether brand and product queries surface your pages in answer-engine-style search results.</p>
+            {copy.liveMonitor.unlocks.map((item) => (
+              <p key={item}>{item}</p>
+            ))}
           </div>
         </aside>
       </section>
@@ -700,11 +642,11 @@ export default async function GrowthPage() {
         <div>
           <div className="mb-3 flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm text-muted">Product scores</p>
-              <h2 className="text-xl font-semibold">Lowest scoring products first</h2>
+              <p className="text-sm text-muted">{copy.productScores.eyebrow}</p>
+              <h2 className="text-xl font-semibold">{copy.productScores.title}</h2>
             </div>
             <Link href="/products" className="text-sm font-semibold text-action">
-              Open products
+              {copy.productScores.openProducts}
             </Link>
           </div>
           {audit.products.length ? (
@@ -714,12 +656,13 @@ export default async function GrowthPage() {
                   key={`${product.product.source}-${product.product.id}`}
                   product={product}
                   applyCreditCost={GROWTH_APPLY_CREDIT_COST}
+                  copy={copy}
                 />
               ))}
             </div>
           ) : (
             <div className="border border-line bg-white p-8 text-sm text-muted">
-              No live Online Store products are available for audit yet. Growth Studio ignores draft, archived, hidden, and unlisted Shopify products because those pages cannot rank until they are actively published to Online Store.
+              {copy.productScores.empty}
             </div>
           )}
         </div>
@@ -728,7 +671,7 @@ export default async function GrowthPage() {
           <div className="border border-line bg-white p-5">
             <div className="flex items-center gap-2">
               <CircleAlert className="h-5 w-5 text-action" aria-hidden />
-              <h2 className="text-lg font-semibold">Top recommendations</h2>
+              <h2 className="text-lg font-semibold">{copy.recommendations.title}</h2>
             </div>
             <div className="mt-4 space-y-3">
               {topIssues.length ? (
@@ -741,7 +684,7 @@ export default async function GrowthPage() {
                 ))
               ) : (
                 <p className="text-sm leading-6 text-muted">
-                  Products look strong enough for the first MVP audit. Keep monitoring after new products are added.
+                  {copy.recommendations.strongEnough}
                 </p>
               )}
             </div>
@@ -809,10 +752,12 @@ function WriteBackCapability({
 
 function WriteBackCandidateCard({
   product,
-  creditCost
+  creditCost,
+  copy
 }: {
   product: GrowthProductScore;
   creditCost: number;
+  copy: GrowthPageCopy;
 }) {
   const primaryIssue = product.issues[0];
 
@@ -822,7 +767,7 @@ function WriteBackCandidateCard({
         <div>
           <h3 className="text-sm font-semibold leading-5">{product.product.title}</h3>
           <p className="mt-1 text-xs leading-5 text-muted">
-            {primaryIssue?.label ?? "SEO/GEO improvements available"}
+            {primaryIssue?.label ?? copy.optimizationWriter.fallbackIssue}
           </p>
         </div>
         <span className={`rounded border px-2 py-1 text-xs font-semibold ${scoreTone(product.overallScore)}`}>
@@ -830,7 +775,7 @@ function WriteBackCandidateCard({
         </span>
       </div>
       <div className="mt-3 flex flex-wrap gap-1.5">
-        {["SEO title", "Meta", "Tags", "Q&A"].map((field) => (
+        {copy.optimizationWriter.fields.map((field) => (
           <span key={field} className="rounded bg-white px-2 py-0.5 text-[11px] font-semibold text-muted">
             {field}
           </span>
@@ -839,11 +784,58 @@ function WriteBackCandidateCard({
       <div className="mt-3">
         <GrowthApplyButton productId={product.product.id} creditCost={creditCost} />
       </div>
+      {product.product.imageCount > product.product.imagesWithAlt || product.imageSeoScore < 90 ? (
+        <div className="mt-3">
+          <GrowthImageAltApplyButton productId={product.product.id} creditCost={creditCost} />
+        </div>
+      ) : null}
     </article>
   );
 }
 
-function OptimizationTaskRow({ task }: { task: GrowthOptimizationTask }) {
+function WriteBackCollectionCandidateCard({
+  collection,
+  creditCost,
+  copy
+}: {
+  collection: GrowthCollectionScore;
+  creditCost: number;
+  copy: GrowthPageCopy;
+}) {
+  const primaryIssue = collection.issues[0];
+
+  return (
+    <article className="border border-line bg-canvas p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h3 className="text-sm font-semibold leading-5">{collection.collection.title}</h3>
+          <p className="mt-1 text-xs leading-5 text-muted">
+            {primaryIssue?.label ?? copy.optimizationWriter.fallbackIssue}
+          </p>
+        </div>
+        <span className={`rounded border px-2 py-1 text-xs font-semibold ${scoreTone(collection.overallScore)}`}>
+          {collection.overallScore}
+        </span>
+      </div>
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {copy.optimizationWriter.collectionFields.map((field) => (
+          <span key={field} className="rounded bg-white px-2 py-0.5 text-[11px] font-semibold text-muted">
+            {field}
+          </span>
+        ))}
+      </div>
+      <div className="mt-3">
+        <GrowthApplyButton
+          productId={collection.collection.id}
+          targetType="collection"
+          creditCost={creditCost}
+        />
+      </div>
+    </article>
+  );
+}
+
+function OptimizationTaskRow({ task, copy }: { task: GrowthOptimizationTask; copy: GrowthPageCopy }) {
   const writeBack = task.canWriteBack && task.writeBackScope.length;
   const categoryIcon = {
     content: FilePenLine,
@@ -868,7 +860,7 @@ function OptimizationTaskRow({ task }: { task: GrowthOptimizationTask }) {
               {task.priority}
             </span>
             <span className="rounded border border-line px-2 py-1 text-[11px] font-semibold uppercase text-muted">
-              {task.effort} effort
+              {task.effort} {copy.common.effort}
             </span>
           </div>
           {task.productTitle ? (
@@ -881,23 +873,23 @@ function OptimizationTaskRow({ task }: { task: GrowthOptimizationTask }) {
       </div>
       <div className="space-y-3">
         <div className="border border-line bg-canvas p-3">
-          <p className="text-[11px] font-semibold uppercase text-muted">Priority score</p>
+          <p className="text-[11px] font-semibold uppercase text-muted">{copy.optimizationQueue.priorityScore}</p>
           <p className="mt-1 text-2xl font-semibold">{task.priorityScore}</p>
         </div>
         {writeBack ? (
           <div className="border border-emerald-200 bg-emerald-50 p-3 text-emerald-900">
-            <p className="text-[11px] font-semibold uppercase">Confirm-to-apply scope</p>
+            <p className="text-[11px] font-semibold uppercase">{copy.optimizationQueue.confirmScope}</p>
             <p className="mt-1 text-sm font-semibold">{task.writeBackScope.join(", ")}</p>
           </div>
         ) : (
           <div className="border border-line bg-canvas p-3 text-muted">
-            <p className="text-[11px] font-semibold uppercase">Manual or monitor-only</p>
-            <p className="mt-1 text-sm">Review before changing Shopify theme, schema, or crawl settings.</p>
+            <p className="text-[11px] font-semibold uppercase">{copy.optimizationQueue.manualOnly}</p>
+            <p className="mt-1 text-sm">{copy.optimizationQueue.manualBody}</p>
           </div>
         )}
         {task.targetUrl ? (
           <Link href={task.targetUrl} target="_blank" className="inline-flex text-xs font-semibold text-action">
-            Open target
+            {copy.optimizationQueue.openTarget}
           </Link>
         ) : null}
       </div>
@@ -905,7 +897,7 @@ function OptimizationTaskRow({ task }: { task: GrowthOptimizationTask }) {
   );
 }
 
-function StoreOpportunityBlock({ opportunity }: { opportunity: GrowthStoreOpportunity }) {
+function StoreOpportunityBlock({ opportunity, copy }: { opportunity: GrowthStoreOpportunity; copy: GrowthPageCopy }) {
   const statusClass =
     opportunity.status === "ready"
       ? "border-emerald-200 bg-emerald-50 text-emerald-800"
@@ -923,7 +915,7 @@ function StoreOpportunityBlock({ opportunity }: { opportunity: GrowthStoreOpport
       </div>
       <p className="mt-2 text-sm leading-6 text-muted">{opportunity.detail}</p>
       <div className="mt-3 border border-line bg-white p-3">
-        <p className="text-[11px] font-semibold uppercase text-muted">Commercial benchmark</p>
+        <p className="text-[11px] font-semibold uppercase text-muted">{copy.storePlaybooks.benchmark}</p>
         <p className="mt-1 text-xs leading-5 text-muted">{opportunity.benchmark}</p>
       </div>
       <p className="mt-3 text-sm font-semibold">{opportunity.recommendedAction}</p>
@@ -932,7 +924,8 @@ function StoreOpportunityBlock({ opportunity }: { opportunity: GrowthStoreOpport
 }
 
 function SkillCoverageBlock({
-  item
+  item,
+  copy
 }: {
   item: {
     title: string;
@@ -941,6 +934,7 @@ function SkillCoverageBlock({
     detail: string;
     skills: readonly string[];
   };
+  copy: GrowthPageCopy;
 }) {
   const statusClass =
     item.status === "ready"
@@ -952,7 +946,7 @@ function SkillCoverageBlock({
   return (
     <article className="grid gap-4 border border-line bg-canvas p-4 sm:grid-cols-[120px_minmax(0,1fr)]">
       <div className={`border p-3 text-center ${scoreTone(item.score)}`}>
-        <p className="text-[10px] font-semibold uppercase">Score</p>
+        <p className="text-[10px] font-semibold uppercase">{copy.skillCoverage.score}</p>
         <p className="mt-1 text-3xl font-semibold">{item.score || "--"}</p>
       </div>
       <div>
@@ -1026,10 +1020,12 @@ function findProductForOpportunity(page: string | undefined, products: GrowthPro
 
 function ProductAuditRow({
   product,
-  applyCreditCost
+  applyCreditCost,
+  copy
 }: {
   product: GrowthProductScore;
   applyCreditCost: number;
+  copy: GrowthPageCopy;
 }) {
   const title = product.product.title;
   const primaryIssue = product.issues[0];
@@ -1042,13 +1038,13 @@ function ProductAuditRow({
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-semibold">{title}</h3>
           <span className="rounded border border-line px-2 py-0.5 text-xs text-muted">
-            {product.product.source === "shopify" ? "Shopify" : "Workspace"}
+            {product.product.source === "shopify" ? copy.productScores.sourceShopify : copy.productScores.sourceWorkspace}
           </span>
         </div>
         <p className="mt-2 text-sm leading-6 text-muted">
           {primaryIssue
             ? primaryIssue.detail
-            : product.strengths[0] || "This product has enough SEO/GEO context for the first MVP audit."}
+            : product.strengths[0] || copy.productScores.fallbackStrong}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {product.issues.slice(0, 3).map((issue) => (
@@ -1059,7 +1055,7 @@ function ProductAuditRow({
         </div>
         {product.issues.length ? (
           <div className="mt-4 border border-line bg-canvas p-3">
-            <p className="text-xs font-semibold uppercase text-muted">Write-back draft</p>
+            <p className="text-xs font-semibold uppercase text-muted">{copy.productScores.writeBackDraft}</p>
             <p className="mt-2 text-sm font-semibold">{product.suggestedFix.seoTitle}</p>
             <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted">{product.suggestedFix.seoDescription}</p>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -1074,7 +1070,7 @@ function ProductAuditRow({
         <div className="mt-4 border border-line bg-white p-3">
           <div className="flex items-center gap-2 text-xs font-semibold uppercase text-muted">
             <Eye className="h-3.5 w-3.5" aria-hidden />
-            <span>SERP preview</span>
+            <span>{copy.productScores.serpPreview}</span>
             <span className="rounded bg-canvas px-2 py-0.5">{product.intentStage}</span>
           </div>
           <p className="mt-2 text-sm font-semibold text-[#1a0dab]">{product.snippetPreview.title}</p>
@@ -1087,7 +1083,7 @@ function ProductAuditRow({
         <div className="mt-4 grid gap-3 md:grid-cols-2">
           <div className="border border-line bg-canvas p-3">
             <div className="flex items-center justify-between gap-3">
-              <p className="text-xs font-semibold uppercase text-muted">AI answer readiness</p>
+              <p className="text-xs font-semibold uppercase text-muted">{copy.productScores.aiAnswerReadiness}</p>
               <span className={`rounded border px-2 py-0.5 text-[11px] font-semibold ${scoreTone(product.aiAnswerReadiness.score)}`}>
                 {product.aiAnswerReadiness.score}/100
               </span>
@@ -1109,13 +1105,13 @@ function ProductAuditRow({
             </ul>
           </div>
           <div className="border border-line bg-canvas p-3">
-            <p className="text-xs font-semibold uppercase text-muted">Schema writer</p>
+            <p className="text-xs font-semibold uppercase text-muted">{copy.productScores.schemaWriter}</p>
             <ul className="mt-3 space-y-2 text-xs leading-5 text-muted">
               {product.schemaSuggestions.slice(0, 4).map((schema) => (
                 <li key={schema.type} className="flex items-start justify-between gap-3 border-b border-line/70 pb-2 last:border-b-0 last:pb-0">
                   <span>
                     <span className="font-semibold text-ink">{schema.type}</span>
-                    <span className="block">{schema.missing.length ? `Missing: ${schema.missing.join(", ")}` : schema.note}</span>
+                    <span className="block">{schema.missing.length ? `${copy.productScores.missing} ${schema.missing.join(", ")}` : schema.note}</span>
                   </span>
                   <span className={`rounded border px-2 py-0.5 text-[10px] font-semibold uppercase ${
                     schema.status === "ready"
@@ -1146,13 +1142,16 @@ function ProductAuditRow({
         {canApplyToShopify && product.issues.length ? (
           <GrowthApplyButton productId={product.product.id} creditCost={applyCreditCost} />
         ) : null}
+        {canApplyToShopify && (product.product.imageCount > product.product.imagesWithAlt || product.imageSeoScore < 90) ? (
+          <GrowthImageAltApplyButton productId={product.product.id} creditCost={applyCreditCost} />
+        ) : null}
         {href ? (
           <Link
             href={href}
             target={product.product.source === "shopify" ? "_blank" : undefined}
             className="studio-focus inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold hover:bg-canvas"
           >
-            {product.product.source === "shopify" ? "Open in Shopify" : "Open draft"}
+            {product.product.source === "shopify" ? copy.productScores.openInShopify : copy.productScores.openDraft}
             <ArrowUpRight className="h-4 w-4" aria-hidden />
           </Link>
         ) : null}
@@ -1161,20 +1160,29 @@ function ProductAuditRow({
   );
 }
 
-function CollectionAuditRow({ collection }: { collection: GrowthCollectionScore }) {
+function CollectionAuditRow({
+  collection,
+  applyCreditCost,
+  copy
+}: {
+  collection: GrowthCollectionScore;
+  applyCreditCost: number;
+  copy: GrowthPageCopy;
+}) {
   const primaryIssue = collection.issues[0];
+  const canApplyToShopify = collection.collection.source === "shopify" && collection.collection.id.startsWith("gid://shopify/Collection/");
 
   return (
     <article className="grid gap-4 bg-white p-4 lg:grid-cols-[minmax(0,1fr)_220px]">
       <div>
         <div className="flex flex-wrap items-center gap-2">
           <h3 className="font-semibold">{collection.collection.title}</h3>
-          <span className="rounded border border-line px-2 py-0.5 text-xs text-muted">Collection</span>
+          <span className="rounded border border-line px-2 py-0.5 text-xs text-muted">{copy.collectionSeo.badge}</span>
         </div>
         <p className="mt-2 text-sm leading-6 text-muted">
           {primaryIssue
             ? primaryIssue.detail
-            : "This collection has enough category-level SEO context for the current audit."}
+            : copy.productScores.fallbackStrong}
         </p>
         <div className="mt-3 flex flex-wrap gap-2">
           {collection.issues.slice(0, 3).map((issue) => (
@@ -1184,7 +1192,7 @@ function CollectionAuditRow({ collection }: { collection: GrowthCollectionScore 
           ))}
         </div>
         <div className="mt-4 border border-line bg-canvas p-3">
-          <p className="text-xs font-semibold uppercase text-muted">Collection SERP preview</p>
+          <p className="text-xs font-semibold uppercase text-muted">{copy.collectionSeo.serpPreview}</p>
           <p className="mt-2 text-sm font-semibold text-[#1a0dab]">{collection.snippetPreview.title}</p>
           <p className="mt-1 text-xs text-[#006621]">{collection.snippetPreview.urlPath}</p>
           <p className="mt-1 line-clamp-2 text-sm leading-6 text-muted">{collection.snippetPreview.description}</p>
@@ -1203,13 +1211,20 @@ function CollectionAuditRow({ collection }: { collection: GrowthCollectionScore 
           <MiniScore label="Image" score={collection.imageSeoScore} />
           <MiniScore label="Tech" score={collection.technicalSeoScore} />
         </div>
+        {canApplyToShopify && collection.issues.length ? (
+          <GrowthApplyButton
+            productId={collection.collection.id}
+            targetType="collection"
+            creditCost={applyCreditCost}
+          />
+        ) : null}
         {collection.collection.onlineStoreUrl ? (
           <Link
             href={collection.collection.onlineStoreUrl}
             target="_blank"
             className="studio-focus inline-flex h-10 w-full items-center justify-center gap-2 rounded border border-line bg-white px-3 text-sm font-semibold hover:bg-canvas"
           >
-            Open collection
+            {copy.collectionSeo.openCollection}
             <ArrowUpRight className="h-4 w-4" aria-hidden />
           </Link>
         ) : null}
@@ -1218,7 +1233,15 @@ function CollectionAuditRow({ collection }: { collection: GrowthCollectionScore 
   );
 }
 
-function InternalLinkSuggestionBlock({ suggestion }: { suggestion: GrowthInternalLinkSuggestion }) {
+function InternalLinkSuggestionBlock({
+  suggestion,
+  copy,
+  creditCost
+}: {
+  suggestion: GrowthInternalLinkSuggestion;
+  copy: GrowthPageCopy;
+  creditCost: number;
+}) {
   return (
     <article className="border border-line bg-canvas p-3">
       <div className="flex items-start justify-between gap-3">
@@ -1229,20 +1252,21 @@ function InternalLinkSuggestionBlock({ suggestion }: { suggestion: GrowthInterna
       </div>
       <p className="mt-2 text-xs font-semibold uppercase text-muted">{suggestion.linkType.replaceAll("_", " ")}</p>
       <p className="mt-2 text-sm leading-6 text-muted">
-        Link <span className="font-semibold text-ink">{suggestion.sourceTitle}</span> to{" "}
+        {copy.internalLinks.link} <span className="font-semibold text-ink">{suggestion.sourceTitle}</span> {copy.internalLinks.to}{" "}
         <span className="font-semibold text-ink">{suggestion.targetTitle}</span>.
       </p>
       <p className="mt-2 text-sm leading-6 text-muted">{suggestion.reason}</p>
       {suggestion.targetUrl ? (
         <Link href={suggestion.targetUrl} target="_blank" className="mt-3 inline-flex text-xs font-semibold text-action">
-          Open target
+          {copy.internalLinks.openTarget}
         </Link>
       ) : null}
+      <GrowthInternalLinkApplyButton suggestion={suggestion} creditCost={creditCost} />
     </article>
   );
 }
 
-function MonitorRunCard({ run }: { run: GrowthMonitorRun }) {
+function MonitorRunCard({ run, copy }: { run: GrowthMonitorRun; copy: GrowthPageCopy }) {
   const output = run.output;
   const searchConsole = output?.searchConsole;
   const technicalSeo = output?.technicalSeo;
@@ -1294,7 +1318,7 @@ function MonitorRunCard({ run }: { run: GrowthMonitorRun }) {
         </div>
         <div className="flex justify-between gap-4">
           <dt className="text-muted">AI visibility</dt>
-          <dd className="font-semibold">{aiVisibility?.configured ? `${aiVisibility.score ?? 0}%` : "setup"}</dd>
+          <dd className="font-semibold">{aiVisibility?.configured ? `${aiVisibility.score ?? 0}%` : copy.common.statusSetup}</dd>
         </div>
       </dl>
       {output?.recommendations?.length ? (
@@ -1324,9 +1348,11 @@ function priorityTone(priority?: string) {
 }
 
 function ActionPlanCard({
-  item
+  item,
+  copy
 }: {
   item: NonNullable<NonNullable<GrowthMonitorRun["output"]>["actionPlan"]>[number];
+  copy: GrowthPageCopy;
 }) {
   return (
     <article className="border border-line bg-canvas p-4">
@@ -1339,13 +1365,13 @@ function ActionPlanCard({
       <h3 className="mt-3 text-sm font-semibold">{item.title}</h3>
       <p className="mt-2 text-sm leading-6 text-muted">{item.detail}</p>
       <div className="mt-3 border border-line bg-white p-3">
-        <p className="text-[11px] font-semibold uppercase text-muted">Recommended action</p>
+        <p className="text-[11px] font-semibold uppercase text-muted">{copy.commercialSeo.recommendedAction}</p>
         <p className="mt-1 text-sm font-semibold">{item.actionType.replaceAll("_", " ")}</p>
         <p className="mt-1 text-xs leading-5 text-muted">{item.estimatedImpact}</p>
       </div>
       {item.rewrite ? (
         <div className="mt-3 border border-line bg-white p-3">
-          <p className="text-[11px] font-semibold uppercase text-muted">Search Console rewrite draft</p>
+          <p className="text-[11px] font-semibold uppercase text-muted">{copy.commercialSeo.rewriteDraft}</p>
           <p className="mt-2 text-sm font-semibold">{item.rewrite.seoTitle}</p>
           <p className="mt-1 text-xs leading-5 text-muted">{item.rewrite.seoDescription}</p>
           <p className="mt-2 text-xs font-semibold text-action">{item.rewrite.faqQuestion}</p>
@@ -1367,7 +1393,7 @@ function ActionPlanCard({
           target="_blank"
           className="mt-3 inline-flex text-xs font-semibold text-action"
         >
-          Open target page
+          {copy.commercialSeo.openTargetPage}
         </Link>
       ) : null}
     </article>
@@ -1377,11 +1403,13 @@ function ActionPlanCard({
 function KeywordOpportunityBlock({
   opportunity,
   product,
-  creditCost
+  creditCost,
+  copy
 }: {
   opportunity: NonNullable<NonNullable<GrowthMonitorRun["output"]>["keywordOpportunities"]>[number];
   product?: GrowthProductScore;
   creditCost: number;
+  copy: GrowthPageCopy;
 }) {
   const canWriteBack = Boolean(product?.product.source === "shopify" && product.product.id.startsWith("gid://shopify/Product/"));
   const rewrite = getOpportunityRewrite(opportunity);
@@ -1401,7 +1429,7 @@ function KeywordOpportunityBlock({
       </p>
       <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden border border-white/10 bg-white/10 text-center text-xs">
         <div className="bg-[#16251f] p-2">
-          <p className="text-white/45">Impr.</p>
+          <p className="text-white/45">{copy.keywordOpportunities.impressions}</p>
           <p className="mt-1 font-semibold">{opportunity.impressions ?? "--"}</p>
         </div>
         <div className="bg-[#16251f] p-2">
@@ -1415,13 +1443,13 @@ function KeywordOpportunityBlock({
       </div>
       {rewrite ? (
         <div className="mt-3 border border-white/10 bg-black/10 p-3">
-          <p className="text-[10px] font-semibold uppercase text-white/45">Rewrite draft</p>
+          <p className="text-[10px] font-semibold uppercase text-white/45">{copy.keywordOpportunities.rewriteDraft}</p>
           <p className="mt-1 text-xs font-semibold leading-5 text-white/85">{rewrite.seoTitle}</p>
           <p className="mt-1 text-xs leading-5 text-white/60">{rewrite.seoDescription}</p>
         </div>
       ) : (
         <p className="mt-3 border border-white/10 bg-white/[0.04] p-2 text-xs leading-5 text-white/55">
-          This saved monitoring result was created before rewrite drafts were added. Run monitoring again to generate a Shopify write-back draft.
+          {copy.keywordOpportunities.legacyRun}
         </p>
       )}
       {canWriteBack && product && rewrite ? (
@@ -1432,7 +1460,7 @@ function KeywordOpportunityBlock({
         />
       ) : (
         <p className="mt-3 border border-white/10 bg-white/[0.04] p-2 text-xs leading-5 text-white/55">
-          Write-back is available when this query is matched to a live Shopify product page.
+          {copy.keywordOpportunities.writeBackUnavailable}
         </p>
       )}
     </div>
@@ -1502,9 +1530,11 @@ function clampOpportunitySnippet(value: string, maxLength: number) {
 }
 
 function CompetitorGapBlock({
-  gap
+  gap,
+  copy
 }: {
   gap: NonNullable<NonNullable<GrowthMonitorRun["output"]>["competitorKeywordGaps"]>[number];
+  copy: GrowthPageCopy;
 }) {
   return (
     <div className="border border-white/10 bg-white/[0.04] p-3">
@@ -1516,7 +1546,7 @@ function CompetitorGapBlock({
       </div>
       <p className="mt-2 text-xs leading-5 text-white/60">{gap.reason}</p>
       <p className="mt-2 text-xs leading-5 text-white/60">
-        Compare: {gap.competitorDomains.slice(0, 3).join(", ")}
+        {copy.keywordOpportunities.compare} {gap.competitorDomains.slice(0, 3).join(", ")}
       </p>
       <p className="mt-3 text-xs font-semibold leading-5 text-white/80">{gap.recommendedAction}</p>
     </div>
@@ -1524,7 +1554,8 @@ function CompetitorGapBlock({
 }
 
 function DataSourceCard({
-  source
+  source,
+  copy
 }: {
   source: {
     label: string;
@@ -1533,6 +1564,7 @@ function DataSourceCard({
     detail: string;
     action: string;
   };
+  copy: GrowthPageCopy;
 }) {
   const ready = source.status === "ready";
   return (
@@ -1542,7 +1574,7 @@ function DataSourceCard({
         <span className={`rounded border px-2 py-1 text-[11px] font-semibold uppercase ${
           ready ? "border-emerald-200 bg-emerald-50 text-emerald-800" : "border-amber-200 bg-amber-50 text-amber-900"
         }`}>
-          {ready ? "Ready" : "Setup"}
+          {ready ? copy.dataSources.ready : copy.dataSources.setup}
         </span>
       </div>
       <p className="mt-2 text-xs font-semibold uppercase text-muted">{source.cost}</p>

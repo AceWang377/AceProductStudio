@@ -2,14 +2,17 @@
 
 import { useState } from "react";
 import { Activity, Loader2 } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 export function GrowthMonitorButton({ creditCost }: { creditCost?: number }) {
+  const { t } = useLanguage();
+  const copy = t.growthPage.monitorButton;
   const [status, setStatus] = useState<"idle" | "running" | "done" | "failed">("idle");
   const [message, setMessage] = useState("");
 
   async function runMonitor() {
     setStatus("running");
-    setMessage("Running live technical SEO, Search Console, and AI visibility checks...");
+    setMessage(copy.runningMessage);
     const response = await fetch("/api/growth/monitor", { method: "POST" });
     const data = (await response.json().catch(() => ({}))) as {
       error?: string;
@@ -18,17 +21,17 @@ export function GrowthMonitorButton({ creditCost }: { creditCost?: number }) {
 
     if (!response.ok) {
       setStatus("failed");
-      setMessage(typeof data.error === "string" ? data.error : "Growth monitoring failed.");
+      setMessage(typeof data.error === "string" ? data.error : copy.failed);
       return;
     }
 
     setStatus("done");
     const creditNote = data.credits?.isUnlimited
-      ? "Admin account was not charged."
+      ? copy.adminNotCharged
       : typeof data.credits?.spent === "number"
-        ? `Spent ${data.credits.spent} credit. Balance: ${data.credits.balance}.`
+        ? `${copy.spent} ${data.credits.spent} ${t.growthPage.nextBestAction.credit}. ${copy.balance}: ${data.credits.balance}.`
         : "";
-    setMessage(`Growth monitor completed. ${creditNote}`.trim());
+    setMessage(`${copy.completed} ${creditNote}`.trim());
     window.setTimeout(() => window.location.reload(), 800);
   }
 
@@ -45,7 +48,7 @@ export function GrowthMonitorButton({ creditCost }: { creditCost?: number }) {
         ) : (
           <Activity className="h-4 w-4" aria-hidden />
         )}
-        Run live monitor{typeof creditCost === "number" ? ` (${creditCost})` : ""}
+        {copy.run}{typeof creditCost === "number" ? ` (${creditCost})` : ""}
       </button>
       {message ? (
         <p className={status === "failed" ? "text-xs text-red-700" : "text-xs text-muted"}>{message}</p>

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { CheckCircle2, CircleAlert, Loader2, RefreshCcw, ShieldCheck } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 type RewriteDraft = {
   seoTitle: string;
@@ -45,6 +46,9 @@ export function SearchConsoleRewriteApplyButton({
   rewrite: RewriteDraft;
   creditCost: number;
 }) {
+  const { t } = useLanguage();
+  const copy = t.growthPage.writeBackPreview;
+  const rewriteCopy = copy.rewrite;
   const [status, setStatus] = useState<"idle" | "previewing" | "preview" | "applying" | "applied" | "error">("idle");
   const [preview, setPreview] = useState<PreviewPayload | null>(null);
   const [draftRewrite, setDraftRewrite] = useState<RewriteDraft>(rewrite);
@@ -61,7 +65,7 @@ export function SearchConsoleRewriteApplyButton({
     const payload = (await response.json().catch(() => ({}))) as PreviewPayload;
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error || "Could not preview the Shopify write-back.");
+      setMessage(payload.error || rewriteCopy.errorPreview);
       return;
     }
     setPreview(payload);
@@ -88,16 +92,16 @@ export function SearchConsoleRewriteApplyButton({
     };
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error || "Could not write the Search Console rewrite to Shopify.");
+      setMessage(payload.error || rewriteCopy.errorApply);
       return;
     }
     setStatus("applied");
     const creditNote = payload.credits?.isUnlimited
-      ? "Admin account was not charged."
+      ? copy.adminNotCharged
       : typeof payload.credits?.spent === "number"
-        ? `Spent ${payload.credits.spent} credits. Balance: ${payload.credits.balance}.`
+        ? `${copy.spent} ${payload.credits.spent} ${t.growthPage.nextBestAction.credits}. ${copy.balance}: ${payload.credits.balance}.`
         : "";
-    setMessage(`Rewrite written to Shopify. ${creditNote}`.trim());
+    setMessage(`${rewriteCopy.written} ${creditNote}`.trim());
   }
 
   if ((status === "preview" || status === "applying") && preview?.plan) {
@@ -105,16 +109,16 @@ export function SearchConsoleRewriteApplyButton({
       <div className="mt-3 space-y-3 border border-white/10 bg-black/15 p-3">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold uppercase text-white/45">Before / after diff</p>
+            <p className="text-[10px] font-semibold uppercase text-white/45">{rewriteCopy.diffTitle}</p>
             <p className="mt-1 text-xs leading-5 text-white/70">
               {preview.plan.hasChanges
-                ? `${preview.plan.summary.join(", ")} will be updated.`
-                : "No changes detected for this rewrite."}
-              {" "}You can edit the After fields before confirming.
+                ? `${preview.plan.summary.join(", ")} ${rewriteCopy.willUpdate}`
+                : rewriteCopy.noChanges}
+              {" "}{rewriteCopy.editHelp}
             </p>
           </div>
           <span className="rounded bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase text-white/70">
-            {preview.credits?.isUnlimited ? "Unlimited" : `${preview.credits?.required ?? creditCost} credits`}
+            {preview.credits?.isUnlimited ? rewriteCopy.unlimited : `${preview.credits?.required ?? creditCost} ${rewriteCopy.credits}`}
           </span>
         </div>
         <div className="space-y-2">
@@ -124,6 +128,10 @@ export function SearchConsoleRewriteApplyButton({
               entry={entry}
               draft={draftRewrite}
               onDraftChange={setDraftRewrite}
+              beforeLabel={copy.before}
+              afterLabel={copy.after}
+              changeLabel={t.growthPage.common.change}
+              sameLabel={t.growthPage.common.same}
             />
           ))}
         </div>
@@ -135,7 +143,7 @@ export function SearchConsoleRewriteApplyButton({
             className="studio-focus inline-flex h-10 items-center justify-center gap-2 rounded bg-[#98d7c3] px-3 text-xs font-semibold text-[#11211b] disabled:opacity-50"
           >
             {status === "applying" ? <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden /> : <ShieldCheck className="h-3.5 w-3.5" aria-hidden />}
-            Confirm write-back
+            {rewriteCopy.confirm}
           </button>
           <button
             type="button"
@@ -146,7 +154,7 @@ export function SearchConsoleRewriteApplyButton({
             }}
             className="studio-focus inline-flex h-10 items-center justify-center rounded border border-white/10 bg-white/[0.04] px-3 text-xs font-semibold text-white/75"
           >
-            Cancel
+            {copy.cancel}
           </button>
         </div>
       </div>
@@ -164,17 +172,17 @@ export function SearchConsoleRewriteApplyButton({
         {status === "previewing" ? (
           <>
             <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden />
-            Previewing...
+            {rewriteCopy.previewing}
           </>
         ) : status === "applied" ? (
           <>
             <CheckCircle2 className="h-3.5 w-3.5" aria-hidden />
-            Applied to Shopify
+            {rewriteCopy.appliedToShopify}
           </>
         ) : (
           <>
             <RefreshCcw className="h-3.5 w-3.5" aria-hidden />
-            Preview write-back ({creditCost})
+            {rewriteCopy.preview} ({creditCost})
           </>
         )}
       </button>
@@ -191,11 +199,19 @@ export function SearchConsoleRewriteApplyButton({
 function RewriteDiffBlock({
   entry,
   draft,
-  onDraftChange
+  onDraftChange,
+  beforeLabel,
+  afterLabel,
+  changeLabel,
+  sameLabel
 }: {
   entry: DiffEntry;
   draft: RewriteDraft;
   onDraftChange: (draft: RewriteDraft) => void;
+  beforeLabel: string;
+  afterLabel: string;
+  changeLabel: string;
+  sameLabel: string;
 }) {
   return (
     <div className="border border-white/10 bg-[#16251f] p-2">
@@ -204,16 +220,16 @@ function RewriteDiffBlock({
         <span className={`rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
           entry.changed ? "bg-[#98d7c3]/20 text-[#98d7c3]" : "bg-white/10 text-white/50"
         }`}>
-          {entry.changed ? "Change" : "Same"}
+          {entry.changed ? changeLabel : sameLabel}
         </span>
       </div>
       <div className="mt-2 grid gap-2 text-xs leading-5 md:grid-cols-2">
         <p className="text-white/45">
-          <span className="block text-[10px] font-semibold uppercase">Before</span>
+          <span className="block text-[10px] font-semibold uppercase">{beforeLabel}</span>
           {entry.before}
         </p>
         <div className="text-white/80">
-          <span className="block text-[10px] font-semibold uppercase text-[#98d7c3]">After</span>
+          <span className="block text-[10px] font-semibold uppercase text-[#98d7c3]">{afterLabel}</span>
           <EditableRewriteAfter entry={entry} draft={draft} onDraftChange={onDraftChange} />
         </div>
       </div>

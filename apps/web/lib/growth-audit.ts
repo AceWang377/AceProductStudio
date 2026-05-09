@@ -193,8 +193,12 @@ export type GrowthOptimizationTask = {
 
 export type GrowthInternalLinkSuggestion = {
   key: string;
+  sourceId?: string;
+  sourceType?: "product" | "collection" | "blog";
   sourceTitle: string;
   sourceUrl?: string;
+  targetId?: string;
+  targetType?: "product" | "collection";
   targetTitle: string;
   targetUrl?: string;
   linkType: "product_to_collection" | "collection_to_product" | "product_to_product" | "blog_to_product";
@@ -500,6 +504,24 @@ function writeBackScopeForIssue(issueItem: GrowthAuditIssue) {
 
 function canWriteBackIssue(issueItem: GrowthAuditIssue) {
   return writeBackScopeForIssue(issueItem).length > 0;
+}
+
+function writeBackScopeForCollectionIssue(issueItem: GrowthAuditIssue) {
+  if (issueItem.key === "collection-seo-title") return ["Collection SEO title"];
+  if (issueItem.key === "collection-meta-description") return ["Collection meta description"];
+  if (
+    issueItem.key === "collection-thin-description" ||
+    issueItem.key === "collection-faq" ||
+    issueItem.key === "collection-selection-context"
+  ) {
+    return ["Collection description HTML", "Buying guide"];
+  }
+  if (issueItem.category === "schema") return ["Collection description HTML", "FAQ readiness"];
+  return [];
+}
+
+function canWriteBackCollectionIssue(issueItem: GrowthAuditIssue) {
+  return writeBackScopeForCollectionIssue(issueItem).length > 0;
 }
 
 function inferIntentStage(product: GrowthAuditProduct): GrowthIntentStage {
@@ -1382,6 +1404,10 @@ export function buildGrowthSuggestedFix(product: GrowthAuditProduct) {
   return buildSuggestedFix(product);
 }
 
+export function buildGrowthCollectionSuggestedFix(collection: GrowthAuditCollection) {
+  return buildCollectionSuggestedFix(collection);
+}
+
 function mapWorkspaceProduct(product: Product): GrowthAuditProduct {
   const generatedImages = product.images.filter((image) => image.type !== "ORIGINAL");
   const descriptionText = [
@@ -1701,22 +1727,25 @@ function scoreCollectionIssuePriority(issueItem: GrowthAuditIssue, collection: G
 
 function buildCollectionOptimizationTasks(collections: GrowthCollectionScore[]): GrowthOptimizationTask[] {
   return collections.flatMap((collection) =>
-    collection.issues.map((issueItem) => ({
-      key: `${collection.collection.id}-${issueItem.key}`,
-      productId: collection.collection.id,
-      productTitle: `${collection.collection.title} collection`,
-      category: issueItem.category,
-      priority: issueItem.severity,
-      priorityScore: scoreCollectionIssuePriority(issueItem, collection),
-      effort: effortForIssue(issueItem),
-      title: issueItem.label,
-      whyItMatters: issueItem.detail,
-      recommendedAction: issueItem.suggestedFix,
-      expectedImpact: expectedImpactForIssue(issueItem),
-      canWriteBack: false,
-      writeBackScope: [],
-      targetUrl: collection.collection.onlineStoreUrl
-    } satisfies GrowthOptimizationTask))
+    collection.issues.map((issueItem) => {
+      const writeBackScope = writeBackScopeForCollectionIssue(issueItem);
+      return {
+        key: `${collection.collection.id}-${issueItem.key}`,
+        productId: collection.collection.id,
+        productTitle: `${collection.collection.title} collection`,
+        category: issueItem.category,
+        priority: issueItem.severity,
+        priorityScore: scoreCollectionIssuePriority(issueItem, collection),
+        effort: effortForIssue(issueItem),
+        title: issueItem.label,
+        whyItMatters: issueItem.detail,
+        recommendedAction: issueItem.suggestedFix,
+        expectedImpact: expectedImpactForIssue(issueItem),
+        canWriteBack: collection.collection.source === "shopify" && canWriteBackCollectionIssue(issueItem),
+        writeBackScope,
+        targetUrl: collection.collection.onlineStoreUrl
+      } satisfies GrowthOptimizationTask;
+    })
   );
 }
 
@@ -1775,8 +1804,12 @@ function buildInternalLinkSuggestions(
     if (bestCollection) {
       suggestions.push({
         key: `product-collection-${productEntry.item.product.id}-${bestCollection.collection.collection.id}`,
+        sourceId: productEntry.item.product.id,
+        sourceType: "product",
         sourceTitle: productEntry.item.product.title,
         sourceUrl: productEntry.item.product.onlineStoreUrl,
+        targetId: bestCollection.collection.collection.id,
+        targetType: "collection",
         targetTitle: bestCollection.collection.collection.title,
         targetUrl: bestCollection.collection.collection.onlineStoreUrl,
         linkType: "product_to_collection",
@@ -1800,8 +1833,12 @@ function buildInternalLinkSuggestions(
     for (const match of bestProducts) {
       suggestions.push({
         key: `collection-product-${collectionEntry.item.collection.id}-${match.product.product.id}`,
+        sourceId: collectionEntry.item.collection.id,
+        sourceType: "collection",
         sourceTitle: collectionEntry.item.collection.title,
         sourceUrl: collectionEntry.item.collection.onlineStoreUrl,
+        targetId: match.product.product.id,
+        targetType: "product",
         targetTitle: match.product.product.title,
         targetUrl: match.product.product.onlineStoreUrl,
         linkType: "collection_to_product",
@@ -1821,8 +1858,12 @@ function buildInternalLinkSuggestions(
       const stronger = weaker === left.item ? right.item : left.item;
       suggestions.push({
         key: `product-product-${weaker.product.id}-${stronger.product.id}`,
+        sourceId: weaker.product.id,
+        sourceType: "product",
         sourceTitle: weaker.product.title,
         sourceUrl: weaker.product.onlineStoreUrl,
+        targetId: stronger.product.id,
+        targetType: "product",
         targetTitle: stronger.product.title,
         targetUrl: stronger.product.onlineStoreUrl,
         linkType: "product_to_product",
@@ -1837,7 +1878,10 @@ function buildInternalLinkSuggestions(
   if (lowestProduct) {
     suggestions.push({
       key: `blog-to-product-${lowestProduct.product.id}`,
+      sourceType: "blog",
       sourceTitle: "Buying guide or blog post",
+      targetId: lowestProduct.product.id,
+      targetType: "product",
       targetTitle: lowestProduct.product.title,
       targetUrl: lowestProduct.product.onlineStoreUrl,
       linkType: "blog_to_product",

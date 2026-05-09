@@ -397,11 +397,457 @@ export const dictionaries = defineDictionaries({
       }
     },
     growthPage: {
-      optimizationSignals: {
-        title: "Optimization signals",
-        search: "Search: title, meta description, tags, and content depth.",
-        geo: "GEO: buyer Q&A, use cases, facts, comparisons, and trust context.",
-        media: "Media: image count, alt text readiness, and product image context."
+      hero: {
+        eyebrow: "Growth Studio",
+        liveOnly: "Live Online Store pages only",
+        connectAudit: "Connect Shopify for live audit",
+        title: "Score Shopify products and collections for SEO and GEO before you approve updates.",
+        body:
+          "Read live pages from the connected Shopify store, find weak titles, thin descriptions, missing image context, internal-link gaps, and AI-answer gaps, then write selected fixes only after user confirmation.",
+        openProductWorkflow: "Open product workflow",
+        connectShopify: "Connect Shopify",
+        guide: "SEO/GEO guide",
+        metricLabels: {
+          seoScore: "SEO score",
+          geoScore: "GEO score",
+          schema: "Schema",
+          technical: "Technical",
+          auditSource: "Audit source",
+          excludedNonLive: "Excluded non-live",
+          liveShopifyProducts: "Live Shopify products",
+          aceStudioWorkspace: "AceStudio workspace"
+        }
+      },
+      error: {
+        liveAuditTitle: "Live Shopify audit could not run",
+        fallbackSuffix:
+          "The page is showing AceStudio workspace products instead, so users still get a useful preview."
+      },
+      commandCenter: {
+        eyebrow: "Structured growth command center",
+        title: "One operating system for Shopify SEO and GEO",
+        body:
+          "Mature SEO products do not stop at a score. AceStudio separates the work into audit, prioritization, approved write-back, and measurement so merchants always know what to do next.",
+        liveOnlyNote:
+          "Only Shopify products with ACTIVE status, a published date, and a public Online Store URL are included. Draft, archived, hidden, and unlisted products are excluded because they cannot rank in search.",
+        highPriority: "High priority",
+        writeBackReady: "Write-back ready"
+      },
+      workflow: {
+        stages: [
+          {
+            title: "Audit",
+            detail:
+              "Read only live Online Store products and collections, then score content, media, schema, technical, and AI-answer readiness.",
+            metricLabel: "Live products"
+          },
+          {
+            title: "Prioritize",
+            detail:
+              "Turn weak scores into a ranked queue with severity, effort, expected impact, and update scope.",
+            metricLabel: "Tasks"
+          },
+          {
+            title: "Apply",
+            detail:
+              "Write back SEO title, meta description, tags, and answer-ready copy only after merchant confirmation.",
+            metricLabel: "Write-back"
+          },
+          {
+            title: "Monitor",
+            detail:
+              "Use Search Console, crawler, sitemap, redirect, page-speed, competitor-gap, and AI visibility checks to decide the next move.",
+            metricLabel: "Runs"
+          }
+        ]
+      },
+      nextBestAction: {
+        title: "Next best action",
+        body:
+          "The page should guide the merchant to one clear move instead of making them interpret every score.",
+        recommendedNow: "Recommended now",
+        monitoringCosts: "Monitoring costs",
+        credit: "credit",
+        credits: "credits",
+        confirmedWriteBackCosts: "Confirmed Shopify write-back costs",
+        trialUsersStartWith: "Trial users start with"
+      },
+      optimizationWriter: {
+        eyebrow: "Optimization writer",
+        title: "Do the SEO/GEO work, not just score it",
+        body:
+          "The commercial version behaves like an approved optimization assistant: generate better fields, show an editable before/after diff, preview credit cost, then write selected improvements back to Shopify.",
+        safetyNote:
+          "Product display titles are deliberately not overwritten yet. That field affects merchandising, brand naming, and ads. Add it later as a separate checkbox when the merchant explicitly wants AceStudio to rewrite public product names.",
+        readyTitle: "Ready for approved write-back",
+        readyBody:
+          "These live Shopify products and collections have the weakest scores and can be improved now with a reviewed Shopify update.",
+        noCandidates:
+          "No live Shopify products need write-back right now. Draft, archived, hidden, and unlisted products stay out of this queue.",
+        fallbackIssue: "SEO/GEO improvements available",
+        fields: ["SEO title", "Meta", "Tags", "Q&A", "Image alt", "Internal links"],
+        collectionFields: ["Collection SEO title", "Meta", "Buying guide"],
+        capabilities: [
+          {
+            title: "Search snippet fields",
+            detail:
+              "Improve SEO title and meta description without changing the merchant-facing product name by default."
+          },
+          {
+            title: "Keyword tags",
+            detail:
+              "Normalize product tags around category, intent, material, use case, and buyer search language."
+          },
+          {
+            title: "AI answer content",
+            detail:
+          "Append answer-ready buyer Q&A, product facts, and collection buying-guide context so the page is easier for search and AI systems to understand."
+          }
+        ]
+      },
+      skillCoverage: {
+        eyebrow: "SEO/GEO skill coverage",
+        title: "The core skill map this feature should own",
+        body:
+          "The strongest commercial version covers the same pillars merchants expect from SEO suites and newer GEO tools: content, answer readiness, images, indexability, rich snippets, internal links, and growth intelligence.",
+        pillars: "pillars",
+        score: "Score",
+        items: [
+          {
+            title: "On-page SEO",
+            detail:
+              "SEO titles, meta descriptions, product titles, descriptions, tags, snippet previews, and CTR-ready rewrites.",
+            skills: ["Title/meta scoring", "Description depth", "Keyword tags", "SERP preview"]
+          },
+          {
+            title: "GEO answer readiness",
+            detail:
+              "Buyer questions, product facts, use cases, comparison context, trust copy, and AI-answer-friendly blocks.",
+            skills: ["FAQ blocks", "Use cases", "Comparison copy", "Trust context"]
+          },
+          {
+            title: "Collection SEO",
+            detail:
+              "Collection/category pages are scored as ranking assets with title, meta, buying-guide copy, FAQs, image context, and public URL checks.",
+            skills: ["Category keywords", "Buying guides", "Collection FAQs", "Collection snippets"]
+          },
+          {
+            title: "Image SEO",
+            detail:
+              "Alt text, filename quality, image count, dimensions, compression readiness, and media ordering.",
+            skills: ["Alt text", "Filename guidance", "Image size", "Media order"]
+          },
+          {
+            title: "Technical indexability",
+            detail:
+              "Live-product filtering, product handles, canonical domain, sitemap health, broken links, redirects, and page-speed/Core Web Vitals readiness.",
+            skills: ["Live-only audit", "Sitemap", "Broken links", "Page speed"]
+          },
+          {
+            title: "Structured data",
+            detail:
+              "Product schema readiness, FAQ readiness, review/rating prerequisites, offer fields, collection context, and rich-result gaps.",
+            skills: ["Product schema", "FAQ readiness", "Review readiness", "Offer context"]
+          },
+          {
+            title: "Internal linking",
+            detail:
+              "Suggests contextual links between products, collections, and future blog/buying-guide pages so authority flows into revenue pages.",
+            skills: ["Product links", "Collection links", "Blog anchors", "Comparison paths"]
+          },
+          {
+            title: "Growth intelligence",
+            detail:
+              "Search Console queries, low-CTR pages, competitor keyword gaps, AI visibility checks, and history.",
+            skills: ["GSC queries", "CTR gaps", "Competitor gaps", "AI visibility"]
+          }
+        ]
+      },
+      collectionSeo: {
+        eyebrow: "Collection SEO scoring",
+        title: "Score category pages, not only product pages",
+        body:
+          "Collection pages can rank for broader category keywords and should act like buying-guide landing pages. AceStudio audits live public collections for snippets, category copy, FAQs, images, and crawlable URLs.",
+        scoreLabel: "Collection score",
+        empty:
+          "No public Shopify collections were returned yet. Publish collections to Online Store, then run Growth Studio again to score category pages.",
+        badge: "Collection",
+        serpPreview: "Collection SERP preview",
+        openCollection: "Open collection"
+      },
+      internalLinks: {
+        title: "Internal linking suggestions",
+        body:
+          "Use these as human-reviewed recommendations first. Later, you can add a Shopify write-back confirmation to insert links into product, collection, or blog content.",
+        link: "Link",
+        to: "to",
+        empty: "Add live collections or related live products to generate internal linking ideas.",
+        openTarget: "Open target"
+      },
+      optimizationQueue: {
+        eyebrow: "Optimization queue",
+        title: "Ranked fixes merchants can actually execute",
+        body:
+          "Prioritized by issue severity, page score, and commercial category. This mirrors the useful part of paid SEO suites: a clear queue with impact, effort, and update scope.",
+        tasks: "tasks",
+        empty: "No optimization tasks yet. Connect Shopify or add product drafts to build the queue.",
+        priorityScore: "Priority score",
+        confirmScope: "Confirm-to-apply scope",
+        manualOnly: "Manual or monitor-only",
+        manualBody: "Review before changing Shopify theme, schema, or crawl settings.",
+        openTarget: "Open target"
+      },
+      storePlaybooks: {
+        title: "Store-level playbooks",
+        body:
+          "These are the repeatable growth motions that make the feature feel like a product, not a one-off checker.",
+        benchmark: "Commercial benchmark"
+      },
+      commercialSeo: {
+        eyebrow: "Commercial SEO engine",
+        title: "Turn monitoring into prioritized optimization tasks",
+        body:
+          "AceStudio converts Search Console queries, crawler results, and AI visibility gaps into a ranked action plan that merchants can review before writing changes back to Shopify.",
+        readiness: "Readiness",
+        empty:
+          "Run the live monitor to generate a prioritized action plan. Without Search Console credentials, the plan will focus on setup, technical SEO, and AI visibility readiness.",
+        recommendedAction: "Recommended action",
+        rewriteDraft: "Search Console rewrite draft",
+        openTargetPage: "Open target page"
+      },
+      keywordOpportunities: {
+        title: "Keyword opportunities",
+        body:
+          "The strongest commercial signal is not just the average score. It is which query is already getting visibility and what update can convert it into clicks.",
+        impressions: "Impr.",
+        rewriteDraft: "Rewrite draft",
+        legacyRun:
+          "This saved monitoring result was created before rewrite drafts were added. Run monitoring again to generate a Shopify write-back draft.",
+        writeBackUnavailable:
+          "Write-back is available when this query is matched to a live Shopify product page.",
+        competitorGaps: "Competitor keyword gaps",
+        setup: "setup",
+        competitorSetup:
+          "Add a comma-separated GROWTH_COMPETITOR_DOMAINS env var to compare your Search Console queries against chosen competitor stores. No paid API required for this MVP layer.",
+        compare: "Compare:"
+      },
+      dataSources: {
+        eyebrow: "Data source setup",
+        title: "Keep the MVP useful before every optional API is connected",
+        body:
+          "The product audit, technical crawler, and daily cron can already run on the current stack. Google APIs unlock stronger query and visibility intelligence, but they are not required for the first customer demos.",
+        ready: "Ready",
+        setup: "Setup",
+        items: [
+          {
+            label: "Shopify product audit",
+            cost: "Included",
+            detail:
+              "Uses the connected Shopify Admin API to read products and prepare user-approved write-back.",
+            readyAction: "Connected",
+            setupAction: "Connect Shopify OAuth"
+          },
+          {
+            label: "Technical crawler",
+            cost: "No paid API",
+            detail:
+              "Runs inside your app to check sitemap.xml, robots.txt, broken internal links, and redirect chains.",
+            readyAction: "Available now",
+            setupAction: "Available now"
+          },
+          {
+            label: "Vercel daily cron",
+            cost: "Hobby daily",
+            detail:
+              "Vercel Cron Jobs are available on Hobby for once-per-day schedules, which fits the current MVP.",
+            readyAction: "Protected",
+            setupAction: "Add CRON_SECRET"
+          },
+          {
+            label: "Competitor keyword gap",
+            cost: "Free with manual competitor list",
+            detail:
+              "Uses your Search Console queries and a manually configured competitor-domain list. Paid Ahrefs/Semrush-style keyword APIs can be added later.",
+            readyAction: "Competitors configured",
+            setupAction: "Optional env later"
+          },
+          {
+            label: "Page speed / Core Web Vitals",
+            cost: "Free basic crawler",
+            detail:
+              "The current crawler measures response time. PageSpeed Insights can be connected later for full Core Web Vitals field/lab data.",
+            readyAction: "Crawler data ready",
+            setupAction: "Run monitor"
+          },
+          {
+            label: "Review schema data",
+            cost: "Likely paid app/API later",
+            detail:
+              "Judge.me, Loox, or another review source is needed for real rating/review data. MVP only checks readiness and never fabricates reviews.",
+            readyAction: "Review source connected",
+            setupAction: "Defer until review app"
+          },
+          {
+            label: "Google Search Console",
+            cost: "Free quota",
+            detail:
+              "Reads clicks, impressions, CTR, position, queries, and sitemaps from verified properties.",
+            readyAction: "Connected",
+            setupAction: "Optional but high value"
+          },
+          {
+            label: "AI visibility proxy",
+            cost: "100/day free",
+            detail:
+              "Uses Google Custom Search JSON API as a lightweight proxy for brand and product visibility checks.",
+            readyAction: "Connected",
+            setupAction: "Optional"
+          }
+        ]
+      },
+      noApiQueue: {
+        title: "No-API optimization queue",
+        body:
+          "These fixes are generated from product content and Shopify data, so merchants can improve pages even before Search Console is connected.",
+        empty: "No urgent no-API fixes are available right now. Create or connect products to populate this queue."
+      },
+      liveMonitor: {
+        eyebrow: "Live monitor",
+        title: "Search Console, crawler, and AI visibility tracking",
+        body:
+          "Run a real check for clicks, impressions, query data, sitemap health, product-page response speed, broken internal links, redirect chains, competitor gaps, and visibility across Google search results as an AI visibility proxy.",
+        empty:
+          "No live monitor run yet. Run it once after adding the Growth monitoring Supabase migration and the optional Google credentials.",
+        unlocksTitle: "What this unlocks",
+        unlocks: [
+          "Search Console: find high-impression queries with weak CTR and rewrite titles around them.",
+          "Technical crawler: catch 404s, redirect chains, sitemap gaps, and canonical host issues.",
+          "Page speed: flag slow Shopify pages now, then connect PageSpeed Insights later only if you need full Core Web Vitals field data.",
+          "Competitor gaps: use your own competitor list plus Search Console queries before paying for keyword databases.",
+          "AI visibility: track whether brand and product queries surface your pages in answer-engine-style search results."
+        ]
+      },
+      productScores: {
+        eyebrow: "Product scores",
+        title: "Lowest scoring products first",
+        openProducts: "Open products",
+        empty:
+          "No live Online Store products are available for audit yet. Growth Studio ignores draft, archived, hidden, and unlisted Shopify products because those pages cannot rank until they are actively published to Online Store.",
+        sourceShopify: "Shopify",
+        sourceWorkspace: "Workspace",
+        fallbackStrong: "This product has enough SEO/GEO context for the first MVP audit.",
+        writeBackDraft: "Write-back draft",
+        serpPreview: "SERP preview",
+        aiAnswerReadiness: "AI answer readiness",
+        schemaWriter: "Schema writer",
+        missing: "Missing:",
+        openInShopify: "Open in Shopify",
+        openDraft: "Open draft"
+      },
+      recommendations: {
+        title: "Top recommendations",
+        strongEnough: "Products look strong enough for the first MVP audit. Keep monitoring after new products are added."
+      },
+      common: {
+        statusReady: "ready",
+        statusPartial: "partial",
+        statusSetup: "setup",
+        statusNeedsSetup: "needs setup",
+        high: "high",
+        medium: "medium",
+        low: "low",
+        effort: "effort",
+        change: "Change",
+        same: "Same",
+        before: "Before",
+        after: "After",
+        applying: "Applying",
+        cancel: "Cancel",
+        apply: "Apply"
+      },
+      monitorButton: {
+        run: "Run live monitor",
+        runningMessage: "Running live technical SEO, Search Console, and AI visibility checks...",
+        failed: "Growth monitoring failed.",
+        completed: "Growth monitor completed.",
+        adminNotCharged: "Admin account was not charged.",
+        spent: "Spent",
+        balance: "Balance"
+      },
+      writeBackPreview: {
+        previewTitle: "Shopify write-back preview",
+        selectedProduct: "Selected product",
+        selectedCollection: "Selected collection",
+        alreadyApplied: "The suggested SEO/GEO fixes are already applied to Shopify.",
+        safety:
+          "Nothing is changed until you approve. Edit the After fields if needed, then write selected SEO title, meta description, product tags, and answer-ready content back to Shopify.",
+        fieldsSelected: "fields selected for write-back.",
+        of: "of",
+        applying: "Applying",
+        apply: "Apply",
+        cancel: "Cancel",
+        buildingPreview: "Building preview",
+        applied: "Applied",
+        previewShopifyWriteBack: "Preview Shopify write-back",
+        previewCollectionWriteBack: "Preview collection write-back",
+        reviewHelp: "Review exact field changes before updating Shopify.",
+        tryAgain: "Try preview again",
+        viewLiveProduct: "View live product",
+        viewLiveCollection: "View live collection",
+        before: "Before",
+        after: "After",
+        errorPreview: "Could not preview the Shopify write-back.",
+        errorApply: "Could not apply the selected SEO/GEO fixes.",
+        updated: "Updated",
+        fixesWritten: "SEO/GEO fixes were written to Shopify.",
+        adminNotCharged: "Admin account was not charged.",
+        spent: "Spent",
+        balance: "Balance",
+        selectedFields: {
+          seoTitle: "SEO title",
+          seoDescription: "Meta description",
+          tags: "Product tags / keywords",
+          descriptionHtml: "Answer-ready content"
+        },
+        rewrite: {
+          diffTitle: "Before / after diff",
+          willUpdate: "will be updated.",
+          noChanges: "No changes detected for this rewrite.",
+          editHelp: "You can edit the After fields before confirming.",
+          unlimited: "Unlimited",
+          credits: "credits",
+          confirm: "Confirm write-back",
+          previewing: "Previewing...",
+          appliedToShopify: "Applied to Shopify",
+          preview: "Preview write-back",
+          errorPreview: "Could not preview the Shopify write-back.",
+          errorApply: "Could not write the Search Console rewrite to Shopify.",
+          written: "Rewrite written to Shopify."
+        },
+        imageAlt: {
+          title: "Image alt text write-back",
+          preview: "Preview image alt write-back",
+          previewing: "Previewing alt text...",
+          confirm: "Confirm alt text write-back",
+          noChanges: "Image alt text is already strong enough.",
+          errorPreview: "Could not preview image alt text updates.",
+          errorApply: "Could not write image alt text to Shopify.",
+          applied: "Image alt text written to Shopify.",
+          help: "Adds descriptive alt text to weak Shopify product images for image search and accessibility."
+        },
+        internalLink: {
+          title: "Internal link write-back",
+          preview: "Preview internal link",
+          previewing: "Previewing link...",
+          confirm: "Confirm internal link write-back",
+          noChanges: "This internal link already exists.",
+          errorPreview: "Could not preview the internal link update.",
+          errorApply: "Could not write the internal link to Shopify.",
+          applied: "Internal link written to Shopify.",
+          help: "Adds one contextual link to the source product or collection description.",
+          manualOnly: "Blog-to-product links are manual suggestions until blog write-back is connected.",
+          anchorLabel: "Anchor text"
+        }
       }
     },
     seo: {
@@ -839,11 +1285,420 @@ export const dictionaries = defineDictionaries({
       }
     },
     growthPage: {
-      optimizationSignals: {
-        title: "优化信号",
-        search: "搜索：标题、Meta 描述、标签和内容深度。",
-        geo: "GEO：买家问答、使用场景、事实、对比和信任语境。",
-        media: "图片：图片数量、alt 文本准备度和商品图片语义。"
+      hero: {
+        eyebrow: "增长工作台",
+        liveOnly: "仅审核在线店铺的公开页面",
+        connectAudit: "连接 Shopify 后进行实时审核",
+        title: "在确认写入前，为 Shopify 商品和分类页评分 SEO 与 GEO。",
+        body:
+          "读取已连接 Shopify 店铺的公开页面，找出标题薄弱、描述过短、图片语义缺失、内链缺口和 AI 答案缺口，并且只在用户确认后写入选中的优化。",
+        openProductWorkflow: "打开商品流程",
+        connectShopify: "连接 Shopify",
+        guide: "SEO/GEO 指南",
+        metricLabels: {
+          seoScore: "SEO 评分",
+          geoScore: "GEO 评分",
+          schema: "结构化数据",
+          technical: "技术项",
+          auditSource: "审核来源",
+          excludedNonLive: "已排除非公开商品",
+          liveShopifyProducts: "Shopify 公开商品",
+          aceStudioWorkspace: "AceStudio 工作区"
+        }
+      },
+      error: {
+        liveAuditTitle: "实时 Shopify 审核未能运行",
+        fallbackSuffix: "页面正在显示 AceStudio 工作区商品，因此用户仍然可以看到有效预览。"
+      },
+      commandCenter: {
+        eyebrow: "结构化增长指挥台",
+        title: "一个用于 Shopify SEO 与 GEO 的操作系统",
+        body:
+          "成熟的 SEO 产品不能只停留在评分。AceStudio 将工作拆分为审核、优先级排序、确认后写入和结果监控，让商家始终知道下一步该做什么。",
+        liveOnlyNote:
+          "这里只包含 ACTIVE 状态、有发布时间、并且拥有公开 Online Store URL 的 Shopify 商品。草稿、归档、隐藏和未上架商品会被排除，因为它们无法参与搜索排名。",
+        highPriority: "高优先级",
+        writeBackReady: "可写回"
+      },
+      workflow: {
+        stages: [
+          {
+            title: "审核",
+            detail: "只读取在线店铺的公开商品和分类页，然后评分内容、图片、结构化数据、技术项和 AI 答案准备度。",
+            metricLabel: "公开商品"
+          },
+          {
+            title: "排序",
+            detail: "把低分项转成带有严重程度、执行成本、预期影响和更新范围的优先级队列。",
+            metricLabel: "任务"
+          },
+          {
+            title: "应用",
+            detail: "仅在商家确认后写回 SEO 标题、Meta 描述、标签和答案友好内容。",
+            metricLabel: "写回"
+          },
+          {
+            title: "监控",
+            detail: "通过 Search Console、爬虫、sitemap、重定向、速度、竞品差距和 AI 可见性决定下一步动作。",
+            metricLabel: "运行记录"
+          }
+        ]
+      },
+      nextBestAction: {
+        title: "下一步最佳动作",
+        body: "页面应该把商家引导到一个明确动作，而不是让他们自己解读所有评分。",
+        recommendedNow: "当前建议",
+        monitoringCosts: "监控消耗",
+        credit: "积分",
+        credits: "积分",
+        confirmedWriteBackCosts: "确认写回 Shopify 消耗",
+        trialUsersStartWith: "试用用户初始拥有"
+      },
+      optimizationWriter: {
+        eyebrow: "优化写入助手",
+        title: "真正执行 SEO/GEO 优化，而不只是给出评分",
+        body:
+          "商业化版本需要像一个可审核的优化助手：生成更好的字段，展示可编辑 before/after 差异，预览积分成本，然后把选中的改动写回 Shopify。",
+        safetyNote:
+          "目前不会自动覆盖商品展示标题。这个字段会影响商品陈列、品牌命名和广告。后续可以作为单独勾选项加入，只有商家明确希望 AceStudio 改写公开商品名称时才启用。",
+        readyTitle: "可确认写回的商品和分类页",
+        readyBody: "这些公开 Shopify 商品和分类页评分较弱，可以通过审核后的 Shopify 更新立即优化。",
+        noCandidates: "目前没有需要写回优化的公开 Shopify 商品或分类页。草稿、归档、隐藏和未上架内容不会进入此队列。",
+        fallbackIssue: "可进行 SEO/GEO 优化",
+        fields: ["SEO 标题", "Meta", "标签", "问答", "图片 Alt", "内链"],
+        collectionFields: ["分类 SEO 标题", "Meta", "购买指南"],
+        capabilities: [
+          {
+            title: "搜索摘要字段",
+            detail: "默认不修改买家可见商品名，只优化 SEO 标题和 Meta 描述。"
+          },
+          {
+            title: "关键词标签",
+            detail: "围绕分类、意图、材质、使用场景和买家搜索语言规范商品标签。"
+          },
+          {
+            title: "AI 答案内容",
+            detail: "追加适合 AI 理解的买家问答、商品事实和分类页购买指南，让页面更容易被搜索和 AI 系统理解。"
+          }
+        ]
+      },
+      skillCoverage: {
+        eyebrow: "SEO/GEO 技能覆盖",
+        title: "这个功能应该覆盖的核心能力地图",
+        body:
+          "最强的商业化版本应覆盖商家期待的 SEO 套件和新 GEO 工具能力：内容、答案准备度、图片、可索引性、富摘要、内链和增长情报。",
+        pillars: "项能力",
+        score: "评分",
+        items: [
+          {
+            title: "页面 SEO",
+            detail: "SEO 标题、Meta 描述、商品标题、描述、标签、SERP 预览和提升 CTR 的改写草稿。",
+            skills: ["标题/Meta 评分", "描述深度", "关键词标签", "SERP 预览"]
+          },
+          {
+            title: "GEO 答案准备度",
+            detail: "买家问题、商品事实、使用场景、对比语境、信任文案和 AI 答案友好区块。",
+            skills: ["FAQ 区块", "使用场景", "对比文案", "信任语境"]
+          },
+          {
+            title: "分类页 SEO",
+            detail: "把分类页作为排名资产评分，包括标题、Meta、购买指南、FAQ、图片语义和公开 URL。",
+            skills: ["分类关键词", "购买指南", "分类 FAQ", "分类摘要"]
+          },
+          {
+            title: "图片 SEO",
+            detail: "Alt 文本、文件名质量、图片数量、尺寸、压缩准备度和图片排序。",
+            skills: ["Alt 文本", "文件名建议", "图片尺寸", "图片顺序"]
+          },
+          {
+            title: "技术可索引性",
+            detail: "公开商品过滤、商品 handle、主域名、sitemap 健康、坏链、重定向和页面速度/Core Web Vitals 准备度。",
+            skills: ["仅审核公开商品", "Sitemap", "坏链", "页面速度"]
+          },
+          {
+            title: "结构化数据",
+            detail: "Product schema 准备度、FAQ 准备度、评价/评分前置条件、Offer 字段、分类语境和富结果缺口。",
+            skills: ["Product schema", "FAQ 准备度", "评价准备度", "Offer 语境"]
+          },
+          {
+            title: "内部链接",
+            detail: "建议商品、分类和未来博客/购买指南之间的上下文链接，让权重流向收入页面。",
+            skills: ["商品链接", "分类链接", "博客锚文本", "对比路径"]
+          },
+          {
+            title: "增长情报",
+            detail: "Search Console 查询、低 CTR 页面、竞品关键词差距、AI 可见性检查和历史记录。",
+            skills: ["GSC 查询", "CTR 差距", "竞品差距", "AI 可见性"]
+          }
+        ]
+      },
+      collectionSeo: {
+        eyebrow: "分类页 SEO 评分",
+        title: "不仅评分商品页，也评分分类页",
+        body:
+          "分类页可以覆盖更广的类目关键词，也应该像购买指南 landing page 一样工作。AceStudio 会审核公开分类页的摘要、分类文案、FAQ、图片和可抓取 URL。",
+        scoreLabel: "分类评分",
+        empty: "暂时没有返回公开 Shopify 分类页。请将分类发布到 Online Store，然后再次运行 Growth Studio。",
+        badge: "分类",
+        serpPreview: "分类 SERP 预览",
+        openCollection: "打开分类"
+      },
+      internalLinks: {
+        title: "内部链接建议",
+        body: "这些建议先作为人工审核项。后续可以加入 Shopify 写回确认，把链接插入商品、分类或博客内容。",
+        link: "将",
+        to: "链接到",
+        empty: "添加公开分类或相关公开商品后，即可生成内部链接建议。",
+        openTarget: "打开目标"
+      },
+      optimizationQueue: {
+        eyebrow: "优化队列",
+        title: "商家可以真正执行的排序修复项",
+        body:
+          "按问题严重程度、页面评分和商业分类排序。这是付费 SEO 工具最有用的部分：清晰的队列、影响、执行成本和更新范围。",
+        tasks: "个任务",
+        empty: "暂无优化任务。连接 Shopify 或添加商品草稿后即可建立队列。",
+        priorityScore: "优先级分数",
+        confirmScope: "确认应用范围",
+        manualOnly: "手动或仅监控",
+        manualBody: "修改 Shopify 主题、结构化数据或抓取设置前请先审核。",
+        openTarget: "打开目标"
+      },
+      storePlaybooks: {
+        title: "店铺级增长策略",
+        body: "这些是可重复执行的增长动作，让这个功能像产品，而不是一次性检测器。",
+        benchmark: "商业化基准"
+      },
+      commercialSeo: {
+        eyebrow: "商业化 SEO 引擎",
+        title: "把监控转成优先级优化任务",
+        body:
+          "AceStudio 会把 Search Console 查询、爬虫结果和 AI 可见性缺口转成排序行动计划，商家审核后再写回 Shopify。",
+        readiness: "准备度",
+        empty: "运行实时监控后即可生成优先级行动计划。没有 Search Console 凭证时，计划会聚焦设置、技术 SEO 和 AI 可见性准备度。",
+        recommendedAction: "建议动作",
+        rewriteDraft: "Search Console 改写草稿",
+        openTargetPage: "打开目标页面"
+      },
+      keywordOpportunities: {
+        title: "关键词机会",
+        body: "最强的商业信号不只是平均分，而是哪个查询已经有曝光，以及什么更新能把曝光转成点击。",
+        impressions: "曝光",
+        rewriteDraft: "改写草稿",
+        legacyRun: "这条监控结果创建于改写草稿功能之前。请重新运行监控以生成 Shopify 写回草稿。",
+        writeBackUnavailable: "当该查询匹配到公开 Shopify 商品页时，才可以写回。",
+        competitorGaps: "竞品关键词差距",
+        setup: "待设置",
+        competitorSetup:
+          "添加逗号分隔的 GROWTH_COMPETITOR_DOMAINS 环境变量，即可用 Search Console 查询与指定竞品店铺对比。MVP 阶段不需要付费 API。",
+        compare: "对比："
+      },
+      dataSources: {
+        eyebrow: "数据源设置",
+        title: "即使可选 API 尚未连接，也让 MVP 保持可用",
+        body:
+          "商品审核、技术爬虫和每日 cron 已经可以在当前架构运行。Google API 会增强查询和可见性情报，但第一批客户演示并不依赖它们。",
+        ready: "已就绪",
+        setup: "待设置",
+        items: [
+          {
+            label: "Shopify 商品审核",
+            cost: "已包含",
+            detail: "使用已连接的 Shopify Admin API 读取商品，并准备用户确认后的写回。",
+            readyAction: "已连接",
+            setupAction: "连接 Shopify OAuth"
+          },
+          {
+            label: "技术爬虫",
+            cost: "无需付费 API",
+            detail: "在你的应用内检查 sitemap.xml、robots.txt、内部坏链和重定向链。",
+            readyAction: "当前可用",
+            setupAction: "当前可用"
+          },
+          {
+            label: "Vercel 每日 Cron",
+            cost: "Hobby 每日",
+            detail: "Vercel Cron Jobs 在 Hobby 计划可用于每日一次任务，适合当前 MVP。",
+            readyAction: "已保护",
+            setupAction: "添加 CRON_SECRET"
+          },
+          {
+            label: "竞品关键词差距",
+            cost: "手动竞品列表免费",
+            detail: "使用你的 Search Console 查询和手动配置的竞品域名列表。Ahrefs/Semrush 类付费关键词 API 可后续接入。",
+            readyAction: "竞品已配置",
+            setupAction: "后续可选环境变量"
+          },
+          {
+            label: "页面速度 / Core Web Vitals",
+            cost: "基础爬虫免费",
+            detail: "当前爬虫会测响应时间。后续需要完整 Core Web Vitals 实验/字段数据时再接 PageSpeed Insights。",
+            readyAction: "爬虫数据可用",
+            setupAction: "运行监控"
+          },
+          {
+            label: "评价 schema 数据",
+            cost: "后续可能需要付费应用/API",
+            detail: "真实评分/评价需要 Judge.me、Loox 或其他评价来源。MVP 只检查准备度，不会伪造评价。",
+            readyAction: "评价来源已连接",
+            setupAction: "等接入评价应用"
+          },
+          {
+            label: "Google Search Console",
+            cost: "免费额度",
+            detail: "读取已验证站点的点击、曝光、CTR、排名、查询和 sitemap。",
+            readyAction: "已连接",
+            setupAction: "可选但价值很高"
+          },
+          {
+            label: "AI 可见性代理",
+            cost: "每日 100 次免费",
+            detail: "使用 Google Custom Search JSON API 作为轻量代理，检查品牌和商品可见性。",
+            readyAction: "已连接",
+            setupAction: "可选"
+          }
+        ]
+      },
+      noApiQueue: {
+        title: "无需 API 的优化队列",
+        body: "这些修复来自商品内容和 Shopify 数据，因此商家即使尚未连接 Search Console，也可以先优化页面。",
+        empty: "当前没有紧急的无 API 修复项。创建或连接商品后即可填充队列。"
+      },
+      liveMonitor: {
+        eyebrow: "实时监控",
+        title: "Search Console、爬虫和 AI 可见性追踪",
+        body:
+          "运行真实检查：点击、曝光、查询数据、sitemap 健康、商品页响应速度、内部坏链、重定向链、竞品差距，以及 Google 搜索结果中的 AI 可见性代理。",
+        empty: "尚未运行实时监控。添加 Growth monitoring Supabase migration 和可选 Google 凭证后运行一次。",
+        unlocksTitle: "这会解锁什么",
+        unlocks: [
+          "Search Console：找出高曝光低 CTR 查询，并围绕它们改写标题。",
+          "技术爬虫：发现 404、重定向链、sitemap 缺口和主域名 canonical 问题。",
+          "页面速度：先标记较慢的 Shopify 页面；只有需要完整 Core Web Vitals 字段数据时再接 PageSpeed Insights。",
+          "竞品差距：在购买关键词数据库前，先用自己的竞品列表和 Search Console 查询。",
+          "AI 可见性：追踪品牌和商品查询是否在答案型搜索结果中出现你的页面。"
+        ]
+      },
+      productScores: {
+        eyebrow: "商品评分",
+        title: "低分公开商品优先",
+        openProducts: "打开商品",
+        empty: "暂时没有可审核的公开 Online Store 商品。Growth Studio 会忽略草稿、归档、隐藏和未上架商品，因为它们正式发布前无法参与排名。",
+        sourceShopify: "Shopify",
+        sourceWorkspace: "工作区",
+        fallbackStrong: "这个商品已经具备当前 MVP 审核所需的 SEO/GEO 语境。",
+        writeBackDraft: "写回草稿",
+        serpPreview: "SERP 预览",
+        aiAnswerReadiness: "AI 答案准备度",
+        schemaWriter: "Schema 写入建议",
+        missing: "缺失：",
+        openInShopify: "在 Shopify 中打开",
+        openDraft: "打开草稿"
+      },
+      recommendations: {
+        title: "优先建议",
+        strongEnough: "商品对于第一次 MVP 审核已经足够强。添加新商品后继续监控即可。"
+      },
+      common: {
+        statusReady: "已就绪",
+        statusPartial: "部分就绪",
+        statusSetup: "待设置",
+        statusNeedsSetup: "需要设置",
+        high: "高",
+        medium: "中",
+        low: "低",
+        effort: "执行成本",
+        change: "变化",
+        same: "相同",
+        before: "优化前",
+        after: "优化后",
+        applying: "正在应用",
+        cancel: "取消",
+        apply: "应用"
+      },
+      monitorButton: {
+        run: "运行实时监控",
+        runningMessage: "正在运行技术 SEO、Search Console 和 AI 可见性检查...",
+        failed: "增长监控失败。",
+        completed: "增长监控已完成。",
+        adminNotCharged: "管理员账户未扣费。",
+        spent: "已消耗",
+        balance: "余额"
+      },
+      writeBackPreview: {
+        previewTitle: "Shopify 写回预览",
+        selectedProduct: "选中商品",
+        selectedCollection: "选中集合页",
+        alreadyApplied: "建议的 SEO/GEO 优化已经应用到 Shopify。",
+        safety:
+          "确认前不会改动任何内容。需要时可以先编辑 After 字段，然后把选中的 SEO 标题、Meta 描述、商品标签和答案友好内容写回 Shopify。",
+        fieldsSelected: "个字段已选择写回。",
+        of: "/",
+        applying: "正在应用",
+        apply: "应用",
+        cancel: "取消",
+        buildingPreview: "正在生成预览",
+        applied: "已应用",
+        previewShopifyWriteBack: "预览 Shopify 写回",
+        previewCollectionWriteBack: "预览集合页写回",
+        reviewHelp: "更新 Shopify 前，先审核具体字段变化。",
+        tryAgain: "重新预览",
+        viewLiveProduct: "查看在线商品",
+        viewLiveCollection: "查看在线集合页",
+        before: "优化前",
+        after: "优化后",
+        errorPreview: "无法预览 Shopify 写回。",
+        errorApply: "无法应用选中的 SEO/GEO 优化。",
+        updated: "已更新",
+        fixesWritten: "SEO/GEO 优化已写入 Shopify。",
+        adminNotCharged: "管理员账户未扣费。",
+        spent: "已消耗",
+        balance: "余额",
+        selectedFields: {
+          seoTitle: "SEO 标题",
+          seoDescription: "Meta 描述",
+          tags: "商品标签 / 关键词",
+          descriptionHtml: "答案友好内容"
+        },
+        rewrite: {
+          diffTitle: "Before / after 差异",
+          willUpdate: "将被更新。",
+          noChanges: "该改写没有检测到变化。",
+          editHelp: "确认前可以编辑 After 字段。",
+          unlimited: "无限",
+          credits: "积分",
+          confirm: "确认写回",
+          previewing: "正在预览...",
+          appliedToShopify: "已应用到 Shopify",
+          preview: "预览写回",
+          errorPreview: "无法预览 Shopify 写回。",
+          errorApply: "无法将 Search Console 改写写入 Shopify。",
+          written: "改写已写入 Shopify。"
+        },
+        imageAlt: {
+          title: "图片 Alt 文本写回",
+          preview: "预览图片 Alt 写回",
+          previewing: "正在预览 Alt 文本...",
+          confirm: "确认写回 Alt 文本",
+          noChanges: "该商品图片 Alt 文本已经足够完整。",
+          errorPreview: "无法预览图片 Alt 文本更新。",
+          errorApply: "无法将图片 Alt 文本写入 Shopify。",
+          applied: "图片 Alt 文本已写入 Shopify。",
+          help: "为较弱或缺失的 Shopify 商品图片补充描述性 Alt 文本，帮助图片搜索和无障碍访问。"
+        },
+        internalLink: {
+          title: "内链写回",
+          preview: "预览内链写回",
+          previewing: "正在预览内链...",
+          confirm: "确认写回内链",
+          noChanges: "该内链已经存在。",
+          errorPreview: "无法预览内链更新。",
+          errorApply: "无法将内链写入 Shopify。",
+          applied: "内链已写入 Shopify。",
+          help: "向来源商品页或集合页描述中添加一条上下文相关的内链。",
+          manualOnly: "博客到商品的内链目前先作为手动建议，等博客写回接入后可自动写入。",
+          anchorLabel: "锚文本"
+        }
       }
     },
     seo: {

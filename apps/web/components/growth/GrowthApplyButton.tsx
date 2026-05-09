@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { ArrowUpRight, CheckCircle2, CircleAlert, Loader2, ShieldCheck, WandSparkles } from "lucide-react";
+import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 type GrowthFixField = "seo.title" | "seo.description" | "tags" | "descriptionHtml";
 
@@ -51,12 +52,16 @@ const EMPTY_DRAFT_VALUES: GrowthDraftValues = {
 export function GrowthApplyButton({
   productId,
   creditCost,
-  disabled = false
+  disabled = false,
+  targetType = "product"
 }: {
   productId: string;
   creditCost?: number;
   disabled?: boolean;
+  targetType?: "product" | "collection";
 }) {
+  const { t } = useLanguage();
+  const copy = t.growthPage.writeBackPreview;
   const [status, setStatus] = useState<"idle" | "previewing" | "preview" | "applying" | "applied" | "error">("idle");
   const [message, setMessage] = useState("");
   const [preview, setPreview] = useState<GrowthFixPreviewPayload | null>(null);
@@ -69,13 +74,13 @@ export function GrowthApplyButton({
     const response = await fetch("/api/growth/fix-preview", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ productId })
+      body: JSON.stringify({ productId, targetType })
     });
     const payload = (await response.json().catch(() => ({}))) as GrowthFixPreviewPayload;
 
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error || "Could not preview the Shopify write-back.");
+      setMessage(payload.error || copy.errorPreview);
       return;
     }
 
@@ -94,6 +99,7 @@ export function GrowthApplyButton({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         productId,
+        targetType,
         confirmed: true,
         mode: "suggested_fix",
         selectedFields,
@@ -104,18 +110,18 @@ export function GrowthApplyButton({
 
     if (!response.ok) {
       setStatus("error");
-      setMessage(payload.error || "Could not apply the selected SEO/GEO fixes.");
+      setMessage(payload.error || copy.errorApply);
       return;
     }
 
     setStatus("applied");
     const fields = payload.applied?.changedFields?.length
-      ? `Updated ${payload.applied.changedFields.join(", ")}.`
-      : "SEO/GEO fixes were written to Shopify.";
+      ? `${copy.updated} ${payload.applied.changedFields.join(", ")}.`
+      : copy.fixesWritten;
     const creditNote = payload.credits?.isUnlimited
-      ? "Admin account was not charged."
+      ? copy.adminNotCharged
       : typeof payload.credits?.spent === "number"
-        ? `Spent ${payload.credits.spent} credits. Balance: ${payload.credits.balance}.`
+        ? `${copy.spent} ${payload.credits.spent} ${t.growthPage.nextBestAction.credits}. ${copy.balance}: ${payload.credits.balance}.`
         : "";
     setMessage(`${fields} ${creditNote}`.trim());
   }
@@ -144,8 +150,10 @@ export function GrowthApplyButton({
         <div className="border border-line bg-canvas p-3">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <p className="text-[11px] font-semibold uppercase text-muted">Shopify write-back preview</p>
-              <p className="mt-1 text-sm font-semibold">{preview?.title || "Selected product"}</p>
+              <p className="text-[11px] font-semibold uppercase text-muted">{copy.previewTitle}</p>
+              <p className="mt-1 text-sm font-semibold">
+                {preview?.title || (targetType === "collection" ? copy.selectedCollection : copy.selectedProduct)}
+              </p>
             </div>
             <span className="rounded border border-line bg-white px-2 py-1 text-[11px] font-semibold text-muted">
               {preview?.beforeScore ?? "--"}/100
@@ -161,11 +169,13 @@ export function GrowthApplyButton({
                   value={draftValues[draftKeyForField(entry.field)]}
                   onToggle={() => toggleField(entry.field)}
                   onChange={(value) => updateDraftValue(entry.field, value)}
+                  beforeLabel={copy.before}
+                  afterLabel={copy.after}
                 />
               ))
             ) : (
               <p className="border border-line bg-white p-3 text-xs leading-5 text-muted">
-                The suggested SEO/GEO fixes are already applied to Shopify.
+                {copy.alreadyApplied}
               </p>
             )}
           </div>
@@ -173,14 +183,13 @@ export function GrowthApplyButton({
             <div className="flex gap-2">
               <ShieldCheck className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
               <p>
-                Nothing is changed until you approve. Edit the After fields if needed, then write selected
-                SEO title, meta description, product tags, and answer-ready content back to Shopify.
+                {copy.safety}
               </p>
             </div>
           </div>
           {changedDiff.length ? (
             <p className="mt-3 text-xs font-semibold text-muted">
-              {selectedFields.length} of {changedDiff.length} fields selected for write-back.
+              {selectedFields.length} {copy.of} {changedDiff.length} {copy.fieldsSelected}
             </p>
           ) : null}
         </div>
@@ -194,10 +203,10 @@ export function GrowthApplyButton({
             {status === "applying" ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                Applying
+                {copy.applying}
               </>
             ) : (
-              `Apply${typeof cost === "number" && cost > 0 ? ` (${cost})` : ""}`
+              `${copy.apply}${typeof cost === "number" && cost > 0 ? ` (${cost})` : ""}`
             )}
           </button>
           <button
@@ -211,7 +220,7 @@ export function GrowthApplyButton({
             }}
             className="studio-focus inline-flex h-10 items-center justify-center rounded border border-line bg-white px-3 text-sm font-semibold"
           >
-            Cancel
+            {copy.cancel}
           </button>
         </div>
       </div>
@@ -229,17 +238,18 @@ export function GrowthApplyButton({
         {status === "previewing" ? (
           <>
             <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-            Building preview
+            {copy.buildingPreview}
           </>
         ) : status === "applied" ? (
           <>
             <CheckCircle2 className="h-4 w-4" aria-hidden />
-            Applied
+            {copy.applied}
           </>
         ) : (
           <>
             <WandSparkles className="h-4 w-4" aria-hidden />
-            Preview Shopify write-back{typeof creditCost === "number" ? ` (${creditCost})` : ""}
+          {targetType === "collection" ? copy.previewCollectionWriteBack : copy.previewShopifyWriteBack}
+          {typeof creditCost === "number" ? ` (${creditCost})` : ""}
           </>
         )}
       </button>
@@ -250,17 +260,17 @@ export function GrowthApplyButton({
         </p>
       ) : (
         <p className="text-xs leading-5 text-muted">
-          Review exact field changes before updating Shopify.
+          {copy.reviewHelp}
         </p>
       )}
       {status === "error" ? (
         <button type="button" onClick={previewFixes} className="text-xs font-semibold text-action">
-          Try preview again
+          {copy.tryAgain}
         </button>
       ) : null}
       {status === "applied" && preview?.onlineStoreUrl ? (
         <a href={preview.onlineStoreUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs font-semibold text-action">
-          View live product
+          {targetType === "collection" ? copy.viewLiveCollection : copy.viewLiveProduct}
           <ArrowUpRight className="h-3 w-3" aria-hidden />
         </a>
       ) : null}
@@ -273,13 +283,17 @@ function GrowthDiffBlock({
   selected,
   value,
   onToggle,
-  onChange
+  onChange,
+  beforeLabel,
+  afterLabel
 }: {
   entry: GrowthDiffEntry;
   selected: boolean;
   value: string;
   onToggle: () => void;
   onChange: (value: string) => void;
+  beforeLabel: string;
+  afterLabel: string;
 }) {
   return (
     <article className={`border p-3 ${selected ? "border-action bg-white" : "border-line bg-white/70"}`}>
@@ -294,11 +308,11 @@ function GrowthDiffBlock({
       </label>
       <div className="mt-2 grid gap-2 text-xs leading-5 text-muted">
         <div>
-          <p className="font-semibold uppercase text-muted/80">Before</p>
+          <p className="font-semibold uppercase text-muted/80">{beforeLabel}</p>
           <p className="mt-1 line-clamp-3">{entry.before}</p>
         </div>
         <div>
-          <p className="font-semibold uppercase text-action">After</p>
+          <p className="font-semibold uppercase text-action">{afterLabel}</p>
           <EditableAfterField entry={entry} selected={selected} value={value} onChange={onChange} />
         </div>
       </div>

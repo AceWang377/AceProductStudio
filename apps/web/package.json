@@ -8,7 +8,11 @@
     "lint": "eslint .",
     "test:visual": "node scripts/visual-check.mjs",
     "test:growth-fix": "node scripts/growth-fix-plan-check.mjs",
+    "test:growth-collection-fix": "node scripts/growth-collection-fix-plan-check.mjs",
+    "test:growth-image-alt": "node scripts/growth-image-alt-plan-check.mjs",
+    "test:growth-internal-link": "node scripts/growth-internal-link-plan-check.mjs",
     "test:growth-rewrite": "node scripts/growth-rewrite-plan-check.mjs",
+    "test:growth-i18n": "node scripts/growth-i18n-check.mjs",
     "test:smoke": "node scripts/smoke-test.mjs",
     "test:qa-suite": "node scripts/qa-suite-check.mjs"
   },
