@@ -37,7 +37,7 @@ import {
   type GrowthStoreOpportunity,
   type GrowthProductScore
 } from "@/lib/growth-audit";
-import { listLatestGrowthMonitorRuns, type GrowthMonitorRun } from "@/lib/growth-monitoring";
+import { listLatestGrowthMonitorRuns, type GrowthMonitorRun, type GrowthSnippetRewrite } from "@/lib/growth-monitoring";
 import { listProducts, readState } from "@/lib/store";
 
 export const dynamic = "force-dynamic";
@@ -1384,41 +1384,50 @@ function KeywordOpportunityBlock({
   creditCost: number;
 }) {
   const canWriteBack = Boolean(product?.product.source === "shopify" && product.product.id.startsWith("gid://shopify/Product/"));
+  const rewrite = getOpportunityRewrite(opportunity);
+  const ctr = Number.isFinite(opportunity.ctr) ? opportunity.ctr : 0;
+  const opportunityType = opportunity.opportunityType?.replaceAll("_", " ") ?? "keyword opportunity";
 
   return (
     <div className="border border-white/10 bg-white/[0.04] p-3">
       <div className="flex items-start justify-between gap-3">
         <p className="text-sm font-semibold leading-5">{opportunity.query}</p>
         <span className="rounded bg-white/10 px-2 py-1 text-[10px] font-semibold uppercase text-white/70">
-          {opportunity.opportunityType.replaceAll("_", " ")}
+          {opportunityType}
         </span>
       </div>
       <p className="mt-2 text-xs leading-5 text-white/60">
-        {opportunity.reason} <span className="font-semibold text-white/75">{opportunity.pageType}</span>
+        {opportunity.reason} <span className="font-semibold text-white/75">{opportunity.pageType ?? "unknown"}</span>
       </p>
       <div className="mt-3 grid grid-cols-3 gap-px overflow-hidden border border-white/10 bg-white/10 text-center text-xs">
         <div className="bg-[#16251f] p-2">
           <p className="text-white/45">Impr.</p>
-          <p className="mt-1 font-semibold">{opportunity.impressions}</p>
+          <p className="mt-1 font-semibold">{opportunity.impressions ?? "--"}</p>
         </div>
         <div className="bg-[#16251f] p-2">
           <p className="text-white/45">CTR</p>
-          <p className="mt-1 font-semibold">{(opportunity.ctr * 100).toFixed(1)}%</p>
+          <p className="mt-1 font-semibold">{(ctr * 100).toFixed(1)}%</p>
         </div>
         <div className="bg-[#16251f] p-2">
           <p className="text-white/45">Pos.</p>
           <p className="mt-1 font-semibold">{opportunity.position || "--"}</p>
         </div>
       </div>
-      <div className="mt-3 border border-white/10 bg-black/10 p-3">
-        <p className="text-[10px] font-semibold uppercase text-white/45">Rewrite draft</p>
-        <p className="mt-1 text-xs font-semibold leading-5 text-white/85">{opportunity.rewrite.seoTitle}</p>
-        <p className="mt-1 text-xs leading-5 text-white/60">{opportunity.rewrite.seoDescription}</p>
-      </div>
-      {canWriteBack && product ? (
+      {rewrite ? (
+        <div className="mt-3 border border-white/10 bg-black/10 p-3">
+          <p className="text-[10px] font-semibold uppercase text-white/45">Rewrite draft</p>
+          <p className="mt-1 text-xs font-semibold leading-5 text-white/85">{rewrite.seoTitle}</p>
+          <p className="mt-1 text-xs leading-5 text-white/60">{rewrite.seoDescription}</p>
+        </div>
+      ) : (
+        <p className="mt-3 border border-white/10 bg-white/[0.04] p-2 text-xs leading-5 text-white/55">
+          This saved monitoring result was created before rewrite drafts were added. Run monitoring again to generate a Shopify write-back draft.
+        </p>
+      )}
+      {canWriteBack && product && rewrite ? (
         <SearchConsoleRewriteApplyButton
           productId={product.product.id}
-          rewrite={opportunity.rewrite}
+          rewrite={rewrite}
           creditCost={creditCost}
         />
       ) : (
@@ -1428,6 +1437,68 @@ function KeywordOpportunityBlock({
       )}
     </div>
   );
+}
+
+function getOpportunityRewrite(
+  opportunity: NonNullable<NonNullable<GrowthMonitorRun["output"]>["keywordOpportunities"]>[number]
+): GrowthSnippetRewrite | null {
+  const savedRewrite = (opportunity as typeof opportunity & { rewrite?: GrowthSnippetRewrite }).rewrite;
+  if (savedRewrite?.seoTitle && savedRewrite.seoDescription && savedRewrite.faqQuestion && savedRewrite.answerBlock) {
+    return savedRewrite;
+  }
+
+  const query = opportunity.query?.replace(/\s+/g, " ").trim();
+  if (!query) return null;
+  const title = titleCaseQuery(query);
+  const pageType = opportunity.pageType ?? "product";
+  const pageLabel = pageType === "collection"
+    ? "Collection"
+    : pageType === "blog"
+      ? "Guide"
+      : pageType === "home"
+        ? "Store"
+        : "Product";
+  const intent = inferOpportunityIntent(query);
+
+  return {
+    seoTitle: clampOpportunitySnippet(`${title} | ${pageLabel} Details, Photos and FAQs`, 68),
+    seoDescription: clampOpportunitySnippet(
+      `Find ${query} with clear product details, photos, FAQs, shipping and return context, and buying guidance before purchase.`,
+      158
+    ),
+    faqQuestion: intent === "comparison"
+      ? `How should shoppers compare ${query}?`
+      : `What should shoppers know before buying ${query}?`,
+    answerBlock: clampOpportunitySnippet(
+      `Use this page to answer ${query} directly: summarize key facts, list product or collection attributes, explain best-fit use cases, and link to related pages.`,
+      260
+    ),
+    intent,
+    confidence: query.length >= 4 && pageType !== "unknown" ? "medium" : "low"
+  };
+}
+
+function titleCaseQuery(value: string) {
+  return value
+    .split(" ")
+    .filter(Boolean)
+    .map((word) => `${word.slice(0, 1).toUpperCase()}${word.slice(1).toLowerCase()}`)
+    .join(" ");
+}
+
+function inferOpportunityIntent(query: string): GrowthSnippetRewrite["intent"] {
+  if (/\b(best|vs|compare|alternative|difference|which)\b/i.test(query)) return "comparison";
+  if (/\b(how|what|why|guide|ideas|tips)\b/i.test(query)) return "informational";
+  if (/\b(brand|official|ace|store)\b/i.test(query)) return "brand";
+  return "commercial";
+}
+
+function clampOpportunitySnippet(value: string, maxLength: number) {
+  const clean = value.replace(/\s+/g, " ").trim();
+  if (clean.length <= maxLength) return clean;
+  const sliced = clean.slice(0, maxLength + 1);
+  const lastSpace = sliced.lastIndexOf(" ");
+  return (lastSpace > maxLength * 0.68 ? sliced.slice(0, lastSpace) : sliced.slice(0, maxLength)).trim();
 }
 
 function CompetitorGapBlock({
