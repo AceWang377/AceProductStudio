@@ -506,7 +506,7 @@ export const dictionaries = defineDictionaries({
         body:
           "The commercial version behaves like an approved optimization assistant: generate better fields, show an editable before/after diff, preview credit cost, then write selected improvements back to Shopify.",
         safetyNote:
-          "Product display titles are deliberately not overwritten yet. That field affects merchandising, brand naming, and ads. Add it later as a separate checkbox when the merchant explicitly wants AceStudio to rewrite public product names.",
+          "Public product display titles are protected by default because they affect merchandising, brand naming, and ads. AceStudio focuses on SEO titles, meta descriptions, tags, image alt text, internal links, and answer-ready copy unless the merchant explicitly approves a public product-name rewrite.",
         readyTitle: "Ready for approved write-back",
         readyBody:
           "These live Shopify products and collections have the weakest scores and can be improved now with a reviewed Shopify update.",
