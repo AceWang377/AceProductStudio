@@ -8,10 +8,33 @@ type HomeSearchParams = Promise<Record<string, string | string[] | undefined>>;
 
 export const dynamic = "force-dynamic";
 
+const primarySiteLinks = [
+  {
+    name: "Product Studio",
+    description: "Generate Shopify-ready product images, SEO copy, commerce fields, and draft listings.",
+    path: "/shopify-ai-product-listing-generator"
+  },
+  {
+    name: "Growth Studio",
+    description: "Audit live Shopify product pages for SEO, GEO, image alt text, internal links, and approved write-back updates.",
+    path: "/shopify-seo-geo-optimizer"
+  },
+  {
+    name: "Resources",
+    description: "Read Shopify AI product content, image SEO, and draft publishing guides.",
+    path: "/resources"
+  },
+  {
+    name: "Support",
+    description: "Contact AceStudio support and review product help information.",
+    path: "/support"
+  }
+] as const;
+
 export const metadata: Metadata = {
-  title: "AceStudio | Shopify SEO/GEO Optimizer & AI Product Listing Tool",
+  title: "AceStudio | Shopify Product Studio and SEO/GEO Optimizer",
   description:
-    "Create Shopify product images and listings, audit live SEO/GEO pages, and approve Shopify write-back updates from one review-first workspace.",
+    "AceStudio helps Shopify merchants create product images, generate SEO copy, audit live SEO/GEO pages, and approve Shopify write-back updates.",
   keywords: [
     "Shopify SEO optimizer",
     "Shopify GEO optimizer",
@@ -25,9 +48,9 @@ export const metadata: Metadata = {
     canonical: "/"
   },
   openGraph: {
-    title: "AceStudio | Shopify SEO/GEO Optimizer & AI Product Listing Tool",
+    title: "AceStudio | Shopify Product Studio and SEO/GEO Optimizer",
     description:
-      "Generate Shopify product assets, audit live SEO/GEO pages, and approve selected write-back updates from one workspace.",
+      "Create Shopify product assets, audit live SEO/GEO pages, and approve selected write-back updates from one workspace.",
     url: siteConfig.url,
     type: "website",
     images: [
@@ -41,7 +64,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AceStudio | Shopify SEO/GEO Optimizer",
+    title: "AceStudio | Shopify Product Studio",
     description:
       "A review-first Shopify workspace for AI product listings, SEO/GEO audits, and approved store updates.",
     images: [`${siteConfig.url}/opengraph-image`]
@@ -86,6 +109,11 @@ function getHomeStructuredData() {
   const softwareId = `${siteConfig.url}/#software`;
   const websiteId = `${siteConfig.url}/#website`;
   const webpageId = `${siteConfig.url}/#webpage`;
+  const siteNavigationId = `${siteConfig.url}/#site-navigation`;
+  const siteLinks = primarySiteLinks.map((link) => ({
+    ...link,
+    url: `${siteConfig.url}${link.path}`
+  }));
 
   return {
     "@context": "https://schema.org",
@@ -94,20 +122,23 @@ function getHomeStructuredData() {
       "@type": "WebSite",
       "@id": websiteId,
       name: siteConfig.name,
-      alternateName: ["AceStudio Shopify AI", "AceStudio Growth Studio"],
+      alternateName: ["Ace Studio", "AceStudio Shopify AI", "AceStudio Growth Studio", "acezerotrading.com"],
       url: siteConfig.url,
       description:
           "AceStudio is a Shopify AI product workspace for product images, SEO copy, GEO-ready product content, and draft publishing.",
       inLanguage: "en",
       publisher: {
         "@id": organizationId
+      },
+      hasPart: {
+        "@id": siteNavigationId
       }
     },
     {
       "@type": "WebPage",
       "@id": webpageId,
       url: siteConfig.url,
-      name: "AceStudio Shopify SEO/GEO Optimizer and AI Product Listing Tool",
+      name: "AceStudio Shopify Product Studio and SEO/GEO Optimizer",
       description:
         "Create Shopify product images and listings, audit live SEO/GEO pages, and approve Shopify write-back updates from one review-first workspace.",
       isPartOf: {
@@ -120,7 +151,10 @@ function getHomeStructuredData() {
         "@type": "ImageObject",
         url: `${siteConfig.url}/opengraph-image`
       },
-      inLanguage: "en"
+      inLanguage: "en",
+      mainEntity: {
+        "@id": `${siteConfig.url}/#primary-workflows`
+      }
     },
     {
       "@type": "Organization",
@@ -191,22 +225,27 @@ function getHomeStructuredData() {
     },
     {
       "@type": "ItemList",
+      "@id": siteNavigationId,
+      name: "AceStudio primary site navigation",
+      itemListElement: siteLinks.map((link, index) => ({
+        "@type": "SiteNavigationElement",
+        position: index + 1,
+        name: link.name,
+        description: link.description,
+        url: link.url
+      }))
+    },
+    {
+      "@type": "ItemList",
       "@id": `${siteConfig.url}/#primary-workflows`,
       name: "AceStudio primary workflows",
-      itemListElement: [
-        {
-          "@type": "ListItem",
-          position: 1,
-          name: "Product Studio",
-          description: "Generate Shopify-ready product images, SEO copy, commerce fields, and draft listings."
-        },
-        {
-          "@type": "ListItem",
-          position: 2,
-          name: "Growth Studio",
-          description: "Audit live Shopify SEO/GEO pages, preview selected fixes, and confirm write-back updates."
-        }
-      ]
+      itemListElement: siteLinks.slice(0, 2).map((link, index) => ({
+        "@type": "ListItem",
+        position: index + 1,
+        name: link.name,
+        description: link.description,
+        url: link.url
+      }))
     }
     ]
   };

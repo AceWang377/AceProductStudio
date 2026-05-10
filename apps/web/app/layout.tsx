@@ -7,6 +7,7 @@ import { AceStudioMark } from "@/components/shell/AceStudioMark";
 import { AppNavigation } from "@/components/shell/AppNavigation";
 import { BrandText } from "@/components/shell/BrandText";
 import { FooterNav } from "@/components/shell/FooterNav";
+import { PublicNavigation } from "@/components/shell/PublicNavigation";
 import { LanguageProvider } from "@/components/i18n/LanguageProvider";
 import { LanguageToggle } from "@/components/i18n/LanguageToggle";
 import { SignInLink } from "@/components/auth/SignInLink";
@@ -107,6 +108,7 @@ export default async function RootLayout({
                   <AppNavigation creditsLabel={creditsLabel} userEmail={user.email} />
                 ) : (
                   <>
+                    <PublicNavigation />
                     <LanguageToggle />
                     <SignInLink />
                   </>
