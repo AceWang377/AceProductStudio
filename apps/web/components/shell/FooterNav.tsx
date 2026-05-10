@@ -17,6 +17,14 @@ export function FooterNav() {
         {
           label: t.footer.draftPublisher,
           href: "/ai-shopify-draft-publisher"
+        },
+        {
+          label: t.shell.howItWorks,
+          href: "/how-it-works"
+        },
+        {
+          label: t.shell.pricing,
+          href: "/pricing"
         }
       ]
     },

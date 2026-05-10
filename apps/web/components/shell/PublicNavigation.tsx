@@ -17,6 +17,16 @@ const publicNavItems = [
     icon: SearchCheck
   },
   {
+    href: "/how-it-works",
+    label: "howItWorks",
+    icon: BookOpenText
+  },
+  {
+    href: "/pricing",
+    label: "pricing",
+    icon: BookOpenText
+  },
+  {
     href: "/resources",
     label: "resources",
     icon: BookOpenText

@@ -20,6 +20,16 @@ const primarySiteLinks = [
     path: "/shopify-seo-geo-optimizer"
   },
   {
+    name: "How It Works",
+    description: "Learn the review-first workflow from Shopify connection to draft publishing and SEO/GEO write-back.",
+    path: "/how-it-works"
+  },
+  {
+    name: "Pricing",
+    description: "Review AceStudio credit packs for Shopify product generation and SEO/GEO optimization.",
+    path: "/pricing"
+  },
+  {
     name: "Resources",
     description: "Read Shopify AI product content, image SEO, and draft publishing guides.",
     path: "/resources"
