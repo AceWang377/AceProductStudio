@@ -23,6 +23,7 @@ import { useLanguage } from "@/components/i18n/LanguageProvider";
 
 const workflowIcons = [ImagePlus, Sparkles, FileText, Send] as const;
 const searchEntityIcons = [SearchCheck, Store, ShieldCheck, LineChart] as const;
+const mainPathIcons = [Sparkles, SearchCheck, FileText, BarChart3] as const;
 
 export function HomeLanding() {
   const { t } = useLanguage();
@@ -70,6 +71,25 @@ export function HomeLanding() {
           <HeroTerminal />
         </div>
       </section>
+
+      <SectionShell
+        eyebrow={landing.sitelinkPaths.eyebrow}
+        title={landing.sitelinkPaths.title}
+        intro={landing.sitelinkPaths.intro}
+      >
+        <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-2 lg:grid-cols-4">
+          {landing.sitelinkPaths.items.map((item, index) => (
+            <MainPathCard
+              key={item.href}
+              href={item.href}
+              icon={mainPathIcons[index] ?? Sparkles}
+              title={item.title}
+              detail={item.detail}
+              action={landing.sitelinkPaths.action}
+            />
+          ))}
+        </div>
+      </SectionShell>
 
       <SectionShell eyebrow={landing.workspaces.eyebrow} title={landing.workspaces.title}>
         <div className="grid gap-0 border border-line bg-white lg:grid-cols-2">
@@ -212,6 +232,32 @@ export function HomeLanding() {
         </div>
       </section>
     </>
+  );
+}
+
+function MainPathCard({
+  href,
+  icon: Icon,
+  title,
+  detail,
+  action
+}: {
+  href: string;
+  icon: LucideIcon;
+  title: string;
+  detail: string;
+  action: string;
+}) {
+  return (
+    <Link href={href} className="group bg-white p-5 transition hover:bg-canvas">
+      <Icon className="h-5 w-5 text-action" aria-hidden />
+      <h3 className="mt-5 text-lg font-semibold">{title}</h3>
+      <p className="mt-3 min-h-20 text-sm leading-6 text-muted">{detail}</p>
+      <span className="mt-5 inline-flex items-center gap-2 text-sm font-semibold text-action">
+        {action}
+        <ChevronRight className="h-4 w-4 transition group-hover:translate-x-0.5" aria-hidden />
+      </span>
+    </Link>
   );
 }
 

@@ -179,6 +179,39 @@ export const dictionaries = defineDictionaries({
           detail: "Review before anything goes live."
         }
       ],
+      sitelinkPaths: {
+        eyebrow: "Start here",
+        title: "The main AceStudio paths, named clearly for merchants and search engines.",
+        intro:
+          "These public pages match the product's core workflows so Google can more easily understand which pages deserve sitelinks.",
+        action: "Open page",
+        items: [
+          {
+            href: "/shopify-ai-product-listing-generator",
+            title: "Product Studio",
+            detail:
+              "Generate Shopify product images, SEO copy, price, inventory, and draft-ready product listings."
+          },
+          {
+            href: "/shopify-seo-geo-optimizer",
+            title: "Growth Studio",
+            detail:
+              "Audit live Shopify SEO/GEO quality, preview fixes, and approve selected write-back updates."
+          },
+          {
+            href: "/how-it-works",
+            title: "How it works",
+            detail:
+              "See the review-first workflow from Shopify connection to draft publishing and live page optimization."
+          },
+          {
+            href: "/pricing",
+            title: "Pricing",
+            detail:
+              "Review credit packs for image generation, SEO copy, Growth Studio audits, and Shopify updates."
+          }
+        ]
+      },
       workspaces: {
         eyebrow: "Platform",
         title: "Two focused studios, one review-first Shopify loop.",
@@ -1163,6 +1196,35 @@ export const dictionaries = defineDictionaries({
           detail: "正式上线前先审核。"
         }
       ],
+      sitelinkPaths: {
+        eyebrow: "从这里开始",
+        title: "AceStudio 的核心路径，对商家和搜索引擎都更清晰。",
+        intro:
+          "这些公开页面对应产品的主要工作流，让 Google 更容易判断哪些页面适合作为站点链接展示。",
+        action: "打开页面",
+        items: [
+          {
+            href: "/shopify-ai-product-listing-generator",
+            title: "产品工作台",
+            detail: "生成 Shopify 商品图片、SEO 文案、价格、库存和可发布草稿。"
+          },
+          {
+            href: "/shopify-seo-geo-optimizer",
+            title: "增长工作台",
+            detail: "审核在线 Shopify 页面的 SEO/GEO 质量，预览优化，并确认后写回。"
+          },
+          {
+            href: "/how-it-works",
+            title: "如何运作",
+            detail: "了解从连接 Shopify 到草稿发布、在线页面优化的先审核流程。"
+          },
+          {
+            href: "/pricing",
+            title: "价格",
+            detail: "查看图片生成、SEO 文案、增长审核和 Shopify 更新所需的积分包。"
+          }
+        ]
+      },
       workspaces: {
         eyebrow: "平台",
         title: "两个聚焦工作台，一个先审核再写入的 Shopify 闭环。",
