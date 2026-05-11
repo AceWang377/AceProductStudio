@@ -160,17 +160,17 @@ export const seoPages = {
       ],
       media: [
         {
-          src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-lifestyle-1-68a4d136-c1b7-4024-8953-a4c74eaca73c.png",
+          src: "/marketing/growth-lifestyle-media.png",
           alt: "Generated lifestyle product image used in an AceStudio Shopify optimization workflow",
           label: "Lifestyle media"
         },
         {
-          src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-product_detail-2-b72f5b62-982f-43ea-a154-848163bb4fe0.png",
+          src: "/marketing/growth-detail-media.png",
           alt: "Generated product detail image for Shopify image SEO review",
           label: "Detail media"
         },
         {
-          src: "/uploads/466d59b9-3b7b-4d1b-a640-e4d5c14d2871-white_background-0-481fbc60-15dc-4649-afb1-94c8ab90db42.png",
+          src: "/marketing/growth-clean-product-media.png",
           alt: "Generated white background product image for Shopify product media order",
           label: "Clean product media"
         }
