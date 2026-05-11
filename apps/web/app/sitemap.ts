@@ -65,6 +65,11 @@ const publicRoutes = [
     priority: 0.8
   },
   {
+    path: seoPages.zhShopifyProductImageDescriptionTool.path,
+    changeFrequency: "monthly",
+    priority: 0.75
+  },
+  {
     path: "/resources",
     changeFrequency: "monthly",
     priority: 0.7

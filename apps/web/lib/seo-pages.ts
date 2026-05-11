@@ -6,7 +6,8 @@ export type SeoPageKey =
   | "shopifyProductImageGenerator"
   | "shopifySeoProductDescriptionGenerator"
   | "shopifySeoGeoOptimizer"
-  | "aiShopifyDraftPublisher";
+  | "aiShopifyDraftPublisher"
+  | "zhShopifyProductImageDescriptionTool";
 
 export const seoPages = {
   shopifyAiProductListingGenerator: {
@@ -306,6 +307,48 @@ export const seoPages = {
         answer: "AceStudio shows a success notice and stores the Shopify Admin product link for review."
       }
     ]
+  },
+  zhShopifyProductImageDescriptionTool: {
+    path: "/zh/shopify-product-image-description-ai-tool",
+    eyebrow: "给 Shopify 卖家的 AI 商品内容工具",
+    title: "Shopify 商品图和商品描述 AI 工具",
+    description:
+      "AceStudio 帮助 Shopify 卖家上传一张商品图，快速生成商品图、商品描述、FAQ、SEO 文案和可审核的 Shopify 商品草稿。",
+    primaryCta: "免费开始生成 Shopify 商品草稿",
+    benefits: [
+      "上传一张商品图，生成生活方式图、细节图、介绍图和白底图。",
+      "自动生成 Shopify 商品标题、商品描述、卖点、标签和 FAQ。",
+      "连接自己的 Shopify 店铺后，先发布为草稿，确认后再上线。",
+      "使用 Growth Studio 检查在线商品页的 SEO、GEO、图片 alt text 和内链建议。"
+    ],
+    sections: [
+      {
+        title: "这个工具解决什么问题？",
+        body: "很多 Shopify 卖家上架商品时需要反复写标题、描述、FAQ、SEO 文案，还要准备多张商品图。AceStudio 把这些步骤放在同一个工作台里，减少从图片工具、文案工具和 Shopify 后台之间来回切换。"
+      },
+      {
+        title: "适合哪些 Shopify 卖家？",
+        body: "适合跨境电商卖家、独立站运营者、小团队店主和需要批量整理商品页的人。你可以先用一张商品图创建商品草稿，再检查图片、文案、价格、库存和发布状态。"
+      },
+      {
+        title: "如何使用？",
+        body: "先注册或登录 AceStudio，连接 Shopify 店铺，上传一张商品图，选择目标市场、语气、关键词和语言，然后生成商品图片与 SEO 文案。确认内容后，可以把商品发布到 Shopify 草稿中。"
+      }
+    ],
+    faq: [
+      {
+        question: "AceStudio 会直接把商品发布上线吗？",
+        answer: "默认不会。AceStudio 会优先创建 Shopify 草稿，让你先检查图片顺序、商品描述、SEO 文案、价格和库存。"
+      },
+      {
+        question: "我可以只生成商品图或只生成商品描述吗？",
+        answer: "可以。你可以把 AceStudio 当作 Shopify 商品图生成工具，也可以只使用 SEO 商品描述、标签和 FAQ 生成功能。"
+      },
+      {
+        question: "这个页面和 Growth Studio 有什么关系？",
+        answer: "这个页面主要面向商品创建流程。Growth Studio 则用于检查已经上线的 Shopify 商品页，并给出 SEO/GEO 优化建议和可确认的写回修改。"
+      }
+    ]
   }
 } as const satisfies Record<
   SeoPageKey,
@@ -356,9 +399,23 @@ export function getSeoPageMetadata(key: SeoPageKey): Metadata {
         "Shopify internal links",
         "AI answer readiness for Shopify"
       ]
+      : key === "zhShopifyProductImageDescriptionTool"
+        ? [
+          "Shopify 商品图 AI 工具",
+          "Shopify 商品描述 AI 生成",
+          "Shopify 商品上架 AI",
+          "Shopify SEO 文案",
+          "跨境电商 商品描述"
+        ]
       : undefined,
     alternates: {
-      canonical: page.path
+      canonical: page.path,
+      languages: key === "zhShopifyProductImageDescriptionTool"
+        ? {
+          "zh-CN": page.path,
+          en: "/shopify-ai-product-listing-generator"
+        }
+        : undefined
     },
     openGraph: {
       title: `${page.title} | ${siteConfig.name}`,

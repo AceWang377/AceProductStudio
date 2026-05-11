@@ -42,6 +42,10 @@ export function FooterNav() {
         {
           label: t.footer.imageSeo,
           href: "/shopify-product-image-generator"
+        },
+        {
+          label: t.footer.chineseShopifyTool,
+          href: "/zh/shopify-product-image-description-ai-tool"
         }
       ]
     },

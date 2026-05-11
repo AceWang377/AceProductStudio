@@ -48,6 +48,7 @@ export const dictionaries = defineDictionaries({
       seoGeoOptimizer: "SEO/GEO optimizer",
       seoCopy: "SEO copy",
       imageSeo: "Image SEO",
+      chineseShopifyTool: "Chinese Shopify AI tool",
       guides: "Guides",
       shopifyAiChecklist: "Shopify AI checklist"
     },
@@ -154,8 +155,8 @@ export const dictionaries = defineDictionaries({
         headline: "Create Shopify product pages that are ready to publish and easier to find.",
         body:
           "Turn one product photo into draft-ready media, SEO copy, pricing fields, and inventory details, then use Growth Studio to improve the live pages that can actually rank.",
-        primaryCta: "Start with Product Studio",
-        secondaryCta: "Explore Growth Studio"
+        primaryCta: "Start free",
+        secondaryCta: "Get a free Shopify page audit"
       },
       proof: [
         {
@@ -1069,6 +1070,7 @@ export const dictionaries = defineDictionaries({
       seoGeoOptimizer: "SEO/GEO 优化器",
       seoCopy: "SEO 文案",
       imageSeo: "图片 SEO",
+      chineseShopifyTool: "中文 Shopify AI 工具",
       guides: "指南",
       shopifyAiChecklist: "Shopify AI 检查清单"
     },
@@ -1171,8 +1173,8 @@ export const dictionaries = defineDictionaries({
         headline: "创建可发布、也更容易被搜索到的 Shopify 商品页。",
         body:
           "从一张商品图生成草稿级图片、SEO 文案、价格字段和库存信息，再用增长工作台优化真正能参与排名的在线页面。",
-        primaryCta: "从产品工作台开始",
-        secondaryCta: "了解增长工作台"
+        primaryCta: "免费开始",
+        secondaryCta: "免费检查一个 Shopify 商品页"
       },
       proof: [
         {
