@@ -151,6 +151,7 @@ export function SeoLandingPage({
                         src={item.src}
                         alt={item.alt}
                         fill
+                        unoptimized
                         sizes={index === 0 ? "(min-width: 1024px) 360px, 100vw" : "(min-width: 1024px) 220px, 50vw"}
                         className="object-cover"
                       />
