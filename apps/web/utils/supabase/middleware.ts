@@ -39,13 +39,27 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isProtectedPage =
-    pathname.startsWith("/dashboard") ||
-    pathname.startsWith("/products") ||
-    pathname.startsWith("/settings");
+  const protectedPagePrefixes = [
+    "/account",
+    "/admin",
+    "/billing",
+    "/dashboard",
+    "/growth",
+    "/launch",
+    "/products",
+    "/qa",
+    "/settings",
+    "/usage"
+  ];
+  const isProtectedPage = protectedPagePrefixes.some((prefix) =>
+    pathname === prefix || pathname.startsWith(`${prefix}/`)
+  );
   const isProtectedJsonApi =
+    pathname.startsWith("/api/account") ||
+    pathname.startsWith("/api/growth") ||
     pathname.startsWith("/api/products") ||
     pathname.startsWith("/api/settings") ||
+    pathname.startsWith("/api/usage") ||
     pathname.startsWith("/api/upload") ||
     pathname.startsWith("/api/jobs") ||
     pathname.startsWith("/api/credits");
@@ -59,7 +73,9 @@ export async function updateSession(request: NextRequest) {
     const loginUrl = request.nextUrl.clone();
     loginUrl.pathname = "/login";
     loginUrl.searchParams.set("next", pathname);
-    return NextResponse.redirect(loginUrl);
+    const redirectResponse = NextResponse.redirect(loginUrl);
+    redirectResponse.headers.set("X-Robots-Tag", "noindex, nofollow");
+    return redirectResponse;
   }
 
   return response;

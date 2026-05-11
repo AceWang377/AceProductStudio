@@ -11,6 +11,7 @@ const privateNoIndexPaths = [
   "/launch",
   "/login",
   "/products",
+  "/qa",
   "/settings",
   "/usage"
 ];

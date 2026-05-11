@@ -10,6 +10,8 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: [
           "/",
+          "/how-it-works",
+          "/pricing",
           "/support",
           "/privacy",
           "/terms",
@@ -30,9 +32,11 @@ export default function robots(): MetadataRoute.Robots {
           "/auth",
           "/billing",
           "/dashboard",
+          "/growth",
           "/launch",
           "/login",
           "/products",
+          "/qa",
           "/settings",
           "/usage"
         ]

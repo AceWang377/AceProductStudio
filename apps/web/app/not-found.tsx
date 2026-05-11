@@ -4,7 +4,11 @@ import { EmptyState } from "@/components/system/EmptyState";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
-  title: `Page not found | ${siteConfig.name}`
+  title: `Page not found | ${siteConfig.name}`,
+  robots: {
+    index: false,
+    follow: false
+  }
 };
 
 export default function NotFound() {
