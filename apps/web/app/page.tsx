@@ -42,9 +42,9 @@ const primarySiteLinks = [
 ] as const;
 
 export const metadata: Metadata = {
-  title: "AceStudio | Shopify Product Studio and SEO/GEO Optimizer",
+  title: "AceStudio: AI Product Content Tool for Shopify Sellers",
   description:
-    "AceStudio helps Shopify merchants create product images, generate SEO copy, audit live SEO/GEO pages, and approve Shopify write-back updates.",
+    "Upload one product photo. Generate Shopify product images, SEO descriptions, FAQs, GEO-ready content, and reviewable Shopify draft listings.",
   keywords: [
     "Shopify SEO optimizer",
     "Shopify GEO optimizer",
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     canonical: "/"
   },
   openGraph: {
-    title: "AceStudio | Shopify Product Studio and SEO/GEO Optimizer",
+    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
     description:
       "Create Shopify product assets, audit live SEO/GEO pages, and approve selected write-back updates from one workspace.",
     url: siteConfig.url,
@@ -74,9 +74,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AceStudio | Shopify Product Studio",
+    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
     description:
-      "A review-first Shopify workspace for AI product listings, SEO/GEO audits, and approved store updates.",
+      "Upload one product photo to generate Shopify images, SEO descriptions, FAQs, GEO-ready copy, and draft listings.",
     images: [`${siteConfig.url}/opengraph-image`]
   }
 };
@@ -132,10 +132,16 @@ function getHomeStructuredData() {
       "@type": "WebSite",
       "@id": websiteId,
       name: siteConfig.name,
-      alternateName: ["Ace Studio", "AceStudio Shopify AI", "AceStudio Growth Studio", "acezerotrading.com"],
+      alternateName: [
+        "Ace Studio",
+        "ACE Studio",
+        "AceStudio Shopify AI",
+        "AceStudio Growth Studio",
+        "acezerotrading.com"
+      ],
       url: siteConfig.url,
       description:
-          "AceStudio is a Shopify AI product workspace for product images, SEO copy, GEO-ready product content, and draft publishing.",
+          "AceStudio is an AI product content tool for Shopify sellers: product images, SEO descriptions, FAQs, GEO-ready product content, and draft publishing.",
       inLanguage: "en",
       publisher: {
         "@id": organizationId
@@ -172,7 +178,8 @@ function getHomeStructuredData() {
       name: siteConfig.name,
       legalName: siteConfig.company,
       url: siteConfig.url,
-      logo: `${siteConfig.url}/brand/ace-studio-logo.png`,
+      logo: `${siteConfig.url}/icon.png`,
+      image: `${siteConfig.url}/brand/ace-studio-logo.png`,
       contactPoint: {
         "@type": "ContactPoint",
         email: siteConfig.supportEmail,

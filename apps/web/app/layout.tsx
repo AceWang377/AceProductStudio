@@ -17,11 +17,11 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   applicationName: siteConfig.name,
   title: {
-    default: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
+    default: "AceStudio: AI Product Content Tool for Shopify Sellers",
     template: `%s | ${siteConfig.name}`
   },
   description:
-    "Generate Shopify-ready product images, SEO and GEO product copy, pricing details, inventory fields, and draft product listings from one product photo.",
+    "Upload one product photo to generate Shopify product images, SEO descriptions, FAQs, GEO-ready content, and reviewable Shopify draft listings.",
   keywords: [
     "AI Shopify product listing generator",
     "Shopify product image generator",
@@ -36,10 +36,11 @@ export const metadata: Metadata = {
   creator: siteConfig.company,
   publisher: siteConfig.company,
   category: "Software",
+  manifest: "/manifest.webmanifest",
   icons: {
     icon: [
-      { url: "/favicon.ico", sizes: "96x96", type: "image/x-icon" },
-      { url: "/icon.png", sizes: "512x512", type: "image/png" }
+      { url: "/icon.png", sizes: "512x512", type: "image/png" },
+      { url: "/favicon.ico", sizes: "96x96", type: "image/x-icon" }
     ],
     shortcut: ["/favicon.ico"],
     apple: [
@@ -47,9 +48,9 @@ export const metadata: Metadata = {
     ]
   },
   openGraph: {
-    title: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
+    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
     description:
-      "Create Shopify-ready product media, SEO and GEO copy, pricing details, inventory fields, and draft listings from one product photo.",
+      "Upload one product photo, generate Shopify-ready product media and SEO/GEO copy, then publish a reviewable draft listing.",
     url: siteConfig.url,
     siteName: siteConfig.name,
     type: "website",
@@ -65,9 +66,9 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "AceStudio | Shopify AI SEO & GEO Product Listing Generator",
+    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
     description:
-      "Generate product images, SEO and GEO copy, and Shopify draft listings from one product photo.",
+      "Generate product images, SEO descriptions, FAQs, GEO-ready copy, and Shopify draft listings from one product photo.",
     images: [`${siteConfig.url}/opengraph-image`]
   },
   robots: {
