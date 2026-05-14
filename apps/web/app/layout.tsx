@@ -41,14 +41,11 @@ export const metadata: Metadata = {
     icon: [
       { url: "/ace-studio-favicon-96.png", sizes: "96x96", type: "image/png" },
       { url: "/favicon.png", sizes: "96x96", type: "image/png" },
-      { url: "/ace-studio-icon-512.png", sizes: "512x512", type: "image/png" },
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
-      { url: "/favicon.ico", sizes: "96x96", type: "image/x-icon" }
+      { url: "/ace-studio-icon-512.png", sizes: "512x512", type: "image/png" }
     ],
     shortcut: ["/ace-studio-favicon-96.png"],
     apple: [
-      { url: "/ace-studio-apple-icon-180.png", sizes: "180x180", type: "image/png" },
-      { url: "/apple-icon.png", sizes: "180x180", type: "image/png" }
+      { url: "/ace-studio-apple-icon-180.png", sizes: "180x180", type: "image/png" }
     ]
   },
   openGraph: {

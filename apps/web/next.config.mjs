@@ -29,14 +29,6 @@ const iconNoCachePaths = [
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  async rewrites() {
-    return [
-      {
-        source: "/favicon.png",
-        destination: "/ace-studio-favicon-96.png"
-      }
-    ];
-  },
   async redirects() {
     return [
       {
