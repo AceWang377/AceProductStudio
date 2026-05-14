@@ -16,8 +16,27 @@ const privateNoIndexPaths = [
   "/usage"
 ];
 
+const iconNoCachePaths = [
+  "/ace-studio-favicon-96.png",
+  "/ace-studio-icon-512.png",
+  "/ace-studio-apple-icon-180.png",
+  "/favicon.ico",
+  "/favicon.png",
+  "/icon.png",
+  "/apple-icon.png",
+  "/manifest.webmanifest"
+];
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  async rewrites() {
+    return [
+      {
+        source: "/favicon.png",
+        destination: "/ace-studio-favicon-96.png"
+      }
+    ];
+  },
   async redirects() {
     return [
       {
@@ -45,17 +64,28 @@ const nextConfig = {
     ];
   },
   async headers() {
-    return privateNoIndexPaths.flatMap((source) =>
-      [source, `${source}/:path*`].map((pathSource) => ({
-        source: pathSource,
+    return [
+      ...iconNoCachePaths.map((source) => ({
+        source,
         headers: [
           {
-            key: "X-Robots-Tag",
-            value: "noindex, nofollow"
+            key: "Cache-Control",
+            value: "public, max-age=0, must-revalidate"
           }
         ]
-      }))
-    );
+      })),
+      ...privateNoIndexPaths.flatMap((source) =>
+        [source, `${source}/:path*`].map((pathSource) => ({
+          source: pathSource,
+          headers: [
+            {
+              key: "X-Robots-Tag",
+              value: "noindex, nofollow"
+            }
+          ]
+        }))
+      )
+    ];
   },
   images: {
     remotePatterns: [

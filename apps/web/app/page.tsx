@@ -178,7 +178,7 @@ function getHomeStructuredData() {
       name: siteConfig.name,
       legalName: siteConfig.company,
       url: siteConfig.url,
-      logo: `${siteConfig.url}/icon.png`,
+      logo: `${siteConfig.url}/ace-studio-icon-512.png`,
       image: `${siteConfig.url}/brand/ace-studio-logo.png`,
       contactPoint: {
         "@type": "ContactPoint",

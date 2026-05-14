@@ -16,6 +16,24 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en",
     icons: [
       {
+        src: "/ace-studio-favicon-96.png",
+        sizes: "96x96",
+        type: "image/png",
+        purpose: "any"
+      },
+      {
+        src: "/ace-studio-icon-512.png",
+        sizes: "512x512",
+        type: "image/png",
+        purpose: "any"
+      },
+      {
+        src: "/ace-studio-apple-icon-180.png",
+        sizes: "180x180",
+        type: "image/png",
+        purpose: "any"
+      },
+      {
         src: "/icon.png",
         sizes: "512x512",
         type: "image/png",
