@@ -146,9 +146,14 @@ function getHomeStructuredData() {
       publisher: {
         "@id": organizationId
       },
-      hasPart: {
-        "@id": siteNavigationId
-      }
+      hasPart: [
+        {
+          "@id": siteNavigationId
+        },
+        ...siteLinks.map((link) => ({
+          "@id": `${link.url}#webpage`
+        }))
+      ]
     },
     {
       "@type": "WebPage",
@@ -178,7 +183,7 @@ function getHomeStructuredData() {
       name: siteConfig.name,
       legalName: siteConfig.company,
       url: siteConfig.url,
-      logo: `${siteConfig.url}/ace-studio-icon-512.png`,
+      logo: `${siteConfig.url}/ace-studio-google-icon-v20260515.png`,
       image: `${siteConfig.url}/brand/ace-studio-logo.png`,
       contactPoint: {
         "@type": "ContactPoint",
@@ -252,6 +257,21 @@ function getHomeStructuredData() {
         url: link.url
       }))
     },
+    ...siteLinks.map((link, index) => ({
+      "@type": "WebPage",
+      "@id": `${link.url}#webpage`,
+      url: link.url,
+      name: `${link.name} - AceStudio`,
+      description: link.description,
+      isPartOf: {
+        "@id": websiteId
+      },
+      about: {
+        "@id": softwareId
+      },
+      position: index + 1,
+      inLanguage: "en"
+    })),
     {
       "@type": "ItemList",
       "@id": `${siteConfig.url}/#primary-workflows`,

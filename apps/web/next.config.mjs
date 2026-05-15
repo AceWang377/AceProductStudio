@@ -17,6 +17,9 @@ const privateNoIndexPaths = [
 ];
 
 const iconNoCachePaths = [
+  "/ace-studio-google-favicon-v20260515.png",
+  "/ace-studio-google-icon-v20260515.png",
+  "/ace-studio-apple-icon-v20260515.png",
   "/ace-studio-favicon-96.png",
   "/ace-studio-icon-512.png",
   "/ace-studio-apple-icon-180.png",

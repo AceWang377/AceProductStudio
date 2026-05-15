@@ -16,19 +16,19 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "en",
     icons: [
       {
-        src: "/ace-studio-favicon-96.png",
+        src: "/ace-studio-google-favicon-v20260515.png",
         sizes: "96x96",
         type: "image/png",
         purpose: "any"
       },
       {
-        src: "/ace-studio-icon-512.png",
-        sizes: "512x512",
+        src: "/ace-studio-google-icon-v20260515.png",
+        sizes: "192x192",
         type: "image/png",
         purpose: "any"
       },
       {
-        src: "/ace-studio-apple-icon-180.png",
+        src: "/ace-studio-apple-icon-v20260515.png",
         sizes: "180x180",
         type: "image/png",
         purpose: "any"
