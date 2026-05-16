@@ -16,10 +16,8 @@ function getPublicSiteUrl() {
     try {
       const url = new URL(configuredUrl);
       const hostname = url.hostname.replace(/^www\./, "");
-      if (hostname === "acezerotrading.com" || hostname === "studio.acezerotrading.com") {
-        return `https://${hostname}`;
-      }
-      if (hostname.endsWith(".vercel.app")) return "https://studio.acezerotrading.com";
+      if (hostname === "acezerotrading.com") return "https://acezerotrading.com";
+      if (hostname.endsWith(".vercel.app")) return "https://acezerotrading.com";
       url.protocol = "https:";
       url.hostname = hostname;
       url.pathname = "";
@@ -31,5 +29,5 @@ function getPublicSiteUrl() {
     }
   }
 
-  return "https://studio.acezerotrading.com";
+  return "https://acezerotrading.com";
 }
