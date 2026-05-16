@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "AceStudio",
-  company: process.env.NEXT_PUBLIC_COMPANY_NAME?.trim() || "AceStudio",
+  company: process.env.NEXT_PUBLIC_COMPANY_NAME?.trim() || "ACE ZERP TRADING LTD",
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || "admin@acezerotrading.com",
   url: getPublicSiteUrl()
 };
@@ -16,8 +16,10 @@ function getPublicSiteUrl() {
     try {
       const url = new URL(configuredUrl);
       const hostname = url.hostname.replace(/^www\./, "");
-      if (hostname === "acezerotrading.com") return "https://acezerotrading.com";
-      if (hostname.endsWith(".vercel.app")) return "https://acezerotrading.com";
+      if (hostname === "acezerotrading.com" || hostname === "studio.acezerotrading.com") {
+        return `https://${hostname}`;
+      }
+      if (hostname.endsWith(".vercel.app")) return "https://studio.acezerotrading.com";
       url.protocol = "https:";
       url.hostname = hostname;
       url.pathname = "";
@@ -29,5 +31,5 @@ function getPublicSiteUrl() {
     }
   }
 
-  return "https://acezerotrading.com";
+  return "https://studio.acezerotrading.com";
 }

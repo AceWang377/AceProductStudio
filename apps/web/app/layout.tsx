@@ -141,7 +141,7 @@ export default async function RootLayout({
             </div>
             <div className="border-t border-line">
               <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-4 text-xs text-muted sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                <span>(c) AceStudio.</span>
+                <span>(c) 2026 {siteConfig.company}. All rights reserved.</span>
                 <span>Draft-first publishing. Review-before-write SEO/GEO updates.</span>
               </div>
             </div>
