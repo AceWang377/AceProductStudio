@@ -1,4 +1,28 @@
 {
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "www.acezerotrading.com"
+        }
+      ],
+      "destination": "https://acezerotrading.com/:path*",
+      "permanent": true
+    },
+    {
+      "source": "/:path*",
+      "has": [
+        {
+          "type": "host",
+          "value": "ace-product-studio.vercel.app"
+        }
+      ],
+      "destination": "https://acezerotrading.com/:path*",
+      "permanent": true
+    }
+  ],
   "crons": [
     {
       "path": "/api/cron/growth-monitor",
