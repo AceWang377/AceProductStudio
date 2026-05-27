@@ -56,7 +56,7 @@ export const dictionaries = defineDictionaries({
       eyebrow: "First-time setup",
       title: "Connect, generate, review, then publish a Shopify draft.",
       description:
-        "AceStudio keeps the first run focused on one safe workflow. Live publishing stays behind a separate confirmation.",
+        "ACE ZERO TRADING keeps the first run focused on one safe workflow. Live publishing stays behind a separate confirmation.",
       progress: "complete",
       nextBestAction: "Next best action",
       nextPrefix: "Next:",
@@ -151,7 +151,7 @@ export const dictionaries = defineDictionaries({
     landing: {
       hero: {
         badge: "Shopify AI product and growth workspace",
-        productName: "AceStudio",
+        productName: "ACE ZERO TRADING",
         headline: "Create Shopify product pages that are ready to publish and easier to find.",
         body:
           "Turn one product photo into draft-ready media, SEO copy, pricing fields, and inventory details, then use Growth Studio to improve the live pages that can actually rank.",
@@ -182,7 +182,7 @@ export const dictionaries = defineDictionaries({
       ],
       sitelinkPaths: {
         eyebrow: "Start here",
-        title: "The main AceStudio paths, named clearly for merchants and search engines.",
+        title: "The main ACE ZERO TRADING paths, named clearly for merchants and search engines.",
         intro:
           "These public pages match the product's core workflows so Google can more easily understand which pages deserve sitelinks.",
         action: "Open page",
@@ -282,14 +282,14 @@ export const dictionaries = defineDictionaries({
       },
       searchEntity: {
         eyebrow: "AI search clarity",
-        title: "Make AceStudio easy for search engines and AI answers to understand.",
+        title: "Make ACE ZERO TRADING easy for search engines and AI answers to understand.",
         intro:
           "The homepage now states the entity, audience, workflow, and write-back boundary in plain product language so crawlers and answer engines can summarize it consistently.",
         cards: [
           {
             title: "Clear entity",
             detail:
-              "AceStudio is a Shopify product content and growth workspace, not a generic image generator or agency landing page."
+              "ACE ZERO TRADING is a Shopify product content and growth workspace, not a generic image generator or agency landing page."
           },
           {
             title: "Merchant use case",
@@ -361,7 +361,7 @@ export const dictionaries = defineDictionaries({
         }
       },
       terminal: {
-        workspace: "AceStudio live workspace",
+        workspace: "ACE ZERO TRADING live workspace",
         title: "Draft product operating system",
         connected: "Connected",
         mediaLabels: ["Lifestyle", "Detail", "Intro", "White BG"],
@@ -457,7 +457,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "Ready to try the flow?",
         title:
           "Build the first Shopify-ready product, then measure what needs to improve.",
-        action: "Open AceStudio"
+        action: "Open ACE ZERO TRADING"
       }
     },
     growthPage: {
@@ -479,19 +479,19 @@ export const dictionaries = defineDictionaries({
           auditSource: "Audit source",
           excludedNonLive: "Excluded non-live",
           liveShopifyProducts: "Live Shopify products",
-          aceStudioWorkspace: "AceStudio workspace"
+          aceStudioWorkspace: "ACE ZERO TRADING workspace"
         }
       },
       error: {
         liveAuditTitle: "Live Shopify audit could not run",
         fallbackSuffix:
-          "The page is showing AceStudio workspace products instead, so users still get a useful preview."
+          "The page is showing ACE ZERO TRADING workspace products instead, so users still get a useful preview."
       },
       commandCenter: {
         eyebrow: "Structured growth command center",
         title: "One operating system for Shopify SEO and GEO",
         body:
-          "Mature SEO products do not stop at a score. AceStudio separates the work into audit, prioritization, approved write-back, and measurement so merchants always know what to do next.",
+          "Mature SEO products do not stop at a score. ACE ZERO TRADING separates the work into audit, prioritization, approved write-back, and measurement so merchants always know what to do next.",
         liveOnlyNote:
           "Only Shopify products with ACTIVE status, a published date, and a public Online Store URL are included. Draft, archived, hidden, and unlisted products are excluded because they cannot rank in search.",
         highPriority: "High priority",
@@ -542,7 +542,7 @@ export const dictionaries = defineDictionaries({
         body:
           "The commercial version behaves like an approved optimization assistant: generate better fields, show an editable before/after diff, preview credit cost, then write selected improvements back to Shopify.",
         safetyNote:
-          "Public product display titles are protected by default because they affect merchandising, brand naming, and ads. AceStudio focuses on SEO titles, meta descriptions, tags, image alt text, internal links, and answer-ready copy unless the merchant explicitly approves a public product-name rewrite.",
+          "Public product display titles are protected by default because they affect merchandising, brand naming, and ads. ACE ZERO TRADING focuses on SEO titles, meta descriptions, tags, image alt text, internal links, and answer-ready copy unless the merchant explicitly approves a public product-name rewrite.",
         readyTitle: "Ready for approved write-back",
         readyBody:
           "These live Shopify products and collections have the weakest scores and can be improved now with a reviewed Shopify update.",
@@ -631,7 +631,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "Collection SEO scoring",
         title: "Score category pages, not only product pages",
         body:
-          "Collection pages can rank for broader category keywords and should act like buying-guide landing pages. AceStudio audits live public collections for snippets, category copy, FAQs, images, and crawlable URLs.",
+          "Collection pages can rank for broader category keywords and should act like buying-guide landing pages. ACE ZERO TRADING audits live public collections for snippets, category copy, FAQs, images, and crawlable URLs.",
         scoreLabel: "Collection score",
         empty:
           "No public Shopify collections were returned yet. Publish collections to Online Store, then run Growth Studio again to score category pages.",
@@ -671,7 +671,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "Commercial SEO engine",
         title: "Turn monitoring into prioritized optimization tasks",
         body:
-          "AceStudio converts Search Console queries, crawler results, and AI visibility gaps into a ranked action plan that merchants can review before writing changes back to Shopify.",
+          "ACE ZERO TRADING converts Search Console queries, crawler results, and AI visibility gaps into a ranked action plan that merchants can review before writing changes back to Shopify.",
         readiness: "Readiness",
         empty:
           "Run the live monitor to generate a prioritized action plan. Without Search Console credentials, the plan will focus on setup, technical SEO, and AI visibility readiness.",
@@ -917,7 +917,7 @@ export const dictionaries = defineDictionaries({
     seo: {
       landing: {
         talkToSupport: "Talk to support",
-        helpsWith: "What AceStudio helps with",
+        helpsWith: "What ACE ZERO TRADING helps with",
         resourcesEyebrow: "Shopify AI resources",
         resourcesTitle: "Recommended guides for this workflow",
         viewAllResources: "View all resources",
@@ -925,7 +925,7 @@ export const dictionaries = defineDictionaries({
         faqTitle: "Frequently asked questions",
         finalEyebrow: "Ready to build the first draft?",
         finalTitle: "Create Shopify-ready product content from one photo.",
-        finalCta: "Open AceStudio",
+        finalCta: "Open ACE ZERO TRADING",
         optimizationEyebrow: "Optimization coverage",
         optimizationTitle: "What the SEO/GEO audit should improve",
         optimizationIntro:
@@ -939,7 +939,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "Shopify SEO and GEO optimizer",
         title: "Shopify SEO and GEO optimizer for AI-ready product pages",
         description:
-          "AceStudio audits Shopify product pages for search basics, AI-answer clarity, media context, and trust signals, then lets merchants approve selected improvements before writing back.",
+          "ACE ZERO TRADING audits Shopify product pages for search basics, AI-answer clarity, media context, and trust signals, then lets merchants approve selected improvements before writing back.",
         primaryCta: "Optimize a Shopify product",
         benefits: [
           "Score product title, SEO title, meta description, tags, and description depth.",
@@ -960,7 +960,7 @@ export const dictionaries = defineDictionaries({
           media: [
             {
               src: "/marketing/growth-lifestyle-media.png",
-              alt: "Generated lifestyle product image used in an AceStudio Shopify optimization workflow",
+              alt: "Generated lifestyle product image used in an ACE ZERO TRADING Shopify optimization workflow",
               label: "Lifestyle media"
             },
             {
@@ -989,7 +989,7 @@ export const dictionaries = defineDictionaries({
           eyebrow: "Structured data validation",
           title: "Rich-result checks stay grounded in real Shopify data.",
           body:
-            "AceStudio separates readiness from automation: it checks Product, Offer, Breadcrumb, FAQ, and Review prerequisites, then asks the merchant to validate live pages after deployment.",
+            "ACE ZERO TRADING separates readiness from automation: it checks Product, Offer, Breadcrumb, FAQ, and Review prerequisites, then asks the merchant to validate live pages after deployment.",
           checks: [
             "Product schema has name, description, images, URL, brand/category context.",
             "Offer readiness uses real Shopify price, currency, availability, and product URL.",
@@ -1078,7 +1078,7 @@ export const dictionaries = defineDictionaries({
       eyebrow: "首次设置",
       title: "连接 Shopify，生成内容，检查后发布草稿。",
       description:
-        "AceStudio 会把第一次使用限制在安全的主流程里。正式上线发布仍然需要单独确认。",
+        "ACE ZERO TRADING 会把第一次使用限制在安全的主流程里。正式上线发布仍然需要单独确认。",
       progress: "已完成",
       nextBestAction: "下一步建议",
       nextPrefix: "下一步：",
@@ -1169,7 +1169,7 @@ export const dictionaries = defineDictionaries({
     landing: {
       hero: {
         badge: "Shopify AI 商品与增长工作台",
-        productName: "AceStudio",
+        productName: "ACE ZERO TRADING",
         headline: "创建可发布、也更容易被搜索到的 Shopify 商品页。",
         body:
           "从一张商品图生成草稿级图片、SEO 文案、价格字段和库存信息，再用增长工作台优化真正能参与排名的在线页面。",
@@ -1200,7 +1200,7 @@ export const dictionaries = defineDictionaries({
       ],
       sitelinkPaths: {
         eyebrow: "从这里开始",
-        title: "AceStudio 的核心路径，对商家和搜索引擎都更清晰。",
+        title: "ACE ZERO TRADING 的核心路径，对商家和搜索引擎都更清晰。",
         intro:
           "这些公开页面对应产品的主要工作流，让 Google 更容易判断哪些页面适合作为站点链接展示。",
         action: "打开页面",
@@ -1291,13 +1291,13 @@ export const dictionaries = defineDictionaries({
       },
       searchEntity: {
         eyebrow: "AI 搜索清晰度",
-        title: "让搜索引擎和 AI 答案更容易理解 AceStudio。",
+        title: "让搜索引擎和 AI 答案更容易理解 ACE ZERO TRADING。",
         intro:
           "首页会用清晰的产品语言说明实体、受众、流程和写回边界，让爬虫和答案引擎可以稳定总结这个产品。",
         cards: [
           {
             title: "清晰实体",
-            detail: "AceStudio 是 Shopify 商品内容与增长工作台，不是普通图片生成器或代理服务页面。"
+            detail: "ACE ZERO TRADING 是 Shopify 商品内容与增长工作台，不是普通图片生成器或代理服务页面。"
           },
           {
             title: "商家场景",
@@ -1366,7 +1366,7 @@ export const dictionaries = defineDictionaries({
         }
       },
       terminal: {
-        workspace: "AceStudio 实时工作区",
+        workspace: "ACE ZERO TRADING 实时工作区",
         title: "商品草稿操作系统",
         connected: "已连接",
         mediaLabels: ["场景图", "细节图", "介绍图", "白底图"],
@@ -1455,7 +1455,7 @@ export const dictionaries = defineDictionaries({
       finalCta: {
         eyebrow: "准备试用这个流程了吗？",
         title: "先创建第一个 Shopify 商品，再衡量哪里需要优化。",
-        action: "打开 AceStudio"
+        action: "打开 ACE ZERO TRADING"
       }
     },
     growthPage: {
@@ -1477,18 +1477,18 @@ export const dictionaries = defineDictionaries({
           auditSource: "审核来源",
           excludedNonLive: "已排除非公开商品",
           liveShopifyProducts: "Shopify 公开商品",
-          aceStudioWorkspace: "AceStudio 工作区"
+          aceStudioWorkspace: "ACE ZERO TRADING 工作区"
         }
       },
       error: {
         liveAuditTitle: "实时 Shopify 审核未能运行",
-        fallbackSuffix: "页面正在显示 AceStudio 工作区商品，因此用户仍然可以看到有效预览。"
+        fallbackSuffix: "页面正在显示 ACE ZERO TRADING 工作区商品，因此用户仍然可以看到有效预览。"
       },
       commandCenter: {
         eyebrow: "结构化增长指挥台",
         title: "一个用于 Shopify SEO 与 GEO 的操作系统",
         body:
-          "成熟的 SEO 产品不能只停留在评分。AceStudio 将工作拆分为审核、优先级排序、确认后写入和结果监控，让商家始终知道下一步该做什么。",
+          "成熟的 SEO 产品不能只停留在评分。ACE ZERO TRADING 将工作拆分为审核、优先级排序、确认后写入和结果监控，让商家始终知道下一步该做什么。",
         liveOnlyNote:
           "这里只包含 ACTIVE 状态、有发布时间、并且拥有公开 Online Store URL 的 Shopify 商品。草稿、归档、隐藏和未上架商品会被排除，因为它们无法参与搜索排名。",
         highPriority: "高优先级",
@@ -1534,7 +1534,7 @@ export const dictionaries = defineDictionaries({
         body:
           "商业化版本需要像一个可审核的优化助手：生成更好的字段，展示可编辑 before/after 差异，预览积分成本，然后把选中的改动写回 Shopify。",
         safetyNote:
-          "目前不会自动覆盖商品展示标题。这个字段会影响商品陈列、品牌命名和广告。后续可以作为单独勾选项加入，只有商家明确希望 AceStudio 改写公开商品名称时才启用。",
+          "目前不会自动覆盖商品展示标题。这个字段会影响商品陈列、品牌命名和广告。后续可以作为单独勾选项加入，只有商家明确希望 ACE ZERO TRADING 改写公开商品名称时才启用。",
         readyTitle: "可确认写回的商品和分类页",
         readyBody: "这些公开 Shopify 商品和分类页评分较弱，可以通过审核后的 Shopify 更新立即优化。",
         noCandidates: "目前没有需要写回优化的公开 Shopify 商品或分类页。草稿、归档、隐藏和未上架内容不会进入此队列。",
@@ -1610,7 +1610,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "分类页 SEO 评分",
         title: "不仅评分商品页，也评分分类页",
         body:
-          "分类页可以覆盖更广的类目关键词，也应该像购买指南 landing page 一样工作。AceStudio 会审核公开分类页的摘要、分类文案、FAQ、图片和可抓取 URL。",
+          "分类页可以覆盖更广的类目关键词，也应该像购买指南 landing page 一样工作。ACE ZERO TRADING 会审核公开分类页的摘要、分类文案、FAQ、图片和可抓取 URL。",
         scoreLabel: "分类评分",
         empty: "暂时没有返回公开 Shopify 分类页。请将分类发布到 Online Store，然后再次运行 Growth Studio。",
         badge: "分类",
@@ -1647,7 +1647,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "商业化 SEO 引擎",
         title: "把监控转成优先级优化任务",
         body:
-          "AceStudio 会把 Search Console 查询、爬虫结果和 AI 可见性缺口转成排序行动计划，商家审核后再写回 Shopify。",
+          "ACE ZERO TRADING 会把 Search Console 查询、爬虫结果和 AI 可见性缺口转成排序行动计划，商家审核后再写回 Shopify。",
         readiness: "准备度",
         empty: "运行实时监控后即可生成优先级行动计划。没有 Search Console 凭证时，计划会聚焦设置、技术 SEO 和 AI 可见性准备度。",
         recommendedAction: "建议动作",
@@ -1878,7 +1878,7 @@ export const dictionaries = defineDictionaries({
     seo: {
       landing: {
         talkToSupport: "联系支持",
-        helpsWith: "AceStudio 可以帮你做什么",
+        helpsWith: "ACE ZERO TRADING 可以帮你做什么",
         resourcesEyebrow: "Shopify AI 资源",
         resourcesTitle: "该流程的推荐指南",
         viewAllResources: "查看所有资源",
@@ -1886,7 +1886,7 @@ export const dictionaries = defineDictionaries({
         faqTitle: "常见问题",
         finalEyebrow: "准备创建第一个草稿了吗？",
         finalTitle: "用一张图片创建 Shopify 可用的商品内容。",
-        finalCta: "打开 AceStudio",
+        finalCta: "打开 ACE ZERO TRADING",
         optimizationEyebrow: "优化覆盖范围",
         optimizationTitle: "SEO/GEO 审核应优化的内容",
         optimizationIntro:
@@ -1900,7 +1900,7 @@ export const dictionaries = defineDictionaries({
         eyebrow: "Shopify SEO 和 GEO 优化器",
         title: "面向 AI 可理解商品页的 Shopify SEO 和 GEO 优化器",
         description:
-          "AceStudio 会审核 Shopify 商品页的搜索基础、AI 答案清晰度、图片语义和信任信号，并让商家在写回前批准选中的优化。",
+          "ACE ZERO TRADING 会审核 Shopify 商品页的搜索基础、AI 答案清晰度、图片语义和信任信号，并让商家在写回前批准选中的优化。",
         primaryCta: "优化 Shopify 商品",
         benefits: [
           "评分商品标题、SEO 标题、Meta 描述、标签和描述深度。",
@@ -1921,7 +1921,7 @@ export const dictionaries = defineDictionaries({
           media: [
             {
               src: "/marketing/growth-lifestyle-media.png",
-              alt: "AceStudio Shopify 优化流程中生成的生活方式商品图",
+              alt: "ACE ZERO TRADING Shopify 优化流程中生成的生活方式商品图",
               label: "场景图"
             },
             {
@@ -1950,7 +1950,7 @@ export const dictionaries = defineDictionaries({
           eyebrow: "结构化数据验证",
           title: "富结果检查必须基于真实 Shopify 数据。",
           body:
-            "AceStudio 会区分准备度和自动化：检查 Product、Offer、Breadcrumb、FAQ 和 Review 的前置条件，并提示商家在部署后验证真实页面。",
+            "ACE ZERO TRADING 会区分准备度和自动化：检查 Product、Offer、Breadcrumb、FAQ 和 Review 的前置条件，并提示商家在部署后验证真实页面。",
           checks: [
             "Product schema 包含名称、描述、图片、URL、品牌/分类语境。",
             "Offer 准备度使用真实 Shopify 价格、货币、库存可售状态和商品 URL。",

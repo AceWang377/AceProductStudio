@@ -26,7 +26,7 @@ export default function GlobalError({
             </div>
             <p className="mt-6 text-sm text-muted">Application error</p>
             <h1 className="mt-2 text-3xl font-semibold leading-tight">
-              AceStudio could not start
+              ACE ZERO TRADING could not start
             </h1>
             <p className="mt-3 text-sm leading-6 text-muted">
               This is usually a temporary deployment or configuration issue. Try

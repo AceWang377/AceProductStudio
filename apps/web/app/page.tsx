@@ -26,7 +26,7 @@ const primarySiteLinks = [
   },
   {
     name: "Pricing",
-    description: "Review AceStudio credit packs for Shopify product generation and SEO/GEO optimization.",
+    description: "Review ACE ZERO TRADING credit packs for Shopify product generation and SEO/GEO optimization.",
     path: "/pricing"
   },
   {
@@ -36,13 +36,13 @@ const primarySiteLinks = [
   },
   {
     name: "Support",
-    description: "Contact AceStudio support and review product help information.",
+    description: "Contact ACE ZERO TRADING support and review product help information.",
     path: "/support"
   }
 ] as const;
 
 export const metadata: Metadata = {
-  title: "AceStudio: AI Product Content Tool for Shopify Sellers",
+  title: "ACE ZERO TRADING: AI Product Content Tool for Shopify Sellers",
   description:
     "Upload one product photo. Generate Shopify product images, SEO descriptions, FAQs, GEO-ready content, and reviewable Shopify draft listings.",
   keywords: [
@@ -58,7 +58,7 @@ export const metadata: Metadata = {
     canonical: "/"
   },
   openGraph: {
-    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
+    title: "ACE ZERO TRADING: AI Product Content Tool for Shopify Sellers",
     description:
       "Create Shopify product assets, audit live SEO/GEO pages, and approve selected write-back updates from one workspace.",
     url: siteConfig.url,
@@ -68,13 +68,13 @@ export const metadata: Metadata = {
         url: `${siteConfig.url}/opengraph-image`,
         width: 1200,
         height: 630,
-        alt: "AceStudio Shopify SEO and GEO optimizer workspace"
+        alt: "ACE ZERO TRADING Shopify SEO and GEO optimizer workspace"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
+    title: "ACE ZERO TRADING: AI Product Content Tool for Shopify Sellers",
     description:
       "Upload one product photo to generate Shopify images, SEO descriptions, FAQs, GEO-ready copy, and draft listings.",
     images: [`${siteConfig.url}/opengraph-image`]
@@ -132,16 +132,10 @@ function getHomeStructuredData() {
       "@type": "WebSite",
       "@id": websiteId,
       name: siteConfig.name,
-      alternateName: [
-        "Ace Studio",
-        "ACE Studio",
-        "AceStudio Shopify AI",
-        "AceStudio Growth Studio",
-        "acezerotrading.com"
-      ],
+      alternateName: siteConfig.alternateNames,
       url: siteConfig.url,
       description:
-          "AceStudio is an AI product content tool for Shopify sellers: product images, SEO descriptions, FAQs, GEO-ready product content, and draft publishing.",
+          "ACE ZERO TRADING is an AI product content tool for Shopify sellers: product images, SEO descriptions, FAQs, GEO-ready product content, and draft publishing.",
       inLanguage: "en",
       publisher: {
         "@id": organizationId
@@ -159,7 +153,7 @@ function getHomeStructuredData() {
       "@type": "WebPage",
       "@id": webpageId,
       url: siteConfig.url,
-      name: "AceStudio Shopify Product Studio and SEO/GEO Optimizer",
+      name: "ACE ZERO TRADING Shopify Product Studio and SEO/GEO Optimizer",
       description:
         "Create Shopify product images and listings, audit live SEO/GEO pages, and approve Shopify write-back updates from one review-first workspace.",
       isPartOf: {
@@ -180,7 +174,8 @@ function getHomeStructuredData() {
     {
       "@type": "Organization",
       "@id": organizationId,
-      name: siteConfig.name,
+      name: siteConfig.companyDisplayName,
+      alternateName: siteConfig.alternateNames,
       legalName: siteConfig.company,
       url: siteConfig.url,
       logo: `${siteConfig.url}/ace-studio-google-icon-v20260515.png`,
@@ -195,7 +190,7 @@ function getHomeStructuredData() {
       "@type": "SoftwareApplication",
       "@id": softwareId,
       name: siteConfig.name,
-      alternateName: "AceStudio Growth Studio",
+      alternateName: ["ACE ZERO TRADING Growth Studio", "Ace Zero Trading"],
       applicationCategory: "BusinessApplication",
       applicationSubCategory: "Shopify SEO and product content software",
       operatingSystem: "Web",
@@ -248,7 +243,7 @@ function getHomeStructuredData() {
     {
       "@type": "ItemList",
       "@id": siteNavigationId,
-      name: "AceStudio primary site navigation",
+      name: "ACE ZERO TRADING primary site navigation",
       itemListElement: siteLinks.map((link, index) => ({
         "@type": "SiteNavigationElement",
         position: index + 1,
@@ -261,7 +256,7 @@ function getHomeStructuredData() {
       "@type": "WebPage",
       "@id": `${link.url}#webpage`,
       url: link.url,
-      name: `${link.name} - AceStudio`,
+      name: `${link.name} - ACE ZERO TRADING`,
       description: link.description,
       isPartOf: {
         "@id": websiteId
@@ -275,7 +270,7 @@ function getHomeStructuredData() {
     {
       "@type": "ItemList",
       "@id": `${siteConfig.url}/#primary-workflows`,
-      name: "AceStudio primary workflows",
+      name: "ACE ZERO TRADING primary workflows",
       itemListElement: siteLinks.slice(0, 2).map((link, index) => ({
         "@type": "ListItem",
         position: index + 1,

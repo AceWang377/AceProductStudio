@@ -157,7 +157,7 @@ export function buildGrowthCollectionFixPlan({
     {
       field: "descriptionHtml",
       label: "Collection buying guide",
-      before: alreadyApplied ? "AceStudio collection guide already exists." : normalizeHtmlText(currentDescription) || "No collection guide",
+      before: alreadyApplied ? "ACE ZERO TRADING collection guide already exists." : normalizeHtmlText(currentDescription) || "No collection guide",
       after: normalizeHtmlText(nextGuideBlock),
       changed: descriptionAppended
     }

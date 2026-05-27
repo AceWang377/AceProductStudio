@@ -15,7 +15,7 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "How It Works",
   description:
-    "Learn how AceStudio connects Shopify, generates product images and SEO copy, audits live SEO/GEO pages, and writes approved updates back to Shopify.",
+    "Learn how ACE ZERO TRADING connects Shopify, generates product images and SEO copy, audits live SEO/GEO pages, and writes approved updates back to Shopify.",
   alternates: {
     canonical: "/how-it-works"
   },
@@ -47,7 +47,7 @@ const steps = [
   {
     icon: Send,
     title: "Publish a Shopify draft",
-    body: "AceStudio publishes as draft by default so merchants can review the final listing in Shopify Admin before going live."
+    body: "ACE ZERO TRADING publishes as draft by default so merchants can review the final listing in Shopify Admin before going live."
   },
   {
     icon: SearchCheck,
@@ -75,13 +75,13 @@ export default function HowItWorksPage() {
     "@graph": [
       {
         "@type": "WebPage",
-        name: "How AceStudio Works",
+        name: "How ACE ZERO TRADING Works",
         description: metadata.description,
         url: `${siteConfig.url}/how-it-works`
       },
       {
         "@type": "HowTo",
-        name: "How to create and optimize Shopify product pages with AceStudio",
+        name: "How to create and optimize Shopify product pages with ACE ZERO TRADING",
         description:
           "A review-first workflow for Shopify product generation, draft publishing, and SEO/GEO optimization.",
         step: steps.map((step, index) => ({
@@ -124,7 +124,7 @@ export default function HowItWorksPage() {
           A review-first workflow from product photo to optimized Shopify page.
         </h1>
         <p className="mt-5 max-w-3xl text-base leading-8 text-muted">
-          AceStudio is built around two connected loops: Product Studio creates
+          ACE ZERO TRADING is built around two connected loops: Product Studio creates
           Shopify-ready drafts, while Growth Studio improves live pages with confirmed
           SEO/GEO updates.
         </p>
@@ -172,7 +172,7 @@ export default function HowItWorksPage() {
           <h2 className="mt-2 text-2xl font-semibold">Designed for merchant approval, not surprise automation.</h2>
           <p className="mt-3 text-sm leading-6 text-muted">
             SEO/GEO tools become risky when they silently rewrite live commerce pages.
-            AceStudio keeps the commercial workflow explicit and reversible.
+            ACE ZERO TRADING keeps the commercial workflow explicit and reversible.
           </p>
         </div>
         <div className="grid gap-px overflow-hidden border border-line bg-line md:grid-cols-2">

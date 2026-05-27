@@ -63,7 +63,7 @@ export async function POST(request: Request) {
             currency: pack.currency,
             unit_amount: pack.unitAmount,
             product_data: {
-              name: `${pack.credits} AceStudio credits`,
+              name: `${pack.credits} ACE ZERO TRADING credits`,
               description: pack.description
             }
           }

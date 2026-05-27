@@ -15,7 +15,7 @@ export const seoPages = {
     eyebrow: "Shopify AI product listing generator",
     title: "Shopify AI product listing generator for draft-ready products",
     description:
-      "AceStudio helps Shopify merchants turn one product photo into generated product images, SEO copy, price and inventory fields, and a reviewable Shopify draft.",
+      "ACE ZERO TRADING helps Shopify merchants turn one product photo into generated product images, SEO copy, price and inventory fields, and a reviewable Shopify draft.",
     primaryCta: "Generate a Shopify product listing",
     benefits: [
       "Create listing media, SEO copy, price, SKU, and inventory in one product workflow.",
@@ -26,7 +26,7 @@ export const seoPages = {
     sections: [
       {
         title: "One workflow for the full Shopify listing",
-        body: "Many Shopify tools solve only one piece of product creation. AceStudio keeps the generated media, SEO product copy, commerce fields, and draft publishing step together so merchants can review the complete listing before it reaches Shopify."
+        body: "Many Shopify tools solve only one piece of product creation. ACE ZERO TRADING keeps the generated media, SEO product copy, commerce fields, and draft publishing step together so merchants can review the complete listing before it reaches Shopify."
       },
       {
         title: "Built around merchant review",
@@ -43,8 +43,8 @@ export const seoPages = {
         answer: "It can generate product images, SEO product title, description, bullet points, tags, FAQ content, and draft-ready product details from an uploaded product photo."
       },
       {
-        question: "Does AceStudio publish directly to Shopify?",
-        answer: "AceStudio is designed to publish as a Shopify draft by default, so merchants can review the product in Shopify Admin before going live."
+        question: "Does ACE ZERO TRADING publish directly to Shopify?",
+        answer: "ACE ZERO TRADING is designed to publish as a Shopify draft by default, so merchants can review the product in Shopify Admin before going live."
       },
       {
         question: "Can different users connect different Shopify stores?",
@@ -57,7 +57,7 @@ export const seoPages = {
     eyebrow: "AI product image generator for Shopify",
     title: "Shopify product image generator for draft-ready listings",
     description:
-      "AceStudio helps Shopify merchants turn one product photo into an ordered product media set with lifestyle, detail, intro, and white-background images ready for draft publishing.",
+      "ACE ZERO TRADING helps Shopify merchants turn one product photo into an ordered product media set with lifestyle, detail, intro, and white-background images ready for draft publishing.",
     primaryCta: "Generate Shopify product images",
     benefits: [
       "Generate 4+ product images from one uploaded photo.",
@@ -81,7 +81,7 @@ export const seoPages = {
     ],
     faq: [
       {
-        question: "Does AceStudio publish the original upload to Shopify?",
+        question: "Does ACE ZERO TRADING publish the original upload to Shopify?",
         answer: "No. The product workflow keeps the original upload separate and publishes the generated image set."
       },
       {
@@ -110,7 +110,7 @@ export const seoPages = {
     sections: [
       {
         title: "Copy that fits Shopify workflows",
-        body: "AceStudio focuses on product listing copy that merchants can inspect and edit, not generic long-form marketing text."
+        body: "ACE ZERO TRADING focuses on product listing copy that merchants can inspect and edit, not generic long-form marketing text."
       },
       {
         title: "Quality controls before generation",
@@ -123,7 +123,7 @@ export const seoPages = {
     ],
     faq: [
       {
-        question: "Does AceStudio write Shopify meta content?",
+        question: "Does ACE ZERO TRADING write Shopify meta content?",
         answer: "The product copy workflow prepares SEO-focused title, description, tags, bullet points, and FAQ content for review."
       },
       {
@@ -141,7 +141,7 @@ export const seoPages = {
     eyebrow: "Shopify SEO and GEO optimizer",
     title: "Shopify SEO and GEO optimizer for AI-ready product pages",
     description:
-      "AceStudio audits Shopify product pages for search basics, AI-answer clarity, media context, and trust signals, then lets merchants approve selected improvements before writing back.",
+      "ACE ZERO TRADING audits Shopify product pages for search basics, AI-answer clarity, media context, and trust signals, then lets merchants approve selected improvements before writing back.",
     primaryCta: "Optimize a Shopify product",
     benefits: [
       "Score product title, SEO title, meta description, tags, and description depth.",
@@ -162,7 +162,7 @@ export const seoPages = {
       media: [
         {
           src: "/marketing/growth-lifestyle-media.png",
-          alt: "Generated lifestyle product image used in an AceStudio Shopify optimization workflow",
+          alt: "Generated lifestyle product image used in an ACE ZERO TRADING Shopify optimization workflow",
           label: "Lifestyle media"
         },
         {
@@ -191,7 +191,7 @@ export const seoPages = {
       eyebrow: "Structured data validation",
       title: "Rich-result checks stay grounded in real Shopify data.",
       body:
-        "AceStudio separates readiness from automation: it checks Product, Offer, Breadcrumb, FAQ, and Review prerequisites, then asks the merchant to validate live pages after deployment.",
+        "ACE ZERO TRADING separates readiness from automation: it checks Product, Offer, Breadcrumb, FAQ, and Review prerequisites, then asks the merchant to validate live pages after deployment.",
       checks: [
         "Product schema has name, description, images, URL, brand/category context.",
         "Offer readiness uses real Shopify price, currency, availability, and product URL.",
@@ -202,7 +202,7 @@ export const seoPages = {
     sections: [
       {
         title: "From product creation to product optimization",
-        body: "AceStudio starts with the product workflow, then uses Growth Studio to audit the finished product page. This keeps optimization tied to the real listing instead of becoming a separate SEO checklist."
+        body: "ACE ZERO TRADING starts with the product workflow, then uses Growth Studio to audit the finished product page. This keeps optimization tied to the real listing instead of becoming a separate SEO checklist."
       },
       {
         title: "Built for Google and AI answer engines",
@@ -210,7 +210,7 @@ export const seoPages = {
       },
       {
         title: "Review before Shopify changes",
-        body: "Similar tools often automate metadata, alt text, schema, and product content. AceStudio keeps the safer workflow: preview suggested changes first, then confirm selected updates before Shopify is touched."
+        body: "Similar tools often automate metadata, alt text, schema, and product content. ACE ZERO TRADING keeps the safer workflow: preview suggested changes first, then confirm selected updates before Shopify is touched."
       }
     ],
     optimizationAreas: [
@@ -261,8 +261,8 @@ export const seoPages = {
         answer: "Yes, but they overlap. SEO focuses on traditional search visibility, while GEO focuses on clarity and usefulness for AI-generated answers. Good product pages should support both."
       },
       {
-        question: "Does AceStudio guarantee Google ranking?",
-        answer: "No tool can guarantee rankings. AceStudio helps merchants create clearer, more complete, reviewable product content that supports search visibility."
+        question: "Does ACE ZERO TRADING guarantee Google ranking?",
+        answer: "No tool can guarantee rankings. ACE ZERO TRADING helps merchants create clearer, more complete, reviewable product content that supports search visibility."
       }
     ]
   },
@@ -282,7 +282,7 @@ export const seoPages = {
     sections: [
       {
         title: "Draft-first by design",
-        body: "AceStudio creates a Shopify draft first so the merchant can review media, copy, price, inventory, and sales channel settings inside Shopify Admin."
+        body: "ACE ZERO TRADING creates a Shopify draft first so the merchant can review media, copy, price, inventory, and sales channel settings inside Shopify Admin."
       },
       {
         title: "OAuth store connection",
@@ -295,7 +295,7 @@ export const seoPages = {
     ],
     faq: [
       {
-        question: "Does AceStudio publish products live automatically?",
+        question: "Does ACE ZERO TRADING publish products live automatically?",
         answer: "No. Draft publishing is the default path. Live publishing requires a separate confirmation."
       },
       {
@@ -304,7 +304,7 @@ export const seoPages = {
       },
       {
         question: "What happens after a draft is created?",
-        answer: "AceStudio shows a success notice and stores the Shopify Admin product link for review."
+        answer: "ACE ZERO TRADING shows a success notice and stores the Shopify Admin product link for review."
       }
     ]
   },
@@ -313,7 +313,7 @@ export const seoPages = {
     eyebrow: "给 Shopify 卖家的 AI 商品内容工具",
     title: "Shopify 商品图和商品描述 AI 工具",
     description:
-      "AceStudio 帮助 Shopify 卖家上传一张商品图，快速生成商品图、商品描述、FAQ、SEO 文案和可审核的 Shopify 商品草稿。",
+      "ACE ZERO TRADING 帮助 Shopify 卖家上传一张商品图，快速生成商品图、商品描述、FAQ、SEO 文案和可审核的 Shopify 商品草稿。",
     primaryCta: "免费开始生成 Shopify 商品草稿",
     benefits: [
       "上传一张商品图，生成生活方式图、细节图、介绍图和白底图。",
@@ -324,7 +324,7 @@ export const seoPages = {
     sections: [
       {
         title: "这个工具解决什么问题？",
-        body: "很多 Shopify 卖家上架商品时需要反复写标题、描述、FAQ、SEO 文案，还要准备多张商品图。AceStudio 把这些步骤放在同一个工作台里，减少从图片工具、文案工具和 Shopify 后台之间来回切换。"
+        body: "很多 Shopify 卖家上架商品时需要反复写标题、描述、FAQ、SEO 文案，还要准备多张商品图。ACE ZERO TRADING 把这些步骤放在同一个工作台里，减少从图片工具、文案工具和 Shopify 后台之间来回切换。"
       },
       {
         title: "适合哪些 Shopify 卖家？",
@@ -332,17 +332,17 @@ export const seoPages = {
       },
       {
         title: "如何使用？",
-        body: "先注册或登录 AceStudio，连接 Shopify 店铺，上传一张商品图，选择目标市场、语气、关键词和语言，然后生成商品图片与 SEO 文案。确认内容后，可以把商品发布到 Shopify 草稿中。"
+        body: "先注册或登录 ACE ZERO TRADING，连接 Shopify 店铺，上传一张商品图，选择目标市场、语气、关键词和语言，然后生成商品图片与 SEO 文案。确认内容后，可以把商品发布到 Shopify 草稿中。"
       }
     ],
     faq: [
       {
-        question: "AceStudio 会直接把商品发布上线吗？",
-        answer: "默认不会。AceStudio 会优先创建 Shopify 草稿，让你先检查图片顺序、商品描述、SEO 文案、价格和库存。"
+        question: "ACE ZERO TRADING 会直接把商品发布上线吗？",
+        answer: "默认不会。ACE ZERO TRADING 会优先创建 Shopify 草稿，让你先检查图片顺序、商品描述、SEO 文案、价格和库存。"
       },
       {
         question: "我可以只生成商品图或只生成商品描述吗？",
-        answer: "可以。你可以把 AceStudio 当作 Shopify 商品图生成工具，也可以只使用 SEO 商品描述、标签和 FAQ 生成功能。"
+        answer: "可以。你可以把 ACE ZERO TRADING 当作 Shopify 商品图生成工具，也可以只使用 SEO 商品描述、标签和 FAQ 生成功能。"
       },
       {
         question: "这个页面和 Growth Studio 有什么关系？",
@@ -448,6 +448,7 @@ export function getSeoPageStructuredData(key: SeoPageKey) {
         "@type": "WebSite",
         "@id": websiteId,
         name: siteConfig.name,
+        alternateName: siteConfig.alternateNames,
         url: siteConfig.url,
         publisher: {
           "@id": organizationId
@@ -456,7 +457,8 @@ export function getSeoPageStructuredData(key: SeoPageKey) {
       {
         "@type": "Organization",
         "@id": organizationId,
-        name: siteConfig.name,
+        name: siteConfig.companyDisplayName,
+        alternateName: siteConfig.alternateNames,
         legalName: siteConfig.company,
         url: siteConfig.url,
         logo: `${siteConfig.url}/brand/ace-studio-logo.png`

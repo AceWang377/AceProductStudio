@@ -427,7 +427,7 @@ function ProductControlSurface() {
     <div className="landing-reveal landing-reveal-delay surface-scan border border-white/10 bg-white/[0.04] p-3">
       <div className="grid gap-3 lg:grid-cols-[180px_minmax(0,1fr)_230px]">
         <aside className="hidden border border-white/10 bg-[#101916] p-4 lg:block">
-          <p className="text-sm font-semibold">AceStudio</p>
+          <p className="text-sm font-semibold">ACE ZERO TRADING</p>
           <div className="mt-6 space-y-2 text-xs text-white/55">
             {control.sidebarItems.map((item, index) => (
               <div key={item} className={index === 0 ? "bg-white/10 px-3 py-2 text-white" : "px-3 py-2"}>

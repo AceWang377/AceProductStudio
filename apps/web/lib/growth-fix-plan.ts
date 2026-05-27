@@ -178,7 +178,7 @@ export function buildGrowthFixPlan({
     {
       field: "descriptionHtml",
       label: "Answer-ready product content",
-      before: alreadyApplied ? "AceStudio buyer Q&A already exists." : normalizeHtmlText(currentDescription) || "No AceStudio answer block",
+      before: alreadyApplied ? "ACE ZERO TRADING buyer Q&A already exists." : normalizeHtmlText(currentDescription) || "No ACE ZERO TRADING answer block",
       after: normalizeHtmlText(nextAnswerBlock),
       changed: descriptionAppended
     }

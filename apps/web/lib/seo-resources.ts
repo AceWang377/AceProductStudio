@@ -305,11 +305,11 @@ export const seoResources = {
   },
   "getting-started-with-acestudio": {
     slug: "getting-started-with-acestudio",
-    title: "Getting started with AceStudio",
+    title: "Getting started with ACE ZERO TRADING",
     description:
-      "A first-run guide for creating a Shopify product draft with AceStudio: connect Shopify, upload a product photo, generate media and copy, review, then publish a draft.",
+      "A first-run guide for creating a Shopify product draft with ACE ZERO TRADING: connect Shopify, upload a product photo, generate media and copy, review, then publish a draft.",
     excerpt:
-      "Follow the core AceStudio onboarding workflow from first login to first Shopify draft.",
+      "Follow the core ACE ZERO TRADING onboarding workflow from first login to first Shopify draft.",
     category: "Getting started",
     readingTime: "5 min read",
     publishedAt: "2026-05-07",
@@ -338,7 +338,7 @@ export const seoResources = {
     ],
     faq: [
       {
-        question: "Does AceStudio publish products live automatically?",
+        question: "Does ACE ZERO TRADING publish products live automatically?",
         answer: "The recommended workflow creates Shopify drafts by default so merchants can review products in Shopify Admin before making them live."
       },
       {
@@ -353,9 +353,9 @@ export const seoResources = {
   },
   "connect-shopify-store-to-acestudio": {
     slug: "connect-shopify-store-to-acestudio",
-    title: "How to connect a Shopify store to AceStudio",
+    title: "How to connect a Shopify store to ACE ZERO TRADING",
     description:
-      "A practical Shopify OAuth setup guide for connecting a merchant store to AceStudio without manually sharing Admin API tokens.",
+      "A practical Shopify OAuth setup guide for connecting a merchant store to ACE ZERO TRADING without manually sharing Admin API tokens.",
     excerpt:
       "Connect Shopify through OAuth, verify the store domain, and understand the permissions used for draft publishing.",
     category: "Shopify connection",
@@ -370,7 +370,7 @@ export const seoResources = {
       },
       {
         title: "Approve the requested permissions",
-        body: "AceStudio asks for product, file, location, inventory, and publication permissions so it can create product drafts, upload generated media, set commerce fields, and optionally publish when the merchant confirms."
+        body: "ACE ZERO TRADING asks for product, file, location, inventory, and publication permissions so it can create product drafts, upload generated media, set commerce fields, and optionally publish when the merchant confirms."
       },
       {
         title: "Reconnect after app setting changes",
@@ -381,7 +381,7 @@ export const seoResources = {
       "Use the store's myshopify.com domain.",
       "Confirm the Shopify app URL and redirect URL are production URLs.",
       "Approve the OAuth permissions in Shopify.",
-      "Return to AceStudio and look for the connected-store success message.",
+      "Return to ACE ZERO TRADING and look for the connected-store success message.",
       "Create one test draft before inviting a real user."
     ],
     faq: [
@@ -390,7 +390,7 @@ export const seoResources = {
         answer: "No. OAuth is the intended production flow because it stores the connection automatically and avoids asking users to copy private Shopify credentials."
       },
       {
-        question: "Why does AceStudio need write_products?",
+        question: "Why does ACE ZERO TRADING need write_products?",
         answer: "It needs write_products to create and update Shopify product drafts with generated copy, media, price, SKU, and inventory fields."
       },
       {
@@ -401,9 +401,9 @@ export const seoResources = {
   },
   "acestudio-credit-pricing-faq": {
     slug: "acestudio-credit-pricing-faq",
-    title: "AceStudio credit pricing FAQ",
+    title: "ACE ZERO TRADING credit pricing FAQ",
     description:
-      "How AceStudio credits work for AI image generation, free copy generation, admin accounts, Stripe checkout, refunds, and failed payments.",
+      "How ACE ZERO TRADING credits work for AI image generation, free copy generation, admin accounts, Stripe checkout, refunds, and failed payments.",
     excerpt:
       "Understand what spends credits, what stays free, and how Stripe payment confirmation adds credits to an account.",
     category: "Credits and billing",
@@ -451,7 +451,7 @@ export const seoResources = {
     slug: "shopify-seo-geo-scoring-explained",
     title: "Shopify SEO and GEO scoring explained",
     description:
-      "How AceStudio evaluates Shopify product and collection pages for search ranking readiness, rich snippets, image SEO, internal links, technical SEO, and AI visibility.",
+      "How ACE ZERO TRADING evaluates Shopify product and collection pages for search ranking readiness, rich snippets, image SEO, internal links, technical SEO, and AI visibility.",
     excerpt:
       "Understand the SEO and GEO scoring model behind Growth Studio and how merchants can use it to improve Shopify pages.",
     category: "SEO and GEO",
@@ -560,12 +560,16 @@ export function getSeoResourceStructuredData(slug: SeoResourceSlug) {
       inLanguage: "en-US",
       author: {
         "@type": "Organization",
-        name: siteConfig.company,
+        name: siteConfig.companyDisplayName,
+        alternateName: siteConfig.alternateNames,
+        legalName: siteConfig.company,
         url: siteConfig.url
       },
       publisher: {
         "@type": "Organization",
-        name: siteConfig.company,
+        name: siteConfig.companyDisplayName,
+        alternateName: siteConfig.alternateNames,
+        legalName: siteConfig.company,
         url: siteConfig.url
       },
       mainEntityOfPage: `${siteConfig.url}${path}`

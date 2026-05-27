@@ -13,7 +13,7 @@ export function SeoArticlePage({ article }: { article: SeoArticle }) {
     <article className="mx-auto max-w-4xl">
       <nav aria-label="Breadcrumb" className="mb-6 flex items-center gap-2 text-sm text-muted">
         <Link href="/" className="studio-focus rounded hover:text-ink">
-          AceStudio
+          ACE ZERO TRADING
         </Link>
         <ChevronRight className="h-4 w-4" aria-hidden />
         <Link href="/resources" className="studio-focus rounded hover:text-ink">
@@ -108,7 +108,7 @@ export function SeoArticlePage({ article }: { article: SeoArticle }) {
       <section className="mt-10 border border-line bg-[#eef4ef] p-6">
         <p className="text-sm font-semibold text-action">Turn this into a repeatable workflow</p>
         <h2 className="mt-2 text-2xl font-semibold">
-          Use AceStudio to generate product media, copy, and Shopify drafts from one place.
+          Use ACE ZERO TRADING to generate product media, copy, and Shopify drafts from one place.
         </h2>
         <Link
           href="/login"

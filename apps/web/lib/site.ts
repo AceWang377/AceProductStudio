@@ -1,6 +1,16 @@
 export const siteConfig = {
-  name: "AceStudio",
-  company: process.env.NEXT_PUBLIC_COMPANY_NAME?.trim() || "ACE ZERP TRADING LTD",
+  name: "ACE ZERO TRADING",
+  company: process.env.NEXT_PUBLIC_COMPANY_NAME?.trim() || "ACE ZERO TRADING LTD",
+  companyDisplayName: "ACE ZERO TRADING",
+  alternateNames: [
+    "ACE ZERO TRADING",
+    "Ace Zero Trading",
+    "ACE ZERO TRADING LTD",
+    "AceZeroTrading",
+    "ACE ZERO TRADING Shopify AI",
+    "ACE ZERO TRADING Growth Studio",
+    "acezerotrading.com"
+  ],
   supportEmail: process.env.NEXT_PUBLIC_SUPPORT_EMAIL?.trim() || "admin@acezerotrading.com",
   url: getPublicSiteUrl()
 };

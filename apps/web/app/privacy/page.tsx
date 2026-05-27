@@ -5,7 +5,7 @@ import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: `Privacy Policy | ${siteConfig.name}`,
-  description: "Privacy policy for AceStudio",
+  description: "Privacy policy for ACE ZERO TRADING",
   alternates: {
     canonical: "/privacy"
   }

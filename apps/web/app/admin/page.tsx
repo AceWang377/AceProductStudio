@@ -128,7 +128,7 @@ export default async function AdminPage({
 
       <Panel
         icon={LineChart}
-        title="AceStudio site search monitor"
+        title="ACE ZERO TRADING site search monitor"
         detail="Admin-only Search Console and technical SEO snapshots for acezerotrading.com. Merchant accounts never see these CTR, query, or impression numbers."
         badge={appMonitorRuns.length ? `${appMonitorRuns.length} runs` : "No runs"}
         tone={appMonitorRuns.length ? "ready" : "neutral"}
@@ -141,7 +141,7 @@ export default async function AdminPage({
                 <div key={run.id} className="border border-line bg-canvas p-4 text-sm">
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
-                      <p className="truncate font-semibold">{run.targetUrl || "AceStudio"}</p>
+                      <p className="truncate font-semibold">{run.targetUrl || "ACE ZERO TRADING"}</p>
                       <p className="mt-1 text-xs text-muted">{formatDate(run.createdAt)}</p>
                     </div>
                     <StatusPill value={run.status} />
@@ -169,7 +169,7 @@ export default async function AdminPage({
             })}
           </div>
         ) : (
-          <EmptyLine text="No AceStudio monitor runs yet. The cron monitor can save app-site snapshots here without exposing them to merchant workspaces." />
+          <EmptyLine text="No ACE ZERO TRADING monitor runs yet. The cron monitor can save app-site snapshots here without exposing them to merchant workspaces." />
         )}
       </Panel>
 

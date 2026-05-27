@@ -44,7 +44,7 @@ export const realUserQaSuite = {
         "Choose Create account.",
         "Submit email and password.",
         "Confirm the email if Supabase requires confirmation.",
-        "Return to AceStudio and open the dashboard."
+        "Return to ACE ZERO TRADING and open the dashboard."
       ],
       evidence: [
         "Dashboard loads without admin-only data.",
@@ -68,20 +68,20 @@ export const realUserQaSuite = {
       title: "Sign in with Google",
       href: "/login",
       owner: "Merchant tester",
-      objective: "Confirm Google OAuth works and displays AceStudio branding in the consent flow.",
+      objective: "Confirm Google OAuth works and displays ACE ZERO TRADING branding in the consent flow.",
       setup: [
         "Google provider is enabled in Supabase.",
         "Google OAuth redirect URI points to the Supabase auth callback URL.",
-        "Supabase Site URL and Redirect URLs include the production AceStudio domain."
+        "Supabase Site URL and Redirect URLs include the production ACE ZERO TRADING domain."
       ],
       actions: [
         "Open the login page.",
         "Click Continue with Google.",
         "Select the test Google account.",
-        "Return to AceStudio."
+        "Return to ACE ZERO TRADING."
       ],
       evidence: [
-        "Google consent shows AceStudio or the configured app name.",
+        "Google consent shows ACE ZERO TRADING or the configured app name.",
         "The user lands on /dashboard.",
         "Account page shows the Google account email."
       ],
@@ -106,14 +106,14 @@ export const realUserQaSuite = {
       setup: [
         "Use a Shopify development store.",
         "Use the original myshopify.com store domain.",
-        "Shopify app URL and redirect URL are set to the production AceStudio domain."
+        "Shopify app URL and redirect URL are set to the production ACE ZERO TRADING domain."
       ],
       actions: [
         "Open Shopify settings.",
         "Enter the store's myshopify.com domain.",
         "Start OAuth.",
         "Approve the requested Shopify permissions.",
-        "Return to AceStudio."
+        "Return to ACE ZERO TRADING."
       ],
       evidence: [
         "Connected store success message is shown.",
@@ -121,7 +121,7 @@ export const realUserQaSuite = {
         "No client secret or Admin API token is exposed in the browser."
       ],
       passCriteria: [
-        "The OAuth callback returns to AceStudio.",
+        "The OAuth callback returns to ACE ZERO TRADING.",
         "The store is saved to the signed-in user's account.",
         "Reconnect works without creating duplicate broken state."
       ],
@@ -284,7 +284,7 @@ export const realUserQaSuite = {
         "Return to Billing and refresh after webhook delivery."
       ],
       evidence: [
-        "Checkout success page returns to AceStudio.",
+        "Checkout success page returns to ACE ZERO TRADING.",
         "Credit balance increases by the pack amount.",
         "Credit ledger records the Stripe payment id."
       ],

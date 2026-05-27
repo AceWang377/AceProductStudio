@@ -7,14 +7,14 @@ import { siteConfig } from "@/lib/site";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Simple AceStudio credit packs for Shopify product image generation, SEO copy, Growth Studio audits, and approved Shopify write-back workflows.",
+    "Simple ACE ZERO TRADING credit packs for Shopify product image generation, SEO copy, Growth Studio audits, and approved Shopify write-back workflows.",
   alternates: {
     canonical: "/pricing"
   },
   openGraph: {
     title: `Pricing | ${siteConfig.name}`,
     description:
-      "Review AceStudio credit packs for Shopify product creation, SEO/GEO optimization, and draft-first publishing.",
+      "Review ACE ZERO TRADING credit packs for Shopify product creation, SEO/GEO optimization, and draft-first publishing.",
     url: `${siteConfig.url}/pricing`,
     type: "website"
   }
@@ -38,7 +38,7 @@ const creditRules = [
   },
   {
     title: "Draft-first publishing",
-    body: "Publishing is review-first. AceStudio creates drafts or applies confirmed SEO updates only after approval."
+    body: "Publishing is review-first. ACE ZERO TRADING creates drafts or applies confirmed SEO updates only after approval."
   }
 ];
 
@@ -48,7 +48,7 @@ export default function PricingPage() {
     "@graph": [
       {
         "@type": "WebPage",
-        name: "AceStudio Pricing",
+        name: "ACE ZERO TRADING Pricing",
         description: metadata.description,
         url: `${siteConfig.url}/pricing`
       },
@@ -71,7 +71,7 @@ export default function PricingPage() {
       },
       {
         "@type": "OfferCatalog",
-        name: "AceStudio credit packs",
+        name: "ACE ZERO TRADING credit packs",
         itemListElement: CREDIT_PACKS.map((pack) => ({
           "@type": "Offer",
           name: pack.name,
@@ -87,7 +87,7 @@ export default function PricingPage() {
         mainEntity: [
           {
             "@type": "Question",
-            name: "What do AceStudio credits pay for?",
+            name: "What do ACE ZERO TRADING credits pay for?",
             acceptedAnswer: {
               "@type": "Answer",
               text: "Credits are used for generation and optimization workflows such as product images, SEO/GEO rewrite drafts, and approved Shopify update previews."
@@ -95,10 +95,10 @@ export default function PricingPage() {
           },
           {
             "@type": "Question",
-            name: "Does AceStudio publish products live automatically?",
+            name: "Does ACE ZERO TRADING publish products live automatically?",
             acceptedAnswer: {
               "@type": "Answer",
-              text: "No. AceStudio is designed around draft-first publishing and review-before-write Shopify updates."
+              text: "No. ACE ZERO TRADING is designed around draft-first publishing and review-before-write Shopify updates."
             }
           }
         ]
@@ -128,7 +128,7 @@ export default function PricingPage() {
               href="/login"
               className="studio-focus inline-flex h-11 items-center gap-2 rounded bg-action px-4 text-sm font-semibold text-white"
             >
-              Start with AceStudio
+              Start with ACE ZERO TRADING
               <ArrowRight className="h-4 w-4" aria-hidden />
             </Link>
             <Link

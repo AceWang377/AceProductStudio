@@ -487,7 +487,7 @@ async function fetchWithRedirectInfo(url: string, maxHops = 5) {
   while (hops <= maxHops) {
     const response = await fetch(currentUrl, {
       redirect: "manual",
-      headers: { "User-Agent": "AceStudioGrowthBot/1.0 (+https://acezerotrading.com)" }
+      headers: { "User-Agent": "AceZeroTradingGrowthBot/1.0 (+https://acezerotrading.com)" }
     });
     status = response.status;
     const location = response.headers.get("location");
@@ -667,7 +667,7 @@ function buildVisibilityQueries({
     .filter((title): title is string => Boolean(title))
     .slice(0, 4);
   return Array.from(new Set([
-    `AceStudio Shopify AI product listing generator`,
+    `ACE ZERO TRADING Shopify AI product listing generator`,
     `${hostname} Shopify SEO GEO`,
     connection?.shopDomain ? `${connection.shopDomain} product SEO` : "",
     ...productTitles.map((title) => `${title} Shopify product`)

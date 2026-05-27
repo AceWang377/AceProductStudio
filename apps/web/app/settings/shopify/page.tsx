@@ -87,7 +87,7 @@ export default async function ShopifySettingsPage({
           text={
             webhookStatus === "warning"
               ? "The store is connected, but automatic disconnect on uninstall could not be registered. Reconnect the store later or contact support."
-              : "If this store uninstalls the app, AceStudio will automatically mark the Shopify connection inactive."
+              : "If this store uninstalls the app, ACE ZERO TRADING will automatically mark the Shopify connection inactive."
           }
         />
       ) : null}

@@ -2,7 +2,7 @@ import { ImageResponse } from "next/og";
 import { siteConfig } from "@/lib/site";
 
 export const runtime = "edge";
-export const alt = "AceStudio AI Shopify product listing workspace";
+export const alt = "ACE ZERO TRADING AI Shopify product listing workspace";
 export const size = {
   width: 1200,
   height: 630

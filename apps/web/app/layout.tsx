@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(siteConfig.url),
   applicationName: siteConfig.name,
   title: {
-    default: "AceStudio: AI Product Content Tool for Shopify Sellers",
+    default: "ACE ZERO TRADING: AI Product Content Tool for Shopify Sellers",
     template: `%s | ${siteConfig.name}`
   },
   description:
@@ -47,7 +47,7 @@ export const metadata: Metadata = {
     ]
   },
   openGraph: {
-    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
+    title: "ACE ZERO TRADING: AI Product Content Tool for Shopify Sellers",
     description:
       "Upload one product photo, generate Shopify-ready product media and SEO/GEO copy, then publish a reviewable draft listing.",
     url: siteConfig.url,
@@ -59,13 +59,13 @@ export const metadata: Metadata = {
         url: `${siteConfig.url}/opengraph-image`,
         width: 1200,
         height: 630,
-        alt: "AceStudio AI Shopify product listing workspace"
+        alt: "ACE ZERO TRADING AI Shopify product listing workspace"
       }
     ]
   },
   twitter: {
     card: "summary_large_image",
-    title: "AceStudio: AI Product Content Tool for Shopify Sellers",
+    title: "ACE ZERO TRADING: AI Product Content Tool for Shopify Sellers",
     description:
       "Generate product images, SEO descriptions, FAQs, GEO-ready copy, and Shopify draft listings from one product photo.",
     images: [`${siteConfig.url}/opengraph-image`]

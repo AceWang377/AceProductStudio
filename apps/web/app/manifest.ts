@@ -3,8 +3,8 @@ import { siteConfig } from "@/lib/site";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "AceStudio",
-    short_name: "AceStudio",
+    name: "ACE ZERO TRADING",
+    short_name: "ACE ZERO TRADING",
     description:
       "AI product content workspace for Shopify sellers: generate product images, SEO copy, GEO-ready content, and draft listings.",
     start_url: "/",
@@ -40,7 +40,7 @@ export default function manifest(): MetadataRoute.Manifest {
         sizes: "1200x630",
         type: "image/png",
         form_factor: "wide",
-        label: "AceStudio Shopify product and SEO/GEO workspace"
+        label: "ACE ZERO TRADING Shopify product and SEO/GEO workspace"
       }
     ]
   };
