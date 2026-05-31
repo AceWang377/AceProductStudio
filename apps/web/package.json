@@ -23,7 +23,7 @@
     "@ai-product-studio/shopify": "*",
     "@ai-product-studio/storage": "*",
     "@supabase/ssr": "^0.10.2",
-    "@supabase/supabase-js": "^2.105.1",
+    "@supabase/supabase-js": "^2.106.2",
     "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
     "next": "^15.3.2",
