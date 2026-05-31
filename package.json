@@ -2,6 +2,26 @@
   "name": "ai-product-studio",
   "private": true,
   "version": "0.1.0",
+  "description": "Open-source reference implementation for review-first AI commerce workflows with Next.js, OpenAI, Supabase, Shopify, and Stripe.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/AceWang377/AceProductStudio.git"
+  },
+  "bugs": {
+    "url": "https://github.com/AceWang377/AceProductStudio/issues"
+  },
+  "homepage": "https://github.com/AceWang377/AceProductStudio#readme",
+  "keywords": [
+    "ai-commerce",
+    "shopify",
+    "openai",
+    "nextjs",
+    "supabase",
+    "stripe",
+    "reference-implementation",
+    "maintainer-tools"
+  ],
   "workspaces": [
     "apps/*",
     "packages/*"

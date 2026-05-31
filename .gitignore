@@ -2,6 +2,9 @@ node_modules
 .next
 dist
 .env
+.env.*
+!.env.example
+!**/.env.example
 .env.local
 *.log
 *.tsbuildinfo
@@ -11,3 +14,17 @@ apps/web/data/app-state.json
 apps/web/public/uploads/*
 !apps/web/public/uploads/.gitkeep
 .vercel
+.playwright-cli/
+
+# Private launch, outreach, and advertising operations notes.
+docs/ad-launch-checklist.md
+docs/direct-promotion-queue.csv
+docs/directory-submission-pack.md
+docs/launch-channel-posting-queue.md
+docs/live-promotion-targets-*.md
+docs/negative-keywords.csv
+docs/outreach-tracker-template.csv
+docs/search-ad-campaign-assets.csv
+docs/shopify-community-reply-queue.md
+docs/social-ad-assets.csv
+docs/today-traffic-sprint.md
